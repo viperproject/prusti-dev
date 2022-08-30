@@ -4,13 +4,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-
-
-use prusti_rustc_interface::polonius_engine::FactTypes;
-use prusti_rustc_interface::borrowck::consumers::{RustcFacts, LocationTable, RichLocation};
-use prusti_rustc_interface::middle::mir;
-use std::rc::Rc;
-use std::cell::RefCell;
+use prusti_rustc_interface::{
+    borrowck::consumers::{LocationTable, RichLocation, RustcFacts},
+    middle::mir,
+    polonius_engine::FactTypes,
+};
+use std::{cell::RefCell, rc::Rc};
 
 pub type Region = <RustcFacts as FactTypes>::Origin;
 pub type Loan = <RustcFacts as FactTypes>::Loan;
@@ -80,9 +79,7 @@ impl std::fmt::Display for Point {
         write!(
             f,
             "{:?}:{:?}:{:?}",
-            self.location.block,
-            self.location.statement_index,
-            self.typ
+            self.location.block, self.location.statement_index, self.typ
         )
     }
 }
@@ -107,16 +104,14 @@ impl Interner {
     pub fn get_point(&self, index: PointIndex) -> Point {
         // self.points.get_element(index)
         match self.location_table.to_location(index) {
-            RichLocation::Start(location) => {
-                Point {
-                    location, typ: PointType::Start
-                }
-            }
-            RichLocation::Mid(location) => {
-                Point {
-                    location, typ: PointType::Mid
-                }
-            }
+            RichLocation::Start(location) => Point {
+                location,
+                typ: PointType::Start,
+            },
+            RichLocation::Mid(location) => Point {
+                location,
+                typ: PointType::Mid,
+            },
         }
     }
 }

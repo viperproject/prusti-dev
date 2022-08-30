@@ -4,16 +4,17 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::utils;
-use crate::environment::mir_sets::PlaceSet;
-use crate::environment::procedure::BasicBlockIndex;
-use prusti_rustc_interface::middle::mir;
-use prusti_rustc_interface::middle::mir::visit::Visitor;
-use prusti_rustc_interface::data_structures::graph::dominators::Dominators;
-use rustc_hash::{FxHashMap, FxHashSet};
-use prusti_rustc_interface::index::vec::{Idx, IndexVec};
+use crate::{
+    environment::{mir_sets::PlaceSet, mir_utils::RealEdges, procedure::BasicBlockIndex},
+    utils,
+};
 use log::{debug, trace};
-use crate::environment::mir_utils::RealEdges;
+use prusti_rustc_interface::{
+    data_structures::graph::dominators::Dominators,
+    index::vec::{Idx, IndexVec},
+    middle::{mir, mir::visit::Visitor},
+};
+use rustc_hash::{FxHashMap, FxHashSet};
 
 /// Walk up the CFG graph an collect all basic blocks that belong to the loop body.
 fn collect_loop_body(
@@ -106,13 +107,16 @@ impl<'b, 'tcx> Visitor<'tcx> for AccessCollector<'b, 'tcx> {
             let access_kind = match context {
                 MutatingUse(mir::visit::MutatingUseContext::Store) => PlaceAccessKind::Store,
                 MutatingUse(mir::visit::MutatingUseContext::Call) => PlaceAccessKind::Store,
-                MutatingUse(mir::visit::MutatingUseContext::Borrow) => PlaceAccessKind::MutableBorrow,
+                MutatingUse(mir::visit::MutatingUseContext::Borrow) => {
+                    PlaceAccessKind::MutableBorrow
+                }
                 MutatingUse(mir::visit::MutatingUseContext::Drop) => PlaceAccessKind::Move,
                 NonMutatingUse(mir::visit::NonMutatingUseContext::Copy) => PlaceAccessKind::Read,
                 NonMutatingUse(mir::visit::NonMutatingUseContext::Move) => PlaceAccessKind::Move,
                 NonMutatingUse(mir::visit::NonMutatingUseContext::Inspect) => PlaceAccessKind::Read,
-                NonMutatingUse(mir::visit::NonMutatingUseContext::SharedBorrow) =>
-                    PlaceAccessKind::SharedBorrow,
+                NonMutatingUse(mir::visit::NonMutatingUseContext::SharedBorrow) => {
+                    PlaceAccessKind::SharedBorrow
+                }
                 NonUse(_) => unreachable!(),
                 x => unimplemented!("{:?}", x),
             };
@@ -156,12 +160,18 @@ fn order_basic_blocks<'tcx>(
         let curr_depth = loop_depth(current);
         // We want to order the loop body before exit edges
         let successors_groups: Vec<Vec<_>> = vec![
-            real_edges.successors(current).iter().filter(
-                |&&bb| loop_depth(bb) < curr_depth
-            ).cloned().collect(),
-            real_edges.successors(current).iter().filter(
-                |&&bb| loop_depth(bb) >= curr_depth
-            ).cloned().collect(),
+            real_edges
+                .successors(current)
+                .iter()
+                .filter(|&&bb| loop_depth(bb) < curr_depth)
+                .cloned()
+                .collect(),
+            real_edges
+                .successors(current)
+                .iter()
+                .filter(|&&bb| loop_depth(bb) >= curr_depth)
+                .cloned()
+                .collect(),
         ];
         for group in &successors_groups {
             for &successor in group.iter() {
@@ -222,7 +232,6 @@ pub struct ProcedureLoops {
     dominators: Dominators<BasicBlockIndex>,
     /// The list of basic blocks ordered in the topological order (ignoring back edges).
     pub ordered_blocks: Vec<BasicBlockIndex>,
-
 }
 
 impl ProcedureLoops {
@@ -270,7 +279,8 @@ impl ProcedureLoops {
         }
 
         let get_loop_depth = |bb: BasicBlockIndex| {
-            enclosing_loop_heads.get(&bb)
+            enclosing_loop_heads
+                .get(&bb)
                 .and_then(|heads| heads.last())
                 .map(|bb_head| loop_head_depths[bb_head])
                 .unwrap_or(0)
@@ -278,7 +288,11 @@ impl ProcedureLoops {
 
         let ordered_blocks = order_basic_blocks(mir, real_edges, &back_edges, &get_loop_depth);
         let block_order: FxHashMap<BasicBlockIndex, usize> = ordered_blocks
-            .iter().cloned().enumerate().map(|(i, v)| (v, i)).collect();
+            .iter()
+            .cloned()
+            .enumerate()
+            .map(|(i, v)| (v, i))
+            .collect();
         debug!("ordered_blocks: {:?}", ordered_blocks);
 
         let mut ordered_loop_bodies = FxHashMap::default();
@@ -310,9 +324,10 @@ impl ProcedureLoops {
                 // Decide if this block has an exit edge
                 let term = mir[curr_bb].terminator();
                 let is_switch_int = matches!(term.kind, mir::TerminatorKind::SwitchInt { .. });
-                let has_exit_edge = real_edges.successors(curr_bb).iter().any(
-                    |&bb| get_loop_depth(bb) < loop_head_depth
-                );
+                let has_exit_edge = real_edges
+                    .successors(curr_bb)
+                    .iter()
+                    .any(|&bb| get_loop_depth(bb) < loop_head_depth);
                 if is_switch_int && has_exit_edge {
                     exit_blocks.push(curr_bb);
                 }
@@ -341,11 +356,15 @@ impl ProcedureLoops {
         }
         for &(back_edge_source, loop_head) in back_edges.iter() {
             let blocks = nonconditional_loop_blocks.get_mut(&loop_head).unwrap();
-            *blocks = blocks.intersection(
-                &dominators.dominators(back_edge_source).collect()
-            ).copied().collect();
+            *blocks = blocks
+                .intersection(&dominators.dominators(back_edge_source).collect())
+                .copied()
+                .collect();
         }
-        debug!("nonconditional_loop_blocks: {:?}", nonconditional_loop_blocks);
+        debug!(
+            "nonconditional_loop_blocks: {:?}",
+            nonconditional_loop_blocks
+        );
 
         ProcedureLoops {
             loop_heads,
@@ -357,7 +376,7 @@ impl ProcedureLoops {
             nonconditional_loop_blocks,
             back_edges,
             dominators,
-            ordered_blocks
+            ordered_blocks,
         }
     }
 
@@ -408,7 +427,9 @@ impl ProcedureLoops {
 
     /// Get the loop-depth of a block (zero if it's not in a loop).
     pub fn get_loop_depth(&self, bbi: BasicBlockIndex) -> usize {
-        self.get_loop_head(bbi).map(|x| self.get_loop_head_depth(x)).unwrap_or(0)
+        self.get_loop_head(bbi)
+            .map(|x| self.get_loop_head_depth(x))
+            .unwrap_or(0)
     }
 
     /// Get the (topologically ordered) body of a loop, given a loop head
@@ -497,7 +518,7 @@ impl ProcedureLoops {
         if let Some(paths) = definitely_initalised_paths {
             debug!("definitely_initalised_paths = {:?}", paths);
             accesses_pairs.retain(|(place, kind)| {
-                    paths.iter().any(|initialised_place|
+                paths.iter().any(|initialised_place|
                         // If the prefix is definitely initialised, then this place is a potential
                         // loop invariant.
                         utils::is_prefix(*place, *initialised_place) ||
@@ -510,7 +531,7 @@ impl ProcedureLoops {
                             *kind == PlaceAccessKind::Store &&
                             utils::is_prefix(*initialised_place, *place)
                         ))
-                });
+            });
         }
         debug!("accesses_pairs = {:?}", accesses_pairs);
         // Paths to whose leaves we need write permissions.
