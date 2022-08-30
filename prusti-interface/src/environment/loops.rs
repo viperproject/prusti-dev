@@ -133,7 +133,7 @@ fn order_basic_blocks<'tcx>(
     back_edges: &FxHashSet<(BasicBlockIndex, BasicBlockIndex)>,
     loop_depth: &dyn Fn(BasicBlockIndex) -> usize,
 ) -> Vec<BasicBlockIndex> {
-    let basic_blocks = mir.basic_blocks();
+    let basic_blocks = &mir.basic_blocks;
     let mut sorted_blocks = Vec::new();
     let mut permanent_mark =
         IndexVec::<BasicBlockIndex, bool>::from_elem_n(false, basic_blocks.len());
@@ -230,7 +230,7 @@ impl ProcedureLoops {
         let dominators = mir.basic_blocks.dominators();
 
         let mut back_edges: FxHashSet<(_, _)> = FxHashSet::default();
-        for bb in mir.basic_blocks().indices() {
+        for bb in mir.basic_blocks.indices() {
             for successor in real_edges.successors(bb) {
                 if dominators.is_dominated_by(bb, *successor) {
                     back_edges.insert((bb, *successor));

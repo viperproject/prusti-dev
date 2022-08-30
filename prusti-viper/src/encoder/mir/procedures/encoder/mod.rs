@@ -442,7 +442,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         let entry_label = vir_high::BasicBlockId::new("label_entry".to_string());
         let mut block_builder = procedure_builder.create_basic_block_builder(entry_label.clone());
-        if self.mir.basic_blocks().is_empty() {
+        if self.mir.basic_blocks.is_empty() {
             block_builder.set_successor_exit(SuccessorExitKind::Return);
         } else {
             block_builder.set_successor_jump(vir_high::Successor::Goto(

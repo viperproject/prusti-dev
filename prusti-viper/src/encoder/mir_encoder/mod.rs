@@ -812,7 +812,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     }
 
     pub fn get_span_of_basic_block(&self, bbi: mir::BasicBlock) -> Span {
-        let bb_data = &self.mir.basic_blocks()[bbi];
+        let bb_data = &self.mir.basic_blocks[bbi];
         bb_data.terminator().source_info.span
     }
 
