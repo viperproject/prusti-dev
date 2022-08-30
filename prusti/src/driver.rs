@@ -107,13 +107,6 @@ fn init_loggers() {
     prusti_rustc_interface::driver::init_rustc_env_logger();
 }
 
-const PRUSTI_PACKAGES: [&str; 4] = [
-    "prusti-contracts-internal",
-    "prusti-contracts-impl",
-    "prusti-contracts",
-    "prusti-specs",
-];
-
 fn main() {
     let stopwatch = Stopwatch::start("prusti", "main");
 
@@ -130,9 +123,7 @@ fn main() {
     let is_no_verify_crate = !is_primary_package && config::no_verify_deps();
     let are_lints_disabled =
         arg_value(&original_rustc_args, "--cap-lints", |val| val == "allow").is_some();
-    let is_prusti_package = env::var("CARGO_PKG_NAME")
-        .map(|name| PRUSTI_PACKAGES.contains(&name.as_str()))
-        .unwrap_or(false);
+    let is_prusti_package = config::is_prusti_helper_crate();
     if prusti_be_rustc || is_no_verify_crate || are_lints_disabled || is_prusti_package {
         prusti_rustc_interface::driver::main();
     }

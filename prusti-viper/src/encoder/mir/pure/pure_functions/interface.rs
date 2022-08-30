@@ -171,7 +171,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
         parent_def_id: ProcedureDefId,
         substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_high::Expression> {
-        let mir_span = self.env().tcx().def_span(proc_def_id);
+        let mir_span = self.env().query.get_def_span(proc_def_id);
         let substs_key = self
             .encode_generic_arguments_high(proc_def_id, substs)
             .with_span(mir_span)?;
@@ -212,7 +212,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
         parent_def_id: ProcedureDefId,
         substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_poly::Expr> {
-        let mir_span = self.env().tcx().def_span(proc_def_id);
+        let mir_span = self.env().query.get_def_span(proc_def_id);
         let substs_key = self
             .encode_generic_arguments_high(proc_def_id, substs)
             .with_span(mir_span)?;
@@ -256,7 +256,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             proc_def_id
         );
 
-        let mir_span = self.env().tcx().def_span(proc_def_id);
+        let mir_span = self.env().query.get_def_span(proc_def_id);
         let substs_key = self
             .encode_generic_arguments_high(proc_def_id, substs)
             .with_span(mir_span)?;
@@ -291,8 +291,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             let maybe_identifier: SpannedEncodingResult<vir_poly::FunctionIdentifier> = (|| {
                 let proc_kind = self.get_proc_kind(proc_def_id, Some(substs));
                 let is_bodyless = self.is_trusted(proc_def_id, Some(substs))
-                    || !self.env().tcx().is_mir_available(proc_def_id)
-                    || self.env().tcx().is_constructor(proc_def_id);
+                    || !self.env().query.has_body(proc_def_id);
                 let mut function = if is_bodyless {
                     pure_function_encoder.encode_bodyless_function()?
                 } else {
@@ -351,7 +350,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                 Err(error) => {
                     self.register_encoding_error(error);
                     debug!("Error encoding pure function: {:?}", proc_def_id);
-                    let body = self.env().external_mir(proc_def_id, substs);
+                    let body = self.env().body.get_pure_fn_body(proc_def_id, substs);
                     // TODO(tymap): does stub encoder need substs?
                     let stub_encoder = StubFunctionEncoder::new(self, proc_def_id, &body, substs);
                     let function = stub_encoder.encode_function()?;
@@ -404,7 +403,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             proc_def_id
         );
 
-        let mir_span = self.env().tcx().def_span(proc_def_id);
+        let mir_span = self.env().query.get_def_span(proc_def_id);
         let substs_key = self
             .encode_generic_arguments_high(proc_def_id, substs)
             .with_span(mir_span)?;
@@ -467,7 +466,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             proc_def_id
         );
 
-        let mir_span = self.env().tcx().def_span(proc_def_id);
+        let mir_span = self.env().query.get_def_span(proc_def_id);
         let substs_key = self
             .encode_generic_arguments_high(proc_def_id, substs)
             .with_span(mir_span)?;

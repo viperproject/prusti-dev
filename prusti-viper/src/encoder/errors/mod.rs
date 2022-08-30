@@ -15,7 +15,7 @@ pub use prusti_rustc_interface::errors::MultiSpan;
 
 mod conversions;
 mod spanned_encoding_error;
-mod error_manager;
+pub mod error_manager;
 mod encoding_error;
 mod encoding_error_kind;
 mod with_span;

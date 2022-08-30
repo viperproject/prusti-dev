@@ -2,6 +2,7 @@
 // normalize-stdout-test: "[a-z0-9]{32}" -> "$(NUM_UUID)"
 // normalize-stdout-test: "[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}" -> "$(UUID)"
 // normalize-stdout-test: "/[[a-z0-9]{4}/]::" -> "[$(CRATE_ID)]::"
+// normalize-stdout-test: "#/[prusti::specs_version = /x22.+/x22/]" -> "#[prusti::specs_version = $(SPECS_VERSION)]"
 
 
 
@@ -15,12 +16,12 @@
 use std::prelude::rust_2018::*;
 #[macro_use]
 extern crate std;
-extern crate prusti_contracts;
 use prusti_contracts::*;
 struct Foo<'a, T: PartialEq, const L : usize>(&'a [T; L]);
 impl<'a, T: PartialEq, const L : usize> Foo<'a, T, L> {
     pub fn bar(self) -> &'a [T; L] { self.0 }
 }
+#[prusti::specs_version = $(SPECS_VERSION)]
 #[allow(non_camel_case_types)]
 struct PrustiStructFoo_$(NUM_UUID)<'a, T: PartialEq,
     const L :
@@ -46,4 +47,4 @@ impl<'a, T: PartialEq, const L : usize>
     }
 }
 fn main() {}
-ProcedureSpecification { span: Some($DIR/trait-bounds.rs:19:9: 19:35 (#0)), kind: Inherent(Pure), pres: Empty, posts: Inherent([DefId(0:30 ~ trait_bounds[$(CRATE_ID)]::{impl#1}::prusti_post_item_bar_$(NUM_UUID))]), pledges: Empty, trusted: Inherent(true) }
+ProcedureSpecification { source: DefId(0:31 ~ trait_bounds[$(CRATE_ID)]::{impl#1}::bar), kind: Inherent(Pure), pres: Empty, posts: Inherent([DefId(0:29 ~ trait_bounds[$(CRATE_ID)]::{impl#1}::prusti_post_item_bar_$(NUM_UUID))]), pledges: Empty, trusted: Inherent(true) }

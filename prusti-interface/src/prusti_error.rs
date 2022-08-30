@@ -6,7 +6,7 @@
 
 use prusti_rustc_interface::span::Span;
 use prusti_rustc_interface::errors::MultiSpan;
-use crate::environment::Environment;
+use crate::environment::EnvDiagnostic;
 use prusti_common::config;
 use ::log::warn;
 
@@ -185,22 +185,22 @@ impl PrustiError {
     /// Report the encoding error using the compiler's interface.
     /// Warnings are not immediately emitted, but buffered and only shown
     /// if an error is emitted (i.e. verification failure)
-    pub fn emit(self, env: &Environment) {
+    pub fn emit(self, env_diagnostic: &EnvDiagnostic) {
         assert!(!self.is_disabled);
         match self.kind {
-            PrustiErrorKind::Error => env.span_err_with_help_and_notes(
+            PrustiErrorKind::Error => env_diagnostic.span_err_with_help_and_notes(
                 self.span,
                 &self.message,
                 &self.help,
                 &self.notes,
             ),
-            PrustiErrorKind::Warning => env.span_warn_with_help_and_notes(
+            PrustiErrorKind::Warning => env_diagnostic.span_warn_with_help_and_notes(
                 self.span,
                 &self.message,
                 &self.help,
                 &self.notes,
             ),
-            PrustiErrorKind::WarningOnError => env.span_warn_on_err_with_help_and_notes(
+            PrustiErrorKind::WarningOnError => env_diagnostic.span_warn_on_err_with_help_and_notes(
                 self.span,
                 &self.message,
                 &self.help,

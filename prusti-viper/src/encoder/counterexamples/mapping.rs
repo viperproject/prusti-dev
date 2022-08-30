@@ -10,22 +10,22 @@ use rustc_hash::{FxHashMap};
 #[derive(Default)]
 pub(crate) struct VarMapping{
     //Mapping between mir varable names and basic blocks of snapshotvariables
-    pub(crate) var_snaphot_mapping: FxHashMap<String, FxHashMap<String, Vec<SnapshotVar>>>, 
+    pub(crate) var_snaphot_mapping: FxHashMap<String, FxHashMap<String, Vec<SnapshotVar>>>,
     //Mapping of all labels and its successors label
-    pub(crate) labels_successor_mapping: FxHashMap<String, Vec<String>>, 
+    pub(crate) labels_successor_mapping: FxHashMap<String, Vec<String>>,
     //Mapping of pure function calls per basic block
-    pub(crate) pure_functions_mapping: FxHashMap<String, Vec<PureFunction>>, 
+    pub(crate) pure_functions_mapping: FxHashMap<String, Vec<PureFunction>>,
 }
 
 #[derive(Debug)]
 pub(crate) struct SnapshotVar{
-    pub(crate) name: String, 
+    pub(crate) name: String,
     pub(crate) position: vir_low::Position
 }
 
 #[derive(Debug)]
 pub(crate) struct PureFunction{
-    pub(crate) name: String, 
+    pub(crate) name: String,
     pub(crate) args: Vec<String>,
     pub(crate) position: vir_low::Position
 }
@@ -40,7 +40,7 @@ pub(crate) trait VarMappingInterface {
 
 impl<'ce, 'tcx, 'v> VarMappingInterface for super::counterexample_translation_refactored::CounterexampleTranslator<'ce, 'tcx, 'v> {
     fn create_mapping(&mut self, proc_def_id: ProcedureDefId, encoder: &Encoder){
-        let name = encoder.env().get_absolute_item_name(proc_def_id);
+        let name = encoder.env().name.get_absolute_item_name(proc_def_id);
         if let Some(mir_procedure_mapping) = encoder.get_mapping(name){
             for basic_block in mir_procedure_mapping{
                 let label = &basic_block.label;
@@ -57,12 +57,12 @@ impl<'ce, 'tcx, 'v> VarMappingInterface for super::counterexample_translation_re
                         match self.var_mapping.var_snaphot_mapping.get_mut(&mir_var) {
                             Some(label_snapshot_mapping) => { //mir var already in mapping
                                 match label_snapshot_mapping.get_mut(label){ //other snapshot vars are in mapping for that label
-                                    Some(snapshot_var_vec) => { 
+                                    Some(snapshot_var_vec) => {
                                         //filter duplicates
                                         if !position_equality(&snapshot_var_vec.last().unwrap().position, &snapshot_var.position){ //safe because vec.len => 1
                                             snapshot_var_vec.push(snapshot_var);
-                                        } 
-                                    } 
+                                        }
+                                    }
                                     None => { //no snapshot vars in mapping for that label
                                         let snapshot_var_vec = vec![snapshot_var];
                                         label_snapshot_mapping.insert(label.clone(), snapshot_var_vec);
@@ -72,9 +72,9 @@ impl<'ce, 'tcx, 'v> VarMappingInterface for super::counterexample_translation_re
                             None => { //mir var not in mapping
                                 let snapshot_var_vec = vec![snapshot_var];
                                 let mut label_snapshot_mapping = FxHashMap::default();
-                                label_snapshot_mapping.insert(label.clone(), snapshot_var_vec);          
-                                self.var_mapping.var_snaphot_mapping.insert(mir_var, label_snapshot_mapping);          
-                            }   
+                                label_snapshot_mapping.insert(label.clone(), snapshot_var_vec);
+                                self.var_mapping.var_snaphot_mapping.insert(mir_var, label_snapshot_mapping);
+                            }
                         }
                     }
 
@@ -87,14 +87,14 @@ impl<'ce, 'tcx, 'v> VarMappingInterface for super::counterexample_translation_re
                         match self.var_mapping.pure_functions_mapping.get_mut(label) {
                             Some(pure_fn_vec) => { //further function calls
                                 pure_fn_vec.push(pure_fn);
-                            } 
+                            }
                             None => { //first function call at that label
                                 let pure_fn_vec = vec![pure_fn];
                                 self.var_mapping.pure_functions_mapping.insert(label.clone(), pure_fn_vec);
                             }
                         }
                     }
-                } 
+                }
             }
         }
     }
@@ -107,7 +107,7 @@ impl<'ce, 'tcx, 'v> VarMappingInterface for super::counterexample_translation_re
                let successor = possible_successors.iter().filter(|x| *label_markers.get(*x).unwrap_or(&false)).collect::<Vec<&String>>();
                if successor.len() == 1 { //there should always be at most one successor
                     Some(successor.first()?)
-               } else { 
+               } else {
                     //the block has no successor; end of method or verification failure in that block
                     //multiple succesors should not be possible
                     None
@@ -152,9 +152,9 @@ impl<'ce, 'tcx, 'v> VarMappingInterface for super::counterexample_translation_re
         //
         match &statement.expression {
             //variable assignment of the following form:
-            //inhale snapvar_1 == snapvar_2 
-            //inhale snapvar_1[0] == snapvar_2 
-            vir_low::Expression::Local(local) | 
+            //inhale snapvar_1 == snapvar_2
+            //inhale snapvar_1[0] == snapvar_2
+            vir_low::Expression::Local(local) |
             vir_low::Expression::BinaryOp(BinaryOp{ op_kind:BinaryOpKind::EqCmp ,  left:box vir_low::Expression::Local(local), .. }) |
             vir_low::Expression::BinaryOp(BinaryOp{ op_kind:BinaryOpKind::EqCmp ,  left:box vir_low::Expression::ContainerOp(ContainerOp { op_kind: ContainerOpKind::SeqIndex, left:box vir_low::Expression::Local(local), .. }), ..}) => {
                 if local.variable.name.contains("snapshot"){
@@ -165,11 +165,11 @@ impl<'ce, 'tcx, 'v> VarMappingInterface for super::counterexample_translation_re
                 } else {
                     None
                 }
-            }, 
+            },
             //variable assignments of the following form:
             //inhale destruct_field(_1$snapshot$1) == snapvar_2                     (structs and enums)
             //inhale destruct_field_value(destruct_field(_1$snapshot$1)) == snapvar_2     (unions)
-            vir_low::Expression::DomainFuncApp(DomainFuncApp{domain_name: _, function_name, arguments, .. }) | 
+            vir_low::Expression::DomainFuncApp(DomainFuncApp{domain_name: _, function_name, arguments, .. }) |
             vir_low::Expression::BinaryOp(BinaryOp{ op_kind:BinaryOpKind::EqCmp ,  left:box vir_low::Expression::DomainFuncApp(DomainFuncApp{domain_name: _, function_name, arguments, .. }), ..}) => {
                 if arguments.len() == 1 && (function_name.contains("target_current") || function_name.contains("destructor")) {
                     match arguments.first().unwrap(){
@@ -178,12 +178,12 @@ impl<'ce, 'tcx, 'v> VarMappingInterface for super::counterexample_translation_re
                         _ => ()
                     }
                 }
-                    
+
                 None
-                
-                
+
+
                 /*/
-                if arguments.len() == 1 && function_name.contains("target_current") && matches!(arguments.first().unwrap(), vir_low::Expression::Local(_)) { //references 
+                if arguments.len() == 1 && function_name.contains("target_current") && matches!(arguments.first().unwrap(), vir_low::Expression::Local(_)) { //references
                     self.extract_var_from_assume(&Assume{expression: arguments.first().unwrap().clone(), position: vir_low::Position::default()})
                 } else if arguments.len() == 1 && function_name.contains("destructor") && matches!(arguments.first().unwrap(), vir_low::Expression::Local(_)) { //fields struct/enum
                     self.extract_var_from_assume(&Assume{expression: arguments.first().unwrap().clone(), position: vir_low::Position::default()})

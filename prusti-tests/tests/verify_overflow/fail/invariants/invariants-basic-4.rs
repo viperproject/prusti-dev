@@ -1,5 +1,4 @@
 // compile-flags: -Penable_type_invariants=true
-extern crate prusti_contracts;
 use prusti_contracts::*;
 
 // postcondition (&mut arg) assert

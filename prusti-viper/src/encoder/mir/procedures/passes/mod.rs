@@ -17,7 +17,7 @@ fn log_pass<'v, 'tcx: 'v>(
     is_before: bool,
 ) {
     if config::dump_debug_info() {
-        let source_filename = encoder.env().source_file_name();
+        let source_filename = encoder.env().name.source_file_name();
         let is_before = if is_before { "before" } else { "after" };
         prusti_common::report::log::report_with_writer(
             &format!("graphviz_method_pass_{}_{}", pass_name, is_before),

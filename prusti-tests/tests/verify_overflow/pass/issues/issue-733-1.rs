@@ -1,4 +1,3 @@
-extern crate prusti_contracts;
 use prusti_contracts::*;
 
 pub const SIZE_A: usize = core::mem::size_of::<A>();

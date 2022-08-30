@@ -14,13 +14,13 @@ These crates relate to the runnable executables produced during compilation.
 
 ## Specification parsing
 
-These crates relate to parsing Prusti-specific specifications in Rust code (e.g. `requires`, `ensures`, etc). These specifications are defined using [procedural macros](https://doc.rust-lang.org/reference/procedural-macros.html), which must be contained in their own crates, hence the additional `prusti-contracts*` crates.
+These crates relate to parsing Prusti-specific specifications in Rust code (e.g. `requires`, `ensures`, etc). These specifications are defined using [procedural macros](https://doc.rust-lang.org/reference/procedural-macros.html), which must be contained in their own crates, hence the additional `prusti-contracts/*` crates.
 
- - [`prusti-contracts/`](https://github.com/viperproject/prusti-dev/tree/9ca9cd1b9bcfd9870691fa5a7a957a90987ba4af/prusti-contracts) - stubs for Rust pseudo-functions used in specifications; currently `old` and `before_expiry`. It also reexports the procedural macros `requires`, `ensures`, etc. Depending on the `prusti` feature, it exports either `impl` or `internal`.
- - [`prusti-contracts-impl/`](https://github.com/viperproject/prusti-dev/tree/9ca9cd1b9bcfd9870691fa5a7a957a90987ba4af/prusti-contracts-impl) – empty definitions of procedural macros intended to be used when compiling with the regular compiler.
- - [`prusti-contracts-internal/`](https://github.com/viperproject/prusti-dev/tree/9ca9cd1b9bcfd9870691fa5a7a957a90987ba4af/prusti-contracts-internal) - a procedural macro crate that forwards calls to `prusti-specs`.
- - [`prusti-specs/`](https://github.com/viperproject/prusti-dev/tree/9ca9cd1b9bcfd9870691fa5a7a957a90987ba4af/prusti-specs) - does the specification rewriting.
- - [`prusti-contracts-test`](https://github.com/viperproject/prusti-dev/tree/9ca9cd1b9bcfd9870691fa5a7a957a90987ba4af/prusti-contracts-test) – a minimal test that checks that `prusti-contracts` can be used with a regular compiler.
+ - [`prusti-contracts/prusti-contracts/`](https://github.com/viperproject/prusti-dev/tree/9ca9cd1b9bcfd9870691fa5a7a957a90987ba4af/prusti-contracts) - stubs for Rust pseudo-functions used in specifications; currently `old` and `before_expiry`. It also reexports the procedural macros `requires`, `ensures`, etc. Depending on the `prusti` feature, it exports either `impl` or `internal`.
+ - [`prusti-contracts/prusti-contracts-impl/`](https://github.com/viperproject/prusti-dev/tree/9ca9cd1b9bcfd9870691fa5a7a957a90987ba4af/prusti-contracts-impl) – empty definitions of procedural macros intended to be used when compiling with the regular compiler.
+ - [`prusti-contracts/prusti-contracts-internal/`](https://github.com/viperproject/prusti-dev/tree/9ca9cd1b9bcfd9870691fa5a7a957a90987ba4af/prusti-contracts-internal) - a procedural macro crate that forwards calls to `prusti-specs`.
+ - [`prusti-contracts/prusti-specs/`](https://github.com/viperproject/prusti-dev/tree/9ca9cd1b9bcfd9870691fa5a7a957a90987ba4af/prusti-specs) - does the specification rewriting.
+ - [`prusti-contracts/prusti-contracts-test`](https://github.com/viperproject/prusti-dev/tree/9ca9cd1b9bcfd9870691fa5a7a957a90987ba4af/prusti-contracts-test) – a minimal test that checks that `prusti-contracts` can be used with a regular compiler.
 
 ## Common library code
 

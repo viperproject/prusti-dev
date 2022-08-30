@@ -184,7 +184,7 @@ pub(super) fn encode_invariant_def<'p, 'v: 'p, 'tcx: 'v>(
                                         &[arg_expr.clone()],
                                         None,
                                         true,
-                                        inherent_def_id.to_def_id(),
+                                        *inherent_def_id,
                                         substs,
                                     )
                                 })

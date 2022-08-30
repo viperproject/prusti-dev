@@ -21,7 +21,7 @@ pub(crate) trait SpanInterface<'tcx> {
 
 impl<'v, 'tcx: 'v> SpanInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
     fn get_definition_span(&self, def_id: DefId) -> Span {
-        self.env().get_def_span(def_id)
+        self.env().query.get_def_span(def_id)
     }
     fn get_type_definition_span(&self, ty: ty::Ty<'tcx>) -> MultiSpan {
         crate::encoder::mir::types::MirTypeEncoderInterface::get_type_definition_span(self, ty)
