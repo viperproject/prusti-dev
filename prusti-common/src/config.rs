@@ -10,7 +10,7 @@ pub mod commandline;
 use self::commandline::CommandLine;
 use ::config::{Config, Environment, File};
 use log::warn;
-use prusti_launch::{get_current_executable_dir, find_viper_home};
+use prusti_launch::{get_current_executable_dir, find_viper_home, PRUSTI_HELPERS, PRUSTI_LIBS};
 use serde::Deserialize;
 use std::{collections::HashSet, env, path::PathBuf, sync::RwLock};
 
@@ -117,11 +117,13 @@ lazy_static::lazy_static! {
         settings.set_default("verify_specifications", true).unwrap();
         settings.set_default("verify_specifications_with_core_proof", false).unwrap();
         settings.set_default("verify_specifications_backend", "Silicon").unwrap();
+        settings.set_default("use_eval_axioms", true).unwrap();
         settings.set_default("inline_caller_for", false).unwrap();
         settings.set_default("check_no_drops", false).unwrap();
         settings.set_default("enable_type_invariants", false).unwrap();
         settings.set_default("use_new_encoder", true).unwrap();
         settings.set_default::<Option<u8>>("number_of_parallel_verifiers", None).unwrap();
+        settings.set_default::<Option<String>>("min_prusti_version", None).unwrap();
 
         settings.set_default("print_desugared_specs", false).unwrap();
         settings.set_default("print_typeckd_specs", false).unwrap();
@@ -482,6 +484,18 @@ pub fn use_more_complete_exhale() -> bool {
     read_setting("use_more_complete_exhale")
 }
 
+pub fn is_prusti_helper_crate() -> bool {
+    env::var("CARGO_PKG_NAME")
+        .map(|name| PRUSTI_HELPERS.contains(&name.as_str()))
+        .unwrap_or(false)
+}
+
+pub fn is_prusti_lib_crate() -> bool {
+    env::var("CARGO_PKG_NAME")
+        .map(|name| PRUSTI_LIBS.contains(&name.as_str()))
+        .unwrap_or(false)
+}
+
 /// When enabled, prints the items collected for verification.
 pub fn print_collected_verification_items() -> bool {
     read_setting("print_collected_verification_items")
@@ -783,16 +797,16 @@ pub fn unsafe_core_proof() -> bool {
 
 /// Whether the core proof (memory safety) should be verified.
 ///
-/// **Note:** This option is taken into account only when `unsafe_core_proof` to
-/// be true.
+/// **Note:** This option is taken into account only when `unsafe_core_proof` is
+/// true.
 pub fn verify_core_proof() -> bool {
     read_setting("verify_core_proof")
 }
 
 /// Whether the functional specifications should be verified.
 ///
-/// **Note:** This option is taken into account only when `unsafe_core_proof` to
-/// be true.
+/// **Note:** This option is taken into account only when `unsafe_core_proof` is
+/// true.
 pub fn verify_specifications() -> bool {
     read_setting("verify_specifications")
 }
@@ -800,8 +814,8 @@ pub fn verify_specifications() -> bool {
 /// Whether when verifying functional specifications, the core proof should be
 /// also included.
 ///
-/// **Note:** This option is taken into account only when `unsafe_core_proof` to
-/// be true.
+/// **Note:** This option is taken into account only when `unsafe_core_proof` is
+/// true.
 pub fn verify_specifications_with_core_proof() -> bool {
     read_setting("verify_specifications_with_core_proof")
 }
@@ -813,6 +827,14 @@ pub fn verify_specifications_backend() -> viper::VerificationBackend {
         .trim()
         .to_string();
     <viper::VerificationBackend as std::str::FromStr>::from_str(&verification_backend_name).unwrap()
+}
+
+/// Whether to generate `eval_axiom`.
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof` is
+/// true.
+pub fn use_eval_axioms() -> bool {
+    read_setting("use_eval_axioms")
 }
 
 /// When enabled, inlines `caller_for` heap dependent functions.
@@ -842,6 +864,11 @@ pub fn use_new_encoder() -> bool {
 /// How many parallel verifiers Silicon should use.
 pub fn number_of_parallel_verifiers() -> Option<u8> {
     read_setting("number_of_parallel_verifiers")
+}
+
+/// Throw a compilation error if using a lower prusti version.
+pub fn min_prusti_version() -> Option<String> {
+    read_setting("min_prusti_version")
 }
 
 /// The given basic blocks will be replaced with `assume false`.

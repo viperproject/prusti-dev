@@ -1,3 +1,15 @@
+//! A module that defines axioms for a specific type.
+//!
+//! ## Simplification and evaluation axioms
+//!
+//! ``simplification_axiom`` and ``eval_axiom`` should always terminate because:
+//!
+//! 1. They triggers require a term that contains the alternaive constructor.
+//! 2. The term used in the trigger is equated to a strictly simpler term.
+//! 3. The terms that are produced by applying the quantifier are only
+//!    constructors of constants, which can trigger only validity and
+//!    injectivity axioms.
+
 use crate::encoder::{
     errors::SpannedEncodingResult,
     high::types::HighTypeEncoderInterface,
@@ -10,6 +22,7 @@ use crate::encoder::{
         },
     },
 };
+use prusti_common::config;
 use rustc_hash::FxHashSet;
 use std::collections::BTreeSet;
 use vir_crate::{
@@ -287,7 +300,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             name: format!("{}$eval_axiom", variant),
             body,
         };
-        self.declare_axiom(&domain_name, axiom)?;
+        if config::use_eval_axioms() {
+            self.declare_axiom(&domain_name, axiom)?;
+        }
         Ok(())
     }
 }

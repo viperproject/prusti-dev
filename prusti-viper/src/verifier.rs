@@ -170,9 +170,9 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         }
 
         for &proc_id in &task.procedures {
-            let proc_name = self.env.get_absolute_item_name(proc_id);
-            let proc_def_path = self.env.get_item_def_path(proc_id);
-            let proc_span = self.env.get_def_span(proc_id);
+            let proc_name = self.env.name.get_absolute_item_name(proc_id);
+            let proc_def_path = self.env.name.get_item_def_path(proc_id);
+            let proc_span = self.env.query.get_def_span(proc_id);
             info!(" - {} ({})", proc_name, proc_def_path);
             info!("   Source: {:?}", proc_span);
         }
@@ -187,7 +187,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
 
         // for &proc_id in &task.procedures {
         //     let proc_name = self.env.get_absolute_item_name(proc_id);
-        //     let proc_span = self.env.get_def_span(proc_id);
+        //     let proc_span = self.env.query.get_def_span(proc_id);
         //     let is_pure_function = self.env.has_prusti_attribute(proc_id, "pure");
 
         //     let support_status = if is_pure_function {
@@ -254,7 +254,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
 
         let mut programs: Vec<Program> = if config::simplify_encoding() {
             stopwatch.start_next("optimizing Viper program");
-            let source_file_name = self.encoder.env().source_file_name();
+            let source_file_name = self.encoder.env().name.source_file_name();
             polymorphic_programs.into_iter().map(
                 |program| Program::Legacy(optimize_program(program, &source_file_name).into())
             ).collect()
@@ -299,7 +299,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         for (method, error) in consistency_errors.into_iter() {
             PrustiError::internal(
                 format!("consistency error in {}: {}", method, error), DUMMY_SP.into()
-            ).emit(self.env);
+            ).emit(&self.env.diagnostic);
             result = VerificationResult::Failure;
         }
 
@@ -307,7 +307,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
             error!("Java exception: {}", exception.get_stack_trace());
             PrustiError::internal(
                 format!("in {}: {}", method, exception), DUMMY_SP.into()
-            ).emit(self.env);
+            ).emit(&self.env.diagnostic);
             result = VerificationResult::Failure;
         }
 
@@ -368,7 +368,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
             if prusti_error.is_disabled() {
                 prusti_error.cancel();
             } else {
-                prusti_error.emit(self.env);
+                prusti_error.emit(&self.env.diagnostic);
             }
             result = VerificationResult::Failure;
         }
@@ -386,7 +386,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
 fn verify_programs(env: &Environment, programs: Vec<Program>)
     -> Vec<(String, viper::VerificationResult)>
 {
-    let source_path = env.source_path();
+    let source_path = env.name.source_path();
     let rust_program_name = source_path
         .file_name()
         .unwrap()

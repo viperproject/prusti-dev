@@ -47,7 +47,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
             procedure,
             span: procedure.get_span(),
             proc_def_id: procedure.get_id(),
-            is_closure: encoder.env().tcx().is_closure(procedure.get_id()),
+            is_closure: encoder.env().query.is_closure(procedure.get_id()),
             mir_encoder: MirEncoder::new(encoder, procedure.get_mir(), procedure.get_id()),
             substs,
         }

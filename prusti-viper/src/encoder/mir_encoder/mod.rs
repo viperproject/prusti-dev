@@ -831,10 +831,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
 
         // To classify the cause of the panic it's enough to look at the top 3 macro calls
         let lookup_size = 3;
-        let tcx = self.encoder.env().tcx();
+        let env_name = self.encoder.env().name;
         let macro_names: Vec<String> = macro_backtrace.iter()
             .take(lookup_size)
-            .filter_map(|x| x.macro_def_id.map(|y| tcx.def_path_str(y)))
+            .filter_map(|x| x.macro_def_id.map(|y| env_name.get_absolute_item_name(y)))
             .collect();
         debug!("macro_names: {:?}", macro_names);
 

@@ -15,7 +15,6 @@ Prusti specifications are a superset of Rust boolean expressions. They must be d
 Old expressions are used to refer to the value that a memory location pointed at by a mutable reference had at the beginning of the function:
 
 ```rust
-extern crate prusti_contracts;
 use prusti_contracts::*;
 
 #[ensures(*x == old(*x) + 1)]

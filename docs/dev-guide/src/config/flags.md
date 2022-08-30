@@ -43,6 +43,7 @@
 | [`LOG_STYLE`](#log_style) | `String` | `"auto"` |
 | [`LOG_SMT_WRAPPER_INTERACTION`](#log_smt_wrapper_interaction) | `bool` | `false` |
 | [`MAX_LOG_FILE_NAME_LENGTH`](#max_log_file_name_length) | `usize` | `60` |
+| [`MIN_PRUSTI_VERSION`](#min_prusti_version) | `Option<String>` | `None` |
 | [`NO_VERIFY`](#no_verify) | `bool` | `false` |
 | [`NO_VERIFY_DEPS`](#no_verify_deps) | `bool` | `false` |
 | [`OPTIMIZATIONS`](#optimizations) | `Vec<String>` | "all" |
@@ -267,6 +268,10 @@ When enabled, logs all SMT wrapper interaction to a file.
 ## `MAX_LOG_FILE_NAME_LENGTH`
 
 Maximum allowed length of a log file name. If this is exceeded, the file name is truncated.
+
+## `MIN_PRUSTI_VERSION`
+
+Minimum required version of Prusti that is allowed to run. If Prusti detects that its own version is lower than this, it will throw an error and refuse to verify files. Generally [set in a `Prusti.toml` file](providing.md#flags-2) of a crate to enforce a minimum Prusti version.
 
 ## `NO_VERIFY`
 

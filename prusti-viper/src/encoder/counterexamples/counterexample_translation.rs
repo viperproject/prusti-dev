@@ -1,5 +1,6 @@
-use rustc_hash::{FxHashMap};
-
+use prusti_interface::environment::EnvQuery;
+use prusti_interface::environment::body::MirBody;
+use rustc_hash::FxHashMap;
 use viper::silicon_counterexample::*;
 use super::super::high::types::HighTypeEncoderInterface;
 use DiscriminantsStateInterface;
@@ -22,7 +23,7 @@ pub fn backtranslate(
     let translator = CounterexampleTranslator::new(encoder, def_id, silicon_counterexample);
 
    //let tmp = encoder.mid_core_proof_encoder_state;
-   
+
 
     // TODO: ideally we would use the "main" counterexample from Silicon, the
     // one not associated with any label, because it contains the values of the
@@ -60,14 +61,14 @@ pub fn backtranslate(
         if !translator.is_pure {
 
             let (silicon_model, opt_sil_entry) = translator.get_silicon_at_label(last_label, &vir_name); //We cannot use the "main" model of silicon because of references
-            
+
             let entry_snapshot = translator.translate_silicon_entry_with_snapshot(typ, opt_sil_entry, Some(encoded_typ.clone())).unwrap_or_default();
-            
-            
+
+
             let entry_heap_based = translator.translate_silicon_entry(typ, opt_sil_entry, vir_name.clone(), silicon_model).unwrap_or_default();
             let entry = entry_heap_based.merge(&entry_snapshot); //We prefer the heap based counterexample over the snapshot one
-            
-            
+
+
             entries.insert((rust_name.clone().to_string(), span), entry);
         }
         if is_arg {
@@ -76,11 +77,11 @@ pub fn backtranslate(
             args.insert((rust_name, span), arg_entry);
         }
     }
-           
+
     let (silicon_model, opt_sil_entry) = translator.get_silicon_at_label(last_label, &result_sil_name); //We cannot use the "main" model of silicon because of references
-    
+
     let result_entry_heap_based = translator.translate_silicon_entry(result_typ, opt_sil_entry, result_sil_name, silicon_model).unwrap_or_default();
-    
+
     let mut ce_entries = vec![];
 
     // Due to translation to Viper functions, there are no locals in the
@@ -116,7 +117,7 @@ pub fn backtranslate(
 
     // add counterexample note for the return value, if any
     if !result_entry_heap_based.is_unit() {
-        let result_entry_snapshot = translator.translate_silicon_entry_with_snapshot(result_typ, opt_sil_entry, Some(result_encoded_typ)).unwrap_or_default();    
+        let result_entry_snapshot = translator.translate_silicon_entry_with_snapshot(result_typ, opt_sil_entry, Some(result_encoded_typ)).unwrap_or_default();
         let result = result_entry_heap_based.merge(&result_entry_snapshot); //We prefer the heap based counterexample over the snapshot one
         ce_entries.push(CounterexampleEntry::with_one_value(
             result_span,
@@ -129,10 +130,11 @@ pub fn backtranslate(
 }
 
 pub struct CounterexampleTranslator<'ce, 'tcx> {
-    mir: mir::Body<'tcx>,
+    env_query: EnvQuery<'tcx>,
+    tcx: TyCtxt<'tcx>,
+    mir: MirBody<'tcx>,
     def_id: ProcedureDefId,
     silicon_counterexample: &'ce SiliconCounterexample,
-    tcx: TyCtxt<'tcx>,
     is_pure: bool,
     pub(super) disc_info: FxHashMap<(ProcedureDefId, String), Vec<String>>,
     var_debug_info: Vec<VarDebugInfo<'tcx>>,
@@ -145,14 +147,15 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
         def_id: ProcedureDefId,
         silicon_counterexample: &'ce SiliconCounterexample,
     ) -> Self {
-        let mir = encoder.env().get_procedure(def_id).get_mir().clone();
+        let mir = encoder.env().body.get_impure_fn_body_identity(def_id.expect_local());
         let var_debug_info = mir.var_debug_info.clone();
         let local_variable_manager = LocalVariableManager::new(&mir.local_decls);
         Self {
+            env_query: encoder.env().query,
+            tcx: encoder.env().tcx(),
             mir,
             def_id,
             silicon_counterexample,
-            tcx: encoder.env().tcx(),
             is_pure: false, // No verified functions are pure. encoder.is_pure(def_id),
                             // TODO: This assumption should allow simplifying the translator quite a bit.
             disc_info: encoder.discriminants_info(),
@@ -192,9 +195,8 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
         let return_local = Local::from(mir::Local::from_usize(0));
         assert!(self.local_variable_manager.is_return(return_local));
 
-        let hir = self.tcx.hir();
-        let hir_id = hir.local_def_id_to_hir_id(self.def_id.as_local().unwrap());
-        let span = hir.fn_decl_by_hir_id(hir_id).unwrap().output.span();
+        let hir_id = self.env_query.as_hir_id(self.def_id.expect_local());
+        let span = self.env_query.hir().fn_decl_by_hir_id(hir_id).unwrap().output.span();
 
         let vir_name = if !self.is_pure {
             self.local_variable_manager.get_name(return_local)
@@ -447,15 +449,15 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
     }
 
     fn get_hd_function_value(&self, encoded_typ: &String, params: &Vec<Option<ModelEntry>>) -> &Option<ModelEntry>{
-        let function_name = format!("snap$__$TY$__{}$", encoded_typ); 
+        let function_name = format!("snap$__$TY$__{}$", encoded_typ);
         if let Some(hd_function) = self.silicon_counterexample.functions.entries.get(&function_name){
             hd_function.get_function_value(params)
         } else {
             &None
         }
-       
-    }        
-    
+
+    }
+
     fn translate_silicon_entry_with_snapshot(&self,
         typ: Ty<'tcx>,
         sil_entry: Option<&ModelEntry>,
@@ -463,7 +465,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
     ) -> Option<Entry> {
         Some(match sil_entry {
             Some(ModelEntry::LitInt(string)) =>  match typ.kind() {
-                ty::TyKind::Int(_) => Entry::Int(string.clone()), 
+                ty::TyKind::Int(_) => Entry::Int(string.clone()),
                 ty::TyKind::Char => {
                     let value_int = string.parse::<u32>().ok()?;
                     Entry::Char(char::from_u32(value_int)?)
@@ -472,12 +474,12 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
             }
             Some(ModelEntry::LitFloat(string)) => Entry::Float(string.clone()),
             Some(ModelEntry::LitBool(bool)) => Entry::Bool(*bool),
-            Some(ModelEntry::Ref(name, _))=> {  
+            Some(ModelEntry::Ref(name, _))=> {
                 let encoded_typ = encoded_typ_option.unwrap_or_default();
                 if self.silicon_counterexample.domains.entries.get(&encoded_typ).is_some() {  //need a domain to extract a counterexample
                     let hd_function_param = vec![Some(ModelEntry::Var(name.clone()))];
                     let snapshot_var = self.get_hd_function_value(&encoded_typ, &hd_function_param);
-                    self.translate_snapshot_entry(typ, snapshot_var.as_ref(), Some(encoded_typ))          
+                    self.translate_snapshot_entry(typ, snapshot_var.as_ref(), Some(encoded_typ))
                 } else {
                     //if we don't find a domain we might find the ref value in the heap based encoding
                     //this part is not perfect, alternatively we could have a map of all var_ref assignments
@@ -490,7 +492,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                     // there is a fault in the Silicon implementation
                     let real_ref_entry = self.silicon_counterexample.model.entries.get(ref_name);
                     self.translate_silicon_entry_with_snapshot(typ, real_ref_entry, encoded_typ_option).unwrap_or_default()
-            },  
+            },
             Some(ModelEntry::DomainValue(_, _)) => {
                     self.translate_snapshot_entry(typ, sil_entry, encoded_typ_option)
             },
@@ -498,7 +500,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
         })
     }
 
-    
+
     fn translate_snapshot_entry(&self,
         typ: Ty<'tcx>,
         snapshot_var: Option<&ModelEntry>,
@@ -594,7 +596,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
     fn translate_snapshot_adt_fields(&self,
         variant: &ty::VariantDef,
         snapshot_var: Option<&ModelEntry>,
-        encoded_typ: String, 
+        encoded_typ: String,
         subst: ty::subst::SubstsRef<'tcx>,
         ) -> Vec<(String, Entry)> {
             match snapshot_var {
@@ -616,13 +618,13 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
             }
     }
 
-    fn extract_field_value(&self, 
+    fn extract_field_value(&self,
     sil_fn_name: &String,
     field_typ: Ty<'tcx>,
     snapshot_var: Option<&ModelEntry>,
     sil_domain: &DomainEntry,
     ) -> Option<Entry> {
-    
+
         let sil_fn_param = vec![snapshot_var.cloned()];
         let field_value = if let Some(function) = sil_domain.functions.entries.get(sil_fn_name){
                 function.get_function_value(&sil_fn_param)
