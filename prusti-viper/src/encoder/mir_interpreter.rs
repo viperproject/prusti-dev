@@ -43,7 +43,7 @@ pub fn run_backward_interpretation<'tcx, S, E, I>(
     E: Debug,
     I: BackwardMirInterpreter<'tcx, State = S, Error = E>
 {
-    let basic_blocks = mir.basic_blocks();
+    let basic_blocks = &mir.basic_blocks;
     let mut heads: FxHashMap<mir::BasicBlock, S> = FxHashMap::default();
 
     // Find the final basic blocks
@@ -115,7 +115,7 @@ pub fn run_backward_interpretation_point_to_point<
     final_state: S,
     undef_state: S,
 ) -> Result<Option<S>, E> {
-    let basic_blocks = mir.basic_blocks();
+    let basic_blocks = &mir.basic_blocks;
     let mut heads: FxHashMap<mir::BasicBlock, S> = FxHashMap::default();
     trace!(
         "[start] run_backward_interpretation_point_to_point:\n - from final block {:?}, statement {}\n - and state {:?}\n - to initial block {:?}\n - using undef state {:?}",

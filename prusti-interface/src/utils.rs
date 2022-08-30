@@ -198,22 +198,20 @@ impl<'tcx> VecPlace<'tcx> {
 /// Any arguments of the attribute are ignored.
 pub fn has_prusti_attr(attrs: &[ast::Attribute], name: &str) -> bool {
     attrs.iter().any(|attr| match &attr.kind {
-        ast::AttrKind::Normal(
-            ast::AttrItem {
-                path:
-                    ast::Path {
-                        span: _,
-                        segments,
-                        tokens: _,
-                    },
-                args: _,
-                tokens: _,
-            },
-            _,
-        ) => {
+        ast::AttrKind::Normal(normal_attr) => {
+            let ast::AttrItem {
+                    path:
+                        ast::Path {
+                            span: _,
+                            segments,
+                            tokens: _,
+                        },
+                    args: _,
+                    tokens: _,
+                } = &normal_attr.item;
             segments.len() == 2
-                && segments[0].ident.as_str() == "prusti"
-                && segments[1].ident.as_str() == name
+            && segments[0].ident.as_str() == "prusti"
+            && segments[1].ident.as_str() == name
         }
         _ => false,
     })
@@ -257,31 +255,29 @@ pub fn has_abstract_predicate_attr(attrs: &[ast::Attribute]) -> bool {
 pub fn read_prusti_attrs<T: Borrow<ast::Attribute>>(attr_name: &str, attrs: &[T]) -> Vec<String> {
     let mut strings = vec![];
     for attr in attrs {
-        if let ast::AttrKind::Normal(
-            ast::AttrItem {
+        if let ast::AttrKind::Normal(normal_attr) = &attr.borrow().kind {
+            if let ast::AttrItem {
                 path:
                     ast::Path {
                         span: _,
                         segments,
                         tokens: _,
                     },
-                args: ast::MacArgs::Eq(_, ast::MacArgsEq::Hir(ast::Lit {token, ..})),
+                args: ast::MacArgs::Eq(_, ast::MacArgsEq::Hir(ast::Lit {token_lit, ..})),
                 tokens: _,
-            },
-            _,
-        ) = &attr.borrow().kind
-        {
-            // Skip attributes whose path don't match with "prusti::<attr_name>"
-            if !(segments.len() == 2
-                && segments[0].ident.as_str() == "prusti"
-                && segments[1].ident.as_str() == attr_name)
-            {
-                continue;
+            } = &normal_attr.item {
+                // Skip attributes whose path don't match with "prusti::<attr_name>"
+                if !(segments.len() == 2
+                    && segments[0].ident.as_str() == "prusti"
+                    && segments[1].ident.as_str() == attr_name)
+                {
+                    continue;
+                }
+                fn extract_string(token: &prusti_rustc_interface::ast::token::Lit) -> String {
+                    token.symbol.as_str().replace("\\\"", "\"")
+                }
+                strings.push(extract_string(token_lit));
             }
-            fn extract_string(token: &prusti_rustc_interface::ast::token::Lit) -> String {
-                token.symbol.as_str().replace("\\\"", "\"")
-            }
-            strings.push(extract_string(token));
         };
     }
     strings
