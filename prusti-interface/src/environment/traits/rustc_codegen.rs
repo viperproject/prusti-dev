@@ -11,20 +11,25 @@
 // + Remove all `instrument`ation.
 // + Replace `crate::*` imports with `prusti_rustc_interface::*` imports.
 
-
 // This file contains various trait resolution methods used by codegen.
 // They all assume regions can be erased and monomorphic types.  It
 // seems likely that they should eventually be merged into more
 // general routines.
 
 use log::debug;
-use prusti_rustc_interface::trait_selection::infer::{TyCtxtInferExt};
-use prusti_rustc_interface::trait_selection::traits::{
-    FulfillmentContext, ImplSource, Obligation, ObligationCause, SelectionContext, TraitEngine,
-    Unimplemented,
+use prusti_rustc_interface::{
+    middle::{
+        traits::CodegenObligationError,
+        ty::{self, TyCtxt},
+    },
+    trait_selection::{
+        infer::TyCtxtInferExt,
+        traits::{
+            FulfillmentContext, ImplSource, Obligation, ObligationCause, SelectionContext,
+            TraitEngine, Unimplemented,
+        },
+    },
 };
-use prusti_rustc_interface::middle::traits::CodegenObligationError;
-use prusti_rustc_interface::middle::ty::{self, TyCtxt};
 
 /// Attempts to resolve an obligation to an `ImplSource`. The result is
 /// a shallow `ImplSource` resolution, meaning that we do not
@@ -40,7 +45,10 @@ pub(super) fn codegen_fulfill_obligation<'tcx>(
     // Remove any references to regions; this helps improve caching.
     let trait_ref = tcx.erase_regions(trait_ref);
     // We expect the input to be fully normalized.
-    debug_assert_eq!(trait_ref, tcx.normalize_erasing_regions(param_env, trait_ref));
+    debug_assert_eq!(
+        trait_ref,
+        tcx.normalize_erasing_regions(param_env, trait_ref)
+    );
     debug!(
         "codegen_fulfill_obligation(trait_ref={:?}, def_id={:?})",
         (param_env, trait_ref),
@@ -53,15 +61,21 @@ pub(super) fn codegen_fulfill_obligation<'tcx>(
         let mut selcx = SelectionContext::new(&infcx);
 
         let obligation_cause = ObligationCause::dummy();
-        let obligation =
-            Obligation::new(obligation_cause, param_env, trait_ref.to_poly_trait_predicate());
+        let obligation = Obligation::new(
+            obligation_cause,
+            param_env,
+            trait_ref.to_poly_trait_predicate(),
+        );
 
         let selection = match selcx.select(&obligation) {
             Ok(Some(selection)) => selection,
             Ok(None) => return Err(CodegenObligationError::Ambiguity),
             Err(Unimplemented) => return Err(CodegenObligationError::Unimplemented),
             Err(e) => {
-                panic!("Encountered error `{:?}` selecting `{:?}` during codegen", e, trait_ref)
+                panic!(
+                    "Encountered error `{:?}` selecting `{:?}` during codegen",
+                    e, trait_ref
+                )
             }
         };
 
@@ -72,7 +86,10 @@ pub(super) fn codegen_fulfill_obligation<'tcx>(
         // inference of the impl's type parameters.
         let mut fulfill_cx = FulfillmentContext::new();
         let impl_source = selection.map(|predicate| {
-            debug!("fulfill_obligation: register_predicate_obligation {:?}", predicate);
+            debug!(
+                "fulfill_obligation: register_predicate_obligation {:?}",
+                predicate
+            );
             fulfill_cx.register_predicate_obligation(&infcx, predicate);
         });
 
@@ -89,7 +106,11 @@ pub(super) fn codegen_fulfill_obligation<'tcx>(
 
         // Opaque types may have gotten their hidden types constrained, but we can ignore them safely
         // as they will get constrained elsewhere, too.
-        let _opaque_types = infcx.inner.borrow_mut().opaque_type_storage.take_opaque_types();
+        let _opaque_types = infcx
+            .inner
+            .borrow_mut()
+            .opaque_type_storage
+            .take_opaque_types();
 
         debug!("Cache miss: {trait_ref:?} => {impl_source:?}");
         Ok(&*tcx.arena.alloc(impl_source))

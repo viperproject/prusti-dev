@@ -13,21 +13,26 @@
 // + Replace `crate::*` imports with `prusti_rustc_interface::*` imports.
 // + Remove unused `resolve_instance_of_const_arg`.
 
-use prusti_rustc_interface::hir::def_id::DefId;
-use prusti_rustc_interface::infer::infer::TyCtxtInferExt;
-use prusti_rustc_interface::middle::ty::subst::SubstsRef;
-use prusti_rustc_interface::middle::ty::{
-    self, Binder, Instance, Ty, TyCtxt, TypeSuperVisitable, TypeVisitable, TypeVisitor,
-};
-use prusti_rustc_interface::span::{sym, DUMMY_SP};
-use prusti_rustc_interface::trait_selection::traits;
-use traits::{translate_substs, Reveal};
-use prusti_rustc_interface::middle::traits::CodegenObligationError;
-use prusti_rustc_interface::data_structures::sso::SsoHashSet;
-use std::collections::btree_map::Entry;
-use std::collections::BTreeMap;
-use std::ops::ControlFlow;
 use log::debug;
+use prusti_rustc_interface::{
+    data_structures::sso::SsoHashSet,
+    hir::def_id::DefId,
+    infer::infer::TyCtxtInferExt,
+    middle::{
+        traits::CodegenObligationError,
+        ty::{
+            self, subst::SubstsRef, Binder, Instance, Ty, TyCtxt, TypeSuperVisitable,
+            TypeVisitable, TypeVisitor,
+        },
+    },
+    span::{sym, DUMMY_SP},
+    trait_selection::traits,
+};
+use std::{
+    collections::{btree_map::Entry, BTreeMap},
+    ops::ControlFlow,
+};
+use traits::{translate_substs, Reveal};
 
 // FIXME(#86795): `BoundVarsCollector` here should **NOT** be used
 // outside of `resolve_associated_item`. It's just to address #64494,
@@ -131,12 +136,16 @@ pub fn resolve_instance<'tcx>(
     let (param_env, (did, substs)) = key.into_parts();
     if let Some(did) = did.as_local() {
         if let Some(param_did) = tcx.opt_const_param_of(did) {
-            return tcx.resolve_instance_of_const_arg(param_env.and((did, param_did, substs)))
+            return tcx
+                .resolve_instance_of_const_arg(param_env.and((did, param_did, substs)))
                 .map_err(|_| ());
         }
     }
 
-    inner_resolve_instance(tcx, param_env.and((ty::WithOptConstParam::unknown(did), substs)))
+    inner_resolve_instance(
+        tcx,
+        param_env.and((ty::WithOptConstParam::unknown(did), substs)),
+    )
 }
 
 fn inner_resolve_instance<'tcx>(
@@ -146,7 +155,10 @@ fn inner_resolve_instance<'tcx>(
     let (param_env, (def, substs)) = key.into_parts();
 
     let result = if let Some(trait_def_id) = tcx.trait_of_item(def.did) {
-        debug!(" => associated item, attempting to find impl in param_env {:#?}", param_env);
+        debug!(
+            " => associated item, attempting to find impl in param_env {:#?}",
+            param_env
+        );
         resolve_associated_item(tcx, def.did, param_env, trait_def_id, substs)
     } else {
         let ty = tcx.type_of(def.def_id_for_type_of());
@@ -204,22 +216,23 @@ fn resolve_associated_item<'tcx>(
     let mut bound_vars_collector = BoundVarsCollector::new();
     trait_ref.visit_with(&mut bound_vars_collector);
     let trait_binder = ty::Binder::bind_with_vars(trait_ref, bound_vars_collector.into_vars(tcx));
-    let vtbl = match super::rustc_codegen::codegen_fulfill_obligation(tcx, (param_env, trait_binder)) {
-        Ok(vtbl) => vtbl,
-        Err(CodegenObligationError::Ambiguity) => {
-            tcx.sess.delay_span_bug(
-                tcx.def_span(trait_item_id),
-                &format!(
-                    "encountered ambiguity selecting `{:?}` during codegen, presuming due to \
+    let vtbl =
+        match super::rustc_codegen::codegen_fulfill_obligation(tcx, (param_env, trait_binder)) {
+            Ok(vtbl) => vtbl,
+            Err(CodegenObligationError::Ambiguity) => {
+                tcx.sess.delay_span_bug(
+                    tcx.def_span(trait_item_id),
+                    &format!(
+                        "encountered ambiguity selecting `{:?}` during codegen, presuming due to \
                      overflow or prior type error",
-                    trait_binder
-                ),
-            );
-            return Err(());
-        }
-        Err(CodegenObligationError::Unimplemented) => return Ok(None),
-        Err(CodegenObligationError::FulfillmentError) => return Ok(None),
-    };
+                        trait_binder
+                    ),
+                );
+                return Err(());
+            }
+            Err(CodegenObligationError::Unimplemented) => return Ok(None),
+            Err(CodegenObligationError::FulfillmentError) => return Ok(None),
+        };
 
     // Now that we know which impl is being used, we can dispatch to
     // the actual function:
@@ -235,10 +248,14 @@ fn resolve_associated_item<'tcx>(
             let trait_def_id = tcx.trait_id_of_impl(impl_data.impl_def_id).unwrap();
             let trait_def = tcx.trait_def(trait_def_id);
             let leaf_def = trait_def
-                .ancestors(tcx, impl_data.impl_def_id).map_err(|_| ())?
+                .ancestors(tcx, impl_data.impl_def_id)
+                .map_err(|_| ())?
                 .leaf_def(tcx, trait_item_id)
                 .unwrap_or_else(|| {
-                    panic!("{:?} not found in {:?}", trait_item_id, impl_data.impl_def_id);
+                    panic!(
+                        "{:?} not found in {:?}",
+                        trait_item_id, impl_data.impl_def_id
+                    );
                 });
 
             let substs = tcx.infer_ctxt().enter(|infcx| {
@@ -344,10 +361,12 @@ fn resolve_associated_item<'tcx>(
             _ => None,
         },
         traits::ImplSource::Object(ref data) => {
-            traits::get_vtable_index_of_object_method(tcx, data, trait_item_id).map(|index| Instance {
+            traits::get_vtable_index_of_object_method(tcx, data, trait_item_id).map(|index| {
+                Instance {
                     def: ty::InstanceDef::Virtual(trait_item_id, index),
                     substs: rcvr_substs,
-                })
+                }
+            })
         }
         traits::ImplSource::Builtin(..) => {
             if Some(trait_ref.def_id) == tcx.lang_items().clone_trait() {

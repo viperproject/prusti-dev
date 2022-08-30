@@ -37,7 +37,7 @@ impl SpecificationBlocks {
     ) -> Self {
         // Blocks that contain closures marked with `#[spec_only]` attributes.
         let mut marked_specification_blocks = BTreeSet::new();
-        for (bb, block) in body.basic_blocks().iter_enumerated() {
+        for (bb, block) in body.basic_blocks.iter_enumerated() {
             if is_marked_specification_block(env_query, block) {
                 marked_specification_blocks.insert(bb);
             }
@@ -48,7 +48,7 @@ impl SpecificationBlocks {
         // blocks.
         let dominators = body.basic_blocks.dominators();
         for specification_block in specification_blocks.clone() {
-            for bb in body.basic_blocks().indices() {
+            for bb in body.basic_blocks.indices() {
                 if dominators.is_dominated_by(bb, specification_block) {
                     specification_blocks.insert(bb);
                 }
@@ -109,7 +109,7 @@ impl SpecificationBlocks {
 
         // Collect entry points.
         let mut specification_entry_blocks = BTreeSet::new();
-        for bb in body.basic_blocks().indices() {
+        for bb in body.basic_blocks.indices() {
             if !specification_blocks.contains(&bb) {
                 for successor in body.basic_blocks.successors(bb) {
                     if specification_blocks.contains(&successor)
@@ -141,7 +141,7 @@ impl SpecificationBlocks {
                 if ghost_blocks.contains(&bb) {
                     continue;
                 }
-                let data = &body.basic_blocks()[bb];
+                let data = &body.basic_blocks[bb];
                 ghost_blocks.insert(bb);
 
                 // end marker is only conditionally reachable, as it is inside an `if false {}`
@@ -149,7 +149,7 @@ impl SpecificationBlocks {
                 let before_end = data
                     .terminator()
                     .successors()
-                    .any(|bb| is_ghost_end_marker(env_query, &body.basic_blocks()[bb]));
+                    .any(|bb| is_ghost_end_marker(env_query, &body.basic_blocks[bb]));
 
                 for succ in data.terminator.iter().flat_map(|t| t.successors()) {
                     if before_end {

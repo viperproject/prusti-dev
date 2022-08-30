@@ -7,11 +7,10 @@
 //! Various helper functions for working with `mir::Place`.
 
 use log::trace;
-use prusti_rustc_interface::ast::ast;
-use prusti_rustc_interface::data_structures::fx::FxHashSet;
-use prusti_rustc_interface::middle::{
-    mir,
-    ty::TyCtxt,
+use prusti_rustc_interface::{
+    ast::ast,
+    data_structures::fx::FxHashSet,
+    middle::{mir, ty::TyCtxt},
 };
 use std::borrow::Borrow;
 
@@ -45,7 +44,10 @@ pub fn expand_one_level<'tcx>(
 ) -> (mir::Place<'tcx>, Vec<mir::Place<'tcx>>) {
     use analysis::mir_utils::{expand_one_level, PlaceImpl};
     let res = expand_one_level(mir, tcx, current_place.into(), guide_place.into());
-    (res.0.to_mir_place(), res.1.into_iter().map(PlaceImpl::to_mir_place).collect())
+    (
+        res.0.to_mir_place(),
+        res.1.into_iter().map(PlaceImpl::to_mir_place).collect(),
+    )
 }
 
 /// Pop the last projection from the place and return the new place with the popped element.
@@ -198,8 +200,8 @@ impl<'tcx> VecPlace<'tcx> {
 /// Any arguments of the attribute are ignored.
 pub fn has_prusti_attr(attrs: &[ast::Attribute], name: &str) -> bool {
     attrs.iter().any(|attr| match &attr.kind {
-        ast::AttrKind::Normal(
-            ast::AttrItem {
+        ast::AttrKind::Normal(normal_attr) => {
+            let ast::AttrItem {
                 path:
                     ast::Path {
                         span: _,
@@ -208,9 +210,7 @@ pub fn has_prusti_attr(attrs: &[ast::Attribute], name: &str) -> bool {
                     },
                 args: _,
                 tokens: _,
-            },
-            _,
-        ) => {
+            } = &normal_attr.item;
             segments.len() == 2
                 && segments[0].ident.as_str() == "prusti"
                 && segments[1].ident.as_str() == name
@@ -257,31 +257,30 @@ pub fn has_abstract_predicate_attr(attrs: &[ast::Attribute]) -> bool {
 pub fn read_prusti_attrs<T: Borrow<ast::Attribute>>(attr_name: &str, attrs: &[T]) -> Vec<String> {
     let mut strings = vec![];
     for attr in attrs {
-        if let ast::AttrKind::Normal(
-            ast::AttrItem {
+        if let ast::AttrKind::Normal(normal_attr) = &attr.borrow().kind {
+            if let ast::AttrItem {
                 path:
                     ast::Path {
                         span: _,
                         segments,
                         tokens: _,
                     },
-                args: ast::MacArgs::Eq(_, ast::MacArgsEq::Hir(ast::Lit {token, ..})),
+                args: ast::MacArgs::Eq(_, ast::MacArgsEq::Hir(ast::Lit { token_lit, .. })),
                 tokens: _,
-            },
-            _,
-        ) = &attr.borrow().kind
-        {
-            // Skip attributes whose path don't match with "prusti::<attr_name>"
-            if !(segments.len() == 2
-                && segments[0].ident.as_str() == "prusti"
-                && segments[1].ident.as_str() == attr_name)
+            } = &normal_attr.item
             {
-                continue;
+                // Skip attributes whose path don't match with "prusti::<attr_name>"
+                if !(segments.len() == 2
+                    && segments[0].ident.as_str() == "prusti"
+                    && segments[1].ident.as_str() == attr_name)
+                {
+                    continue;
+                }
+                fn extract_string(token: &prusti_rustc_interface::ast::token::Lit) -> String {
+                    token.symbol.as_str().replace("\\\"", "\"")
+                }
+                strings.push(extract_string(token_lit));
             }
-            fn extract_string(token: &prusti_rustc_interface::ast::token::Lit) -> String {
-                token.symbol.as_str().replace("\\\"", "\"")
-            }
-            strings.push(extract_string(token));
         };
     }
     strings
