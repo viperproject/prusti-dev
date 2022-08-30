@@ -69,6 +69,10 @@ impl<'tcx> EnvName<'tcx> {
     }
 
     pub fn local_crate_filename(self) -> String {
-        format!("{}{}", self.local_crate_name(), self.tcx.sess.opts.cg.extra_filename)
+        format!(
+            "{}{}",
+            self.local_crate_name(),
+            self.tcx.sess.opts.cg.extra_filename
+        )
     }
 }

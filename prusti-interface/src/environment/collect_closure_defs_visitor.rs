@@ -1,10 +1,13 @@
-use prusti_rustc_interface::hir::intravisit::{Visitor, walk_expr};
-use prusti_rustc_interface::hir;
-use prusti_rustc_interface::middle::hir::map::Map;
 use crate::environment::Environment;
 use log::trace;
-use prusti_rustc_interface::hir::def_id::DefId;
-
+use prusti_rustc_interface::{
+    hir,
+    hir::{
+        def_id::DefId,
+        intravisit::{walk_expr, Visitor},
+    },
+    middle::hir::map::Map,
+};
 
 use crate::utils::has_spec_only_attr;
 
@@ -29,7 +32,7 @@ impl<'env, 'tcx> CollectClosureDefsVisitor<'env, 'tcx> {
 
 impl<'env, 'tcx> Visitor<'tcx> for CollectClosureDefsVisitor<'env, 'tcx> {
     type Map = Map<'tcx>;
-    type NestedFilter =prusti_rustc_interface::middle::hir::nested_filter::OnlyBodies;
+    type NestedFilter = prusti_rustc_interface::middle::hir::nested_filter::OnlyBodies;
 
     fn nested_visit_map(&mut self) -> Self::Map {
         self.map
@@ -45,6 +48,6 @@ impl<'env, 'tcx> Visitor<'tcx> for CollectClosureDefsVisitor<'env, 'tcx> {
             }
         }
 
-        walk_expr (self, expr)
+        walk_expr(self, expr)
     }
 }

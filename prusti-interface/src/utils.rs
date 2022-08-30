@@ -7,11 +7,10 @@
 //! Various helper functions for working with `mir::Place`.
 
 use log::trace;
-use prusti_rustc_interface::ast::ast;
-use prusti_rustc_interface::data_structures::fx::FxHashSet;
-use prusti_rustc_interface::middle::{
-    mir,
-    ty::TyCtxt,
+use prusti_rustc_interface::{
+    ast::ast,
+    data_structures::fx::FxHashSet,
+    middle::{mir, ty::TyCtxt},
 };
 use std::borrow::Borrow;
 
@@ -45,7 +44,10 @@ pub fn expand_one_level<'tcx>(
 ) -> (mir::Place<'tcx>, Vec<mir::Place<'tcx>>) {
     use analysis::mir_utils::{expand_one_level, PlaceImpl};
     let res = expand_one_level(mir, tcx, current_place.into(), guide_place.into());
-    (res.0.to_mir_place(), res.1.into_iter().map(PlaceImpl::to_mir_place).collect())
+    (
+        res.0.to_mir_place(),
+        res.1.into_iter().map(PlaceImpl::to_mir_place).collect(),
+    )
 }
 
 /// Pop the last projection from the place and return the new place with the popped element.
@@ -200,18 +202,18 @@ pub fn has_prusti_attr(attrs: &[ast::Attribute], name: &str) -> bool {
     attrs.iter().any(|attr| match &attr.kind {
         ast::AttrKind::Normal(normal_attr) => {
             let ast::AttrItem {
-                    path:
-                        ast::Path {
-                            span: _,
-                            segments,
-                            tokens: _,
-                        },
-                    args: _,
-                    tokens: _,
-                } = &normal_attr.item;
+                path:
+                    ast::Path {
+                        span: _,
+                        segments,
+                        tokens: _,
+                    },
+                args: _,
+                tokens: _,
+            } = &normal_attr.item;
             segments.len() == 2
-            && segments[0].ident.as_str() == "prusti"
-            && segments[1].ident.as_str() == name
+                && segments[0].ident.as_str() == "prusti"
+                && segments[1].ident.as_str() == name
         }
         _ => false,
     })
@@ -263,9 +265,10 @@ pub fn read_prusti_attrs<T: Borrow<ast::Attribute>>(attr_name: &str, attrs: &[T]
                         segments,
                         tokens: _,
                     },
-                args: ast::MacArgs::Eq(_, ast::MacArgsEq::Hir(ast::Lit {token_lit, ..})),
+                args: ast::MacArgs::Eq(_, ast::MacArgsEq::Hir(ast::Lit { token_lit, .. })),
                 tokens: _,
-            } = &normal_attr.item {
+            } = &normal_attr.item
+            {
                 // Skip attributes whose path don't match with "prusti::<attr_name>"
                 if !(segments.len() == 2
                     && segments[0].ident.as_str() == "prusti"

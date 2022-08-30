@@ -55,7 +55,9 @@ impl DefSpecificationMap {
         self.ghost_end.get(def_id)
     }
 
-    pub(crate) fn defid_for_export(&self) -> (
+    pub(crate) fn defid_for_export(
+        &self,
+    ) -> (
         // Specs
         Vec<DefId>,
         // Pure fns
@@ -86,7 +88,9 @@ impl DefSpecificationMap {
                 if spec.kind.is_pure().expect("Expected pure") && !is_trusted {
                     pure_fns.push(*def_id)
                 }
-                if let Some(ProcedureSpecificationKind::Predicate(Some(def_id))) = spec.kind.extract_with_selective_replacement() {
+                if let Some(ProcedureSpecificationKind::Predicate(Some(def_id))) =
+                    spec.kind.extract_with_selective_replacement()
+                {
                     predicates.push(*def_id);
                 }
             }

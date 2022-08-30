@@ -1,3 +1,4 @@
+use crate::data::ProcedureDefId;
 use log::debug;
 use prusti_rustc_interface::{
     ast::ast::Attribute,
@@ -7,17 +8,19 @@ use prusti_rustc_interface::{
         ty::{
             self,
             subst::{Subst, SubstsRef},
-            Binder, BoundConstness, ImplPolarity,
-            ParamEnv, TraitPredicate, TraitRef, TyCtxt,
+            Binder, BoundConstness, ImplPolarity, ParamEnv, TraitPredicate, TraitRef, TyCtxt,
         },
     },
-    span::{def_id::{DefId, LocalDefId}, source_map::SourceMap, Span},
+    span::{
+        def_id::{DefId, LocalDefId},
+        source_map::SourceMap,
+        Span,
+    },
     trait_selection::{
         infer::{InferCtxtExt, TyCtxtInferExt},
         traits::{ImplSource, Obligation, ObligationCause, SelectionContext},
     },
 };
-use crate::data::ProcedureDefId;
 use sealed::{IntoParam, IntoParamTcx};
 
 #[derive(Copy, Clone)]
@@ -135,17 +138,26 @@ impl<'tcx> EnvQuery<'tcx> {
 
     /// Returns true iff `def_id` is an unsafe function.
     pub fn is_unsafe_function(self, def_id: impl IntoParam<ProcedureDefId>) -> bool {
-        self.tcx.fn_sig(def_id.into_param()).unsafety() == prusti_rustc_interface::hir::Unsafety::Unsafe
+        self.tcx.fn_sig(def_id.into_param()).unsafety()
+            == prusti_rustc_interface::hir::Unsafety::Unsafe
     }
 
     /// Computes the signature of the function with subst applied.
-    pub fn get_fn_sig(self, def_id: impl IntoParam<ProcedureDefId>, substs: SubstsRef<'tcx>) -> ty::PolyFnSig<'tcx> {
+    pub fn get_fn_sig(
+        self,
+        def_id: impl IntoParam<ProcedureDefId>,
+        substs: SubstsRef<'tcx>,
+    ) -> ty::PolyFnSig<'tcx> {
         let def_id = def_id.into_param();
         ty::EarlyBinder(self.tcx.fn_sig(def_id)).subst(self.tcx, substs)
     }
 
     /// Computes the signature of the function with subst applied and associated types resolved.
-    pub fn get_fn_sig_resolved(self, def_id: impl IntoParam<ProcedureDefId>, substs: SubstsRef<'tcx>) -> ty::PolyFnSig<'tcx> {
+    pub fn get_fn_sig_resolved(
+        self,
+        def_id: impl IntoParam<ProcedureDefId>,
+        substs: SubstsRef<'tcx>,
+    ) -> ty::PolyFnSig<'tcx> {
         let def_id = def_id.into_param();
         let sig = self.get_fn_sig(def_id, substs);
         self.resolve_assoc_types(sig, def_id)
@@ -177,7 +189,7 @@ impl<'tcx> EnvQuery<'tcx> {
     pub fn find_trait_method_substs(
         self,
         impl_method_def_id: impl IntoParam<ProcedureDefId>, // what are we calling?
-        impl_method_substs: SubstsRef<'tcx>, // what are the substs on the call?
+        impl_method_substs: SubstsRef<'tcx>,                // what are the substs on the call?
     ) -> Option<(ProcedureDefId, SubstsRef<'tcx>)> {
         let impl_method_def_id = impl_method_def_id.into_param();
         let impl_def_id = self.tcx.impl_of_method(impl_method_def_id)?;
@@ -373,7 +385,12 @@ impl<'tcx> EnvQuery<'tcx> {
             // See: https://rust-lang.zulipchat.com/#narrow/stream/182449-t-compiler.2Fhelp/topic/.E2.9C.94.20Panic.20in.20is_copy_modulo_regions
             let fresh_ty = infcx.freshen(ty);
             infcx
-                .type_implements_trait(trait_def_id, fresh_ty, trait_substs, param_env.into_param(self.tcx))
+                .type_implements_trait(
+                    trait_def_id,
+                    fresh_ty,
+                    trait_substs,
+                    param_env.into_param(self.tcx),
+                )
                 .must_apply_considering_regions()
         })
     }
@@ -401,7 +418,7 @@ impl<'tcx> EnvQuery<'tcx> {
         let obligation = Obligation::new(
             ObligationCause::dummy(),
             param_env.into_param(self.tcx),
-            predicate
+            predicate,
         );
 
         self.tcx
@@ -442,20 +459,26 @@ impl<'tcx> EnvQuery<'tcx> {
 }
 
 mod sealed {
-    use prusti_rustc_interface::span::def_id::{DefId, LocalDefId};
-    use prusti_rustc_interface::middle::ty::{ParamEnv, TyCtxt};
-    use prusti_rustc_interface::hir::hir_id::HirId;
+    use prusti_rustc_interface::{
+        hir::hir_id::HirId,
+        middle::ty::{ParamEnv, TyCtxt},
+        span::def_id::{DefId, LocalDefId},
+    };
 
     pub trait IntoParam<P> {
         fn into_param(self) -> P;
     }
     impl<P> IntoParam<P> for P {
         #[inline(always)]
-        fn into_param(self) -> P { self }
+        fn into_param(self) -> P {
+            self
+        }
     }
     impl<'a, P: Copy> IntoParam<P> for &'a P {
         #[inline(always)]
-        fn into_param(self) -> P { *self }
+        fn into_param(self) -> P {
+            *self
+        }
     }
     impl IntoParam<DefId> for LocalDefId {
         #[inline(always)]
@@ -469,7 +492,9 @@ mod sealed {
     }
     impl<'tcx, T: IntoParam<U>, U> IntoParamTcx<'tcx, U> for T {
         #[inline(always)]
-        fn into_param(self, _tcx: TyCtxt<'tcx>) -> U { self.into_param() }
+        fn into_param(self, _tcx: TyCtxt<'tcx>) -> U {
+            self.into_param()
+        }
     }
     impl<'tcx> IntoParamTcx<'tcx, HirId> for LocalDefId {
         #[inline(always)]
