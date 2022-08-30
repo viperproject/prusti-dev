@@ -1,14 +1,10 @@
 use super::common::*;
-use crate::environment::EnvQuery;
 use crate::{
-    environment::Environment,
-    PrustiError, utils,
+    environment::{EnvQuery, Environment},
+    utils, PrustiError,
 };
 use prusti_common::config;
-use prusti_rustc_interface::errors::MultiSpan;
-use prusti_rustc_interface::hir;
-use prusti_rustc_interface::middle::hir::map::Map;
-use prusti_rustc_interface::ast::ast::Attribute;
+use prusti_rustc_interface::{ast::ast::Attribute, errors::MultiSpan, hir, middle::hir::map::Map};
 
 /// Checks for mismatched version issues between `prusti` and `prusti-contracts`/`prusti-specs`
 pub struct MismatchedVersionsChecker;
@@ -55,7 +51,9 @@ impl<'tcx> hir::intravisit::Visitor<'tcx> for CheckVersionVisitor<'tcx> {
 
     fn visit_attribute(&mut self, attr: &'tcx Attribute) {
         // Only report one such error here:
-        if !self.errors.is_empty() { return; }
+        if !self.errors.is_empty() {
+            return;
+        }
         if let Some(used_specs_version) = utils::read_specs_version_attr(attr) {
             // If 'compiled with version' > 'version used now for proc-macros' then complain (of `prusti-specs`)
             if Environment::compare_to_curr_specs_version(&used_specs_version).is_gt() {

@@ -11,7 +11,7 @@ pub fn remove_dead_blocks<'tcx>(
     body: &mut mir::Body<'tcx>,
     reachable: &BitSet<mir::BasicBlock>,
 ) -> BTreeMap<mir::BasicBlock, mir::BasicBlock> {
-    let num_blocks = body.basic_blocks().len();
+    let num_blocks = body.basic_blocks.len();
 
     let basic_blocks = body.basic_blocks_mut();
     let mut replacements: Vec<_> = (0..num_blocks).map(mir::BasicBlock::new).collect();
