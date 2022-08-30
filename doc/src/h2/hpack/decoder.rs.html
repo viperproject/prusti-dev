@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.13/src/hpack/decoder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>decoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../h2/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../h2/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../h2/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.14/src/hpack/decoder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>decoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../h2/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../h2/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../h2/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -938,251 +938,251 @@
 <span id="938">938</span>
 <span id="939">939</span>
 <span id="940">940</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../src/h2/hpack/header.rs.html#36">header::BytesStr</a>, <a class="ident" href="../../../src/h2/hpack/mod.rs.html#4">huffman</a>, <a class="ident" href="../../../src/h2/hpack/header.rs.html#11">Header</a>};
-<span class="kw">use</span> <a class="ident" href="../../../src/h2/lib.rs.html#116"><span class="kw">crate</span>::frame</a>;
+</pre><pre class="rust"><code><span class="kw">use super</span>::{<a href="../../../src/h2/hpack/header.rs.html#36">header::BytesStr</a>, <a href="../../../src/h2/hpack/mod.rs.html#4">huffman</a>, <a href="../../../src/h2/hpack/header.rs.html#11">Header</a>};
+<span class="kw">use </span><a href="../../../src/h2/lib.rs.html#116"><span class="kw">crate</span>::frame</a>;
 
-<span class="kw">use</span> <span class="ident">bytes</span>::{<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, <a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>, <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>};
-<span class="kw">use</span> <a class="ident" href="../../../http/header/index.html">http::header</a>;
-<span class="kw">use</span> <span class="ident">http::method</span>::{<a class="self" href="../../../http/method/index.html">self</a>, <a class="ident" href="../../../http/method/struct.Method.html">Method</a>};
-<span class="kw">use</span> <span class="ident">http::status</span>::{<a class="self" href="../../../http/status/index.html">self</a>, <a class="ident" href="../../../http/status/struct.StatusCode.html">StatusCode</a>};
+<span class="kw">use </span>bytes::{<a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>, <a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>};
+<span class="kw">use </span><a href="../../../http/header/index.html">http::header</a>;
+<span class="kw">use </span>http::method::{<a class="self" href="../../../http/method/index.html">self</a>, <a href="../../../http/method/struct.Method.html">Method</a>};
+<span class="kw">use </span>http::status::{<a class="self" href="../../../http/status/index.html">self</a>, <a href="../../../http/status/struct.StatusCode.html">StatusCode</a>};
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/index.html">std::cmp</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/collections/vec_deque/struct.VecDeque.html">std::collections::VecDeque</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/cursor/struct.Cursor.html">std::io::Cursor</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/error/struct.Utf8Error.html">std::str::Utf8Error</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">std::cmp</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/collections/vec_deque/struct.VecDeque.html">std::collections::VecDeque</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/cursor/struct.Cursor.html">std::io::Cursor</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/str/error/struct.Utf8Error.html">std::str::Utf8Error</a>;
 
-<span class="doccomment">/// Decodes headers using HPACK</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Decoder</span> {
-    <span class="comment">// Protocol indicated that the max table size will update</span>
-    <span class="ident">max_size_update</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
-    <span class="ident">last_max_update</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="ident">table</span>: <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#139">Table</a>,
-    <span class="ident">buffer</span>: <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>,
+<span class="doccomment">/// Decodes headers using HPACK
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Decoder {
+    <span class="comment">// Protocol indicated that the max table size will update
+    </span>max_size_update: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+    last_max_update: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    table: <a href="../../../src/h2/hpack/decoder.rs.html#139">Table</a>,
+    buffer: <a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>,
 }
 
-<span class="doccomment">/// Represents all errors that can be encountered while performing the decoding</span>
-<span class="doccomment">/// of an HPACK header set.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DecoderError</span> {
-    <span class="ident">InvalidRepresentation</span>,
-    <span class="ident">InvalidIntegerPrefix</span>,
-    <span class="ident">InvalidTableIndex</span>,
-    <span class="ident">InvalidHuffmanCode</span>,
-    <span class="ident">InvalidUtf8</span>,
-    <span class="ident">InvalidStatusCode</span>,
-    <span class="ident">InvalidPseudoheader</span>,
-    <span class="ident">InvalidMaxDynamicSize</span>,
-    <span class="ident">IntegerOverflow</span>,
-    <span class="ident">NeedMore</span>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#41">NeedMore</a>),
+<span class="doccomment">/// Represents all errors that can be encountered while performing the decoding
+/// of an HPACK header set.
+</span><span class="attribute">#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>DecoderError {
+    InvalidRepresentation,
+    InvalidIntegerPrefix,
+    InvalidTableIndex,
+    InvalidHuffmanCode,
+    InvalidUtf8,
+    InvalidStatusCode,
+    InvalidPseudoheader,
+    InvalidMaxDynamicSize,
+    IntegerOverflow,
+    NeedMore(<a href="../../../src/h2/hpack/decoder.rs.html#41">NeedMore</a>),
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">NeedMore</span> {
-    <span class="ident">UnexpectedEndOfStream</span>,
-    <span class="ident">IntegerUnderflow</span>,
-    <span class="ident">StringUnderflow</span>,
+<span class="attribute">#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>NeedMore {
+    UnexpectedEndOfStream,
+    IntegerUnderflow,
+    StringUnderflow,
 }
 
-<span class="kw">enum</span> <span class="ident">Representation</span> {
-    <span class="doccomment">/// Indexed header field representation</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// An indexed header field representation identifies an entry in either the</span>
-    <span class="doccomment">/// static table or the dynamic table (see Section 2.3).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Header encoding</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```text</span>
-    <span class="doccomment">///   0   1   2   3   4   5   6   7</span>
-    <span class="doccomment">/// +---+---+---+---+---+---+---+---+</span>
-    <span class="doccomment">/// | 1 |        Index (7+)         |</span>
-    <span class="doccomment">/// +---+---------------------------+</span>
-    <span class="doccomment">/// ```</span>
-    <span class="ident">Indexed</span>,
+<span class="kw">enum </span>Representation {
+    <span class="doccomment">/// Indexed header field representation
+    ///
+    /// An indexed header field representation identifies an entry in either the
+    /// static table or the dynamic table (see Section 2.3).
+    ///
+    /// # Header encoding
+    ///
+    /// ```text
+    ///   0   1   2   3   4   5   6   7
+    /// +---+---+---+---+---+---+---+---+
+    /// | 1 |        Index (7+)         |
+    /// +---+---------------------------+
+    /// ```
+    </span>Indexed,
 
-    <span class="doccomment">/// Literal Header Field with Incremental Indexing</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A literal header field with incremental indexing representation results</span>
-    <span class="doccomment">/// in appending a header field to the decoded header list and inserting it</span>
-    <span class="doccomment">/// as a new entry into the dynamic table.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Header encoding</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```text</span>
-    <span class="doccomment">///   0   1   2   3   4   5   6   7</span>
-    <span class="doccomment">/// +---+---+---+---+---+---+---+---+</span>
-    <span class="doccomment">/// | 0 | 1 |      Index (6+)       |</span>
-    <span class="doccomment">/// +---+---+-----------------------+</span>
-    <span class="doccomment">/// | H |     Value Length (7+)     |</span>
-    <span class="doccomment">/// +---+---------------------------+</span>
-    <span class="doccomment">/// | Value String (Length octets)  |</span>
-    <span class="doccomment">/// +-------------------------------+</span>
-    <span class="doccomment">/// ```</span>
-    <span class="ident">LiteralWithIndexing</span>,
+    <span class="doccomment">/// Literal Header Field with Incremental Indexing
+    ///
+    /// A literal header field with incremental indexing representation results
+    /// in appending a header field to the decoded header list and inserting it
+    /// as a new entry into the dynamic table.
+    ///
+    /// # Header encoding
+    ///
+    /// ```text
+    ///   0   1   2   3   4   5   6   7
+    /// +---+---+---+---+---+---+---+---+
+    /// | 0 | 1 |      Index (6+)       |
+    /// +---+---+-----------------------+
+    /// | H |     Value Length (7+)     |
+    /// +---+---------------------------+
+    /// | Value String (Length octets)  |
+    /// +-------------------------------+
+    /// ```
+    </span>LiteralWithIndexing,
 
-    <span class="doccomment">/// Literal Header Field without Indexing</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A literal header field without indexing representation results in</span>
-    <span class="doccomment">/// appending a header field to the decoded header list without altering the</span>
-    <span class="doccomment">/// dynamic table.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Header encoding</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```text</span>
-    <span class="doccomment">///   0   1   2   3   4   5   6   7</span>
-    <span class="doccomment">/// +---+---+---+---+---+---+---+---+</span>
-    <span class="doccomment">/// | 0 | 0 | 0 | 0 |  Index (4+)   |</span>
-    <span class="doccomment">/// +---+---+-----------------------+</span>
-    <span class="doccomment">/// | H |     Value Length (7+)     |</span>
-    <span class="doccomment">/// +---+---------------------------+</span>
-    <span class="doccomment">/// | Value String (Length octets)  |</span>
-    <span class="doccomment">/// +-------------------------------+</span>
-    <span class="doccomment">/// ```</span>
-    <span class="ident">LiteralWithoutIndexing</span>,
+    <span class="doccomment">/// Literal Header Field without Indexing
+    ///
+    /// A literal header field without indexing representation results in
+    /// appending a header field to the decoded header list without altering the
+    /// dynamic table.
+    ///
+    /// # Header encoding
+    ///
+    /// ```text
+    ///   0   1   2   3   4   5   6   7
+    /// +---+---+---+---+---+---+---+---+
+    /// | 0 | 0 | 0 | 0 |  Index (4+)   |
+    /// +---+---+-----------------------+
+    /// | H |     Value Length (7+)     |
+    /// +---+---------------------------+
+    /// | Value String (Length octets)  |
+    /// +-------------------------------+
+    /// ```
+    </span>LiteralWithoutIndexing,
 
-    <span class="doccomment">/// Literal Header Field Never Indexed</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A literal header field never-indexed representation results in appending</span>
-    <span class="doccomment">/// a header field to the decoded header list without altering the dynamic</span>
-    <span class="doccomment">/// table. Intermediaries MUST use the same representation for encoding this</span>
-    <span class="doccomment">/// header field.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```text</span>
-    <span class="doccomment">///   0   1   2   3   4   5   6   7</span>
-    <span class="doccomment">/// +---+---+---+---+---+---+---+---+</span>
-    <span class="doccomment">/// | 0 | 0 | 0 | 1 |  Index (4+)   |</span>
-    <span class="doccomment">/// +---+---+-----------------------+</span>
-    <span class="doccomment">/// | H |     Value Length (7+)     |</span>
-    <span class="doccomment">/// +---+---------------------------+</span>
-    <span class="doccomment">/// | Value String (Length octets)  |</span>
-    <span class="doccomment">/// +-------------------------------+</span>
-    <span class="doccomment">/// ```</span>
-    <span class="ident">LiteralNeverIndexed</span>,
+    <span class="doccomment">/// Literal Header Field Never Indexed
+    ///
+    /// A literal header field never-indexed representation results in appending
+    /// a header field to the decoded header list without altering the dynamic
+    /// table. Intermediaries MUST use the same representation for encoding this
+    /// header field.
+    ///
+    /// ```text
+    ///   0   1   2   3   4   5   6   7
+    /// +---+---+---+---+---+---+---+---+
+    /// | 0 | 0 | 0 | 1 |  Index (4+)   |
+    /// +---+---+-----------------------+
+    /// | H |     Value Length (7+)     |
+    /// +---+---------------------------+
+    /// | Value String (Length octets)  |
+    /// +-------------------------------+
+    /// ```
+    </span>LiteralNeverIndexed,
 
-    <span class="doccomment">/// Dynamic Table Size Update</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A dynamic table size update signals a change to the size of the dynamic</span>
-    <span class="doccomment">/// table.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Header encoding</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```text</span>
-    <span class="doccomment">///   0   1   2   3   4   5   6   7</span>
-    <span class="doccomment">/// +---+---+---+---+---+---+---+---+</span>
-    <span class="doccomment">/// | 0 | 0 | 1 |   Max size (5+)   |</span>
-    <span class="doccomment">/// +---+---------------------------+</span>
-    <span class="doccomment">/// ```</span>
-    <span class="ident">SizeUpdate</span>,
+    <span class="doccomment">/// Dynamic Table Size Update
+    ///
+    /// A dynamic table size update signals a change to the size of the dynamic
+    /// table.
+    ///
+    /// # Header encoding
+    ///
+    /// ```text
+    ///   0   1   2   3   4   5   6   7
+    /// +---+---+---+---+---+---+---+---+
+    /// | 0 | 0 | 1 |   Max size (5+)   |
+    /// +---+---------------------------+
+    /// ```
+    </span>SizeUpdate,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">Table</span> {
-    <span class="ident">entries</span>: <span class="ident">VecDeque</span><span class="op">&lt;</span><a class="ident" href="../../../src/h2/hpack/header.rs.html#11">Header</a><span class="op">&gt;</span>,
-    <span class="ident">size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="ident">max_size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">struct </span>Table {
+    entries: VecDeque&lt;<a href="../../../src/h2/hpack/header.rs.html#11">Header</a>&gt;,
+    size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    max_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">struct</span> <span class="ident">StringMarker</span> {
-    <span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="ident">len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="ident">string</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a><span class="op">&gt;</span>,
+<span class="kw">struct </span>StringMarker {
+    offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    string: <span class="prelude-ty">Option</span>&lt;<a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>&gt;,
 }
 
-<span class="comment">// ===== impl Decoder =====</span>
+<span class="comment">// ===== impl Decoder =====
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#16">Decoder</a> {
-    <span class="doccomment">/// Creates a new `Decoder` with all settings set to default values.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#16">Decoder</a> {
-        <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#16">Decoder</a> {
-            <span class="ident">max_size_update</span>: <span class="prelude-val">None</span>,
-            <span class="ident">last_max_update</span>: <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#155">size</a>,
-            <span class="ident">table</span>: <span class="ident">Table::new</span>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#155">size</a>),
-            <span class="ident">buffer</span>: <span class="ident">BytesMut::with_capacity</span>(<span class="number">4096</span>),
+</span><span class="kw">impl </span><a href="../../../src/h2/hpack/decoder.rs.html#16">Decoder</a> {
+    <span class="doccomment">/// Creates a new `Decoder` with all settings set to default values.
+    </span><span class="kw">pub fn </span>new(size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../../src/h2/hpack/decoder.rs.html#16">Decoder</a> {
+        <a href="../../../src/h2/hpack/decoder.rs.html#16">Decoder</a> {
+            max_size_update: <span class="prelude-val">None</span>,
+            last_max_update: <a href="../../../src/h2/hpack/decoder.rs.html#155">size</a>,
+            table: Table::new(<a href="../../../src/h2/hpack/decoder.rs.html#155">size</a>),
+            buffer: BytesMut::with_capacity(<span class="number">4096</span>),
         }
     }
 
-    <span class="doccomment">/// Queues a potential size update</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">queue_size_update</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../src/h2/hpack/decoder.rs.html#166">self</a>.<span class="ident">max_size_update</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">v</span>) =&gt; <span class="ident">cmp::max</span>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#168">v</a>, <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#166">size</a>),
-            <span class="prelude-val">None</span> =&gt; <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#166">size</a>,
+    <span class="doccomment">/// Queues a potential size update
+    </span><span class="attribute">#[allow(dead_code)]
+    </span><span class="kw">pub fn </span>queue_size_update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <span class="kw">let </span>size = <span class="kw">match </span><a class="self" href="../../../src/h2/hpack/decoder.rs.html#166">self</a>.max_size_update {
+            <span class="prelude-val">Some</span>(v) =&gt; cmp::max(<a href="../../../src/h2/hpack/decoder.rs.html#168">v</a>, <a href="../../../src/h2/hpack/decoder.rs.html#166">size</a>),
+            <span class="prelude-val">None </span>=&gt; <a href="../../../src/h2/hpack/decoder.rs.html#166">size</a>,
         };
 
-        <a class="self" href="../../../src/h2/hpack/decoder.rs.html#166">self</a>.<span class="ident">max_size_update</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#167">size</a>);
+        <a class="self" href="../../../src/h2/hpack/decoder.rs.html#166">self</a>.max_size_update = <span class="prelude-val">Some</span>(<a href="../../../src/h2/hpack/decoder.rs.html#167">size</a>);
     }
 
-    <span class="doccomment">/// Decodes the headers found in the given buffer.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decode</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">src</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a><span class="op">&gt;</span>,
-        <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<a class="ident" href="../../../src/h2/hpack/header.rs.html#11">Header</a>),
+    <span class="doccomment">/// Decodes the headers found in the given buffer.
+    </span><span class="kw">pub fn </span>decode&lt;F&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        src: <span class="kw-2">&amp;mut </span>Cursor&lt;<span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>&gt;,
+        <span class="kw-2">mut </span>f: F,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a>&gt;
+    <span class="kw">where
+        </span>F: FnMut(<a href="../../../src/h2/hpack/header.rs.html#11">Header</a>),
     {
-        <span class="kw">use</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#47"><span class="self">self</span>::Representation</a>::<span class="kw-2">*</span>;
+        <span class="kw">use </span><a href="../../../src/h2/hpack/decoder.rs.html#47"><span class="self">self</span>::Representation</a>::<span class="kw-2">*</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">can_resize</span> <span class="op">=</span> <span class="bool-val">true</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>can_resize = <span class="bool-val">true</span>;
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">size</span>) <span class="op">=</span> <a class="self" href="../../../src/h2/hpack/decoder.rs.html#177">self</a>.<span class="ident">max_size_update</span>.<span class="ident">take</span>() {
-            <a class="self" href="../../../src/h2/hpack/decoder.rs.html#177">self</a>.<span class="ident">last_max_update</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#188">size</a>;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(size) = <a class="self" href="../../../src/h2/hpack/decoder.rs.html#177">self</a>.max_size_update.take() {
+            <a class="self" href="../../../src/h2/hpack/decoder.rs.html#177">self</a>.last_max_update = <a href="../../../src/h2/hpack/decoder.rs.html#188">size</a>;
         }
 
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <a class="macro" href="../../../tracing/tracing/macro.trace_span.html">tracing::trace_span!</a>(<span class="string">&quot;hpack::decode&quot;</span>);
-        <span class="kw">let</span> <span class="ident">_e</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#192">span</a>.<span class="ident">enter</span>();
+        <span class="kw">let </span>span = <a class="macro" href="../../../tracing/tracing/macro.trace_span.html">tracing::trace_span!</a>(<span class="string">&quot;hpack::decode&quot;</span>);
+        <span class="kw">let </span>_e = <a href="../../../src/h2/hpack/decoder.rs.html#192">span</a>.enter();
 
         <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;decode&quot;</span>);
 
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ty</span>) <span class="op">=</span> <span class="ident">peek_u8</span>(<span class="ident">src</span>) {
-            <span class="comment">// At this point we are always at the beginning of the next block</span>
-            <span class="comment">// within the HPACK data. The type of the block can always be</span>
-            <span class="comment">// determined from the first byte.</span>
-            <span class="kw">match</span> <span class="ident">Representation::load</span>(<span class="ident">ty</span>)<span class="question-mark">?</span> {
-                <span class="ident">Indexed</span> =&gt; {
-                    <span class="macro">tracing::trace!</span>(<span class="ident">rem</span> <span class="op">=</span> <span class="ident">src</span>.<span class="ident">remaining</span>(), <span class="ident">kind</span> <span class="op">=</span> <span class="op">%</span><span class="string">&quot;Indexed&quot;</span>);
-                    <span class="ident">can_resize</span> <span class="op">=</span> <span class="bool-val">false</span>;
-                    <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">decode_indexed</span>(<span class="ident">src</span>)<span class="question-mark">?</span>;
-                    <span class="ident">consume</span>(<span class="ident">src</span>);
-                    <span class="ident">f</span>(<span class="ident">entry</span>);
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(ty) = peek_u8(src) {
+            <span class="comment">// At this point we are always at the beginning of the next block
+            // within the HPACK data. The type of the block can always be
+            // determined from the first byte.
+            </span><span class="kw">match </span>Representation::load(ty)<span class="question-mark">? </span>{
+                Indexed =&gt; {
+                    <span class="macro">tracing::trace!</span>(rem = src.remaining(), kind = %<span class="string">&quot;Indexed&quot;</span>);
+                    can_resize = <span class="bool-val">false</span>;
+                    <span class="kw">let </span>entry = <span class="self">self</span>.decode_indexed(src)<span class="question-mark">?</span>;
+                    consume(src);
+                    f(entry);
                 }
-                <span class="ident">LiteralWithIndexing</span> =&gt; {
-                    <span class="macro">tracing::trace!</span>(<span class="ident">rem</span> <span class="op">=</span> <span class="ident">src</span>.<span class="ident">remaining</span>(), <span class="ident">kind</span> <span class="op">=</span> <span class="op">%</span><span class="string">&quot;LiteralWithIndexing&quot;</span>);
-                    <span class="ident">can_resize</span> <span class="op">=</span> <span class="bool-val">false</span>;
-                    <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">decode_literal</span>(<span class="ident">src</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                LiteralWithIndexing =&gt; {
+                    <span class="macro">tracing::trace!</span>(rem = src.remaining(), kind = %<span class="string">&quot;LiteralWithIndexing&quot;</span>);
+                    can_resize = <span class="bool-val">false</span>;
+                    <span class="kw">let </span>entry = <span class="self">self</span>.decode_literal(src, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
 
-                    <span class="comment">// Insert the header into the table</span>
-                    <span class="self">self</span>.<span class="ident">table</span>.<span class="ident">insert</span>(<span class="ident">entry</span>.<span class="ident">clone</span>());
-                    <span class="ident">consume</span>(<span class="ident">src</span>);
+                    <span class="comment">// Insert the header into the table
+                    </span><span class="self">self</span>.table.insert(entry.clone());
+                    consume(src);
 
-                    <span class="ident">f</span>(<span class="ident">entry</span>);
+                    f(entry);
                 }
-                <span class="ident">LiteralWithoutIndexing</span> =&gt; {
-                    <span class="macro">tracing::trace!</span>(<span class="ident">rem</span> <span class="op">=</span> <span class="ident">src</span>.<span class="ident">remaining</span>(), <span class="ident">kind</span> <span class="op">=</span> <span class="op">%</span><span class="string">&quot;LiteralWithoutIndexing&quot;</span>);
-                    <span class="ident">can_resize</span> <span class="op">=</span> <span class="bool-val">false</span>;
-                    <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">decode_literal</span>(<span class="ident">src</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
-                    <span class="ident">consume</span>(<span class="ident">src</span>);
-                    <span class="ident">f</span>(<span class="ident">entry</span>);
+                LiteralWithoutIndexing =&gt; {
+                    <span class="macro">tracing::trace!</span>(rem = src.remaining(), kind = %<span class="string">&quot;LiteralWithoutIndexing&quot;</span>);
+                    can_resize = <span class="bool-val">false</span>;
+                    <span class="kw">let </span>entry = <span class="self">self</span>.decode_literal(src, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+                    consume(src);
+                    f(entry);
                 }
-                <span class="ident">LiteralNeverIndexed</span> =&gt; {
-                    <span class="macro">tracing::trace!</span>(<span class="ident">rem</span> <span class="op">=</span> <span class="ident">src</span>.<span class="ident">remaining</span>(), <span class="ident">kind</span> <span class="op">=</span> <span class="op">%</span><span class="string">&quot;LiteralNeverIndexed&quot;</span>);
-                    <span class="ident">can_resize</span> <span class="op">=</span> <span class="bool-val">false</span>;
-                    <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">decode_literal</span>(<span class="ident">src</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
-                    <span class="ident">consume</span>(<span class="ident">src</span>);
+                LiteralNeverIndexed =&gt; {
+                    <span class="macro">tracing::trace!</span>(rem = src.remaining(), kind = %<span class="string">&quot;LiteralNeverIndexed&quot;</span>);
+                    can_resize = <span class="bool-val">false</span>;
+                    <span class="kw">let </span>entry = <span class="self">self</span>.decode_literal(src, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+                    consume(src);
 
-                    <span class="comment">// TODO: Track that this should never be indexed</span>
+                    <span class="comment">// TODO: Track that this should never be indexed
 
-                    <span class="ident">f</span>(<span class="ident">entry</span>);
+                    </span>f(entry);
                 }
-                <span class="ident">SizeUpdate</span> =&gt; {
-                    <span class="macro">tracing::trace!</span>(<span class="ident">rem</span> <span class="op">=</span> <span class="ident">src</span>.<span class="ident">remaining</span>(), <span class="ident">kind</span> <span class="op">=</span> <span class="op">%</span><span class="string">&quot;SizeUpdate&quot;</span>);
-                    <span class="kw">if</span> <span class="op">!</span><span class="ident">can_resize</span> {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">DecoderError::InvalidMaxDynamicSize</span>);
+                SizeUpdate =&gt; {
+                    <span class="macro">tracing::trace!</span>(rem = src.remaining(), kind = %<span class="string">&quot;SizeUpdate&quot;</span>);
+                    <span class="kw">if </span>!can_resize {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(DecoderError::InvalidMaxDynamicSize);
                     }
 
-                    <span class="comment">// Handle the dynamic table size update</span>
-                    <span class="self">self</span>.<span class="ident">process_size_update</span>(<span class="ident">src</span>)<span class="question-mark">?</span>;
-                    <span class="ident">consume</span>(<span class="ident">src</span>);
+                    <span class="comment">// Handle the dynamic table size update
+                    </span><span class="self">self</span>.process_size_update(src)<span class="question-mark">?</span>;
+                    consume(src);
                 }
             }
         }
@@ -1190,693 +1190,693 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">process_size_update</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">new_size</span> <span class="op">=</span> <span class="ident">decode_int</span>(<span class="ident">buf</span>, <span class="number">5</span>)<span class="question-mark">?</span>;
+    <span class="kw">fn </span>process_size_update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>Cursor&lt;<span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a>&gt; {
+        <span class="kw">let </span>new_size = decode_int(buf, <span class="number">5</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="ident">new_size</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">last_max_update</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#35">DecoderError::InvalidMaxDynamicSize</a>);
+        <span class="kw">if </span>new_size &gt; <span class="self">self</span>.last_max_update {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/h2/hpack/decoder.rs.html#35">DecoderError::InvalidMaxDynamicSize</a>);
         }
 
         <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(
-            <span class="ident">from</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">table</span>.<span class="ident">size</span>(),
-            <span class="ident">to</span> <span class="op">=</span> <span class="ident">new_size</span>,
-            <span class="string">&quot;Decoder changed max table size&quot;</span>
-        );
+            from = <span class="self">self</span>.table.size(),
+            to = new_size,
+            <span class="string">&quot;Decoder changed max table size&quot;
+        </span>);
 
-        <a class="self" href="../../../src/h2/hpack/decoder.rs.html#253">self</a>.<span class="ident">table</span>.<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#538">set_max_size</a>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#254">new_size</a>);
+        <a class="self" href="../../../src/h2/hpack/decoder.rs.html#253">self</a>.table.<a href="../../../src/h2/hpack/decoder.rs.html#538">set_max_size</a>(<a href="../../../src/h2/hpack/decoder.rs.html#254">new_size</a>);
 
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">decode_indexed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/h2/hpack/header.rs.html#11">Header</a>, <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">decode_int</span>(<span class="ident">buf</span>, <span class="number">7</span>)<span class="question-mark">?</span>;
-        <a class="self" href="../../../src/h2/hpack/decoder.rs.html#271">self</a>.<span class="ident">table</span>.<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#509">get</a>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#272">index</a>)
+    <span class="kw">fn </span>decode_indexed(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>Cursor&lt;<span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/h2/hpack/header.rs.html#11">Header</a>, <a href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a>&gt; {
+        <span class="kw">let </span>index = decode_int(buf, <span class="number">7</span>)<span class="question-mark">?</span>;
+        <a class="self" href="../../../src/h2/hpack/decoder.rs.html#271">self</a>.table.<a href="../../../src/h2/hpack/decoder.rs.html#509">get</a>(<a href="../../../src/h2/hpack/decoder.rs.html#272">index</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">decode_literal</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a><span class="op">&gt;</span>,
-        <span class="ident">index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/h2/hpack/header.rs.html#11">Header</a>, <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">prefix</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">index</span> { <span class="number">6</span> } <span class="kw">else</span> { <span class="number">4</span> };
+    <span class="kw">fn </span>decode_literal(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        buf: <span class="kw-2">&amp;mut </span>Cursor&lt;<span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>&gt;,
+        index: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/h2/hpack/header.rs.html#11">Header</a>, <a href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a>&gt; {
+        <span class="kw">let </span>prefix = <span class="kw">if </span>index { <span class="number">6 </span>} <span class="kw">else </span>{ <span class="number">4 </span>};
 
-        <span class="comment">// Extract the table index for the name, or 0 if not indexed</span>
-        <span class="kw">let</span> <span class="ident">table_idx</span> <span class="op">=</span> <span class="ident">decode_int</span>(<span class="ident">buf</span>, <span class="ident">prefix</span>)<span class="question-mark">?</span>;
+        <span class="comment">// Extract the table index for the name, or 0 if not indexed
+        </span><span class="kw">let </span>table_idx = decode_int(buf, prefix)<span class="question-mark">?</span>;
 
-        <span class="comment">// First, read the header name</span>
-        <span class="kw">if</span> <span class="ident">table_idx</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">let</span> <span class="ident">old_pos</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#278">buf</a>.<span class="ident">position</span>();
-            <span class="kw">let</span> <span class="ident">name_marker</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_decode_string</span>(<span class="ident">buf</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">value_marker</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_decode_string</span>(<span class="ident">buf</span>)<span class="question-mark">?</span>;
-            <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#278">buf</a>.<span class="ident">set_position</span>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#288">old_pos</a>);
-            <span class="comment">// Read the name as a literal</span>
-            <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#289">name_marker</a>.<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#467">consume</a>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#278">buf</a>);
-            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#290">value_marker</a>.<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#467">consume</a>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#278">buf</a>);
-            <span class="ident">Header::new</span>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#293">name</a>, <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#294">value</a>)
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">table</span>.<span class="ident">get</span>(<span class="ident">table_idx</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">decode_string</span>(<span class="ident">buf</span>)<span class="question-mark">?</span>;
+        <span class="comment">// First, read the header name
+        </span><span class="kw">if </span>table_idx == <span class="number">0 </span>{
+            <span class="kw">let </span>old_pos = <a href="../../../src/h2/hpack/decoder.rs.html#278">buf</a>.position();
+            <span class="kw">let </span>name_marker = <span class="self">self</span>.try_decode_string(buf)<span class="question-mark">?</span>;
+            <span class="kw">let </span>value_marker = <span class="self">self</span>.try_decode_string(buf)<span class="question-mark">?</span>;
+            <a href="../../../src/h2/hpack/decoder.rs.html#278">buf</a>.set_position(<a href="../../../src/h2/hpack/decoder.rs.html#288">old_pos</a>);
+            <span class="comment">// Read the name as a literal
+            </span><span class="kw">let </span>name = <a href="../../../src/h2/hpack/decoder.rs.html#289">name_marker</a>.<a href="../../../src/h2/hpack/decoder.rs.html#467">consume</a>(<a href="../../../src/h2/hpack/decoder.rs.html#278">buf</a>);
+            <span class="kw">let </span>value = <a href="../../../src/h2/hpack/decoder.rs.html#290">value_marker</a>.<a href="../../../src/h2/hpack/decoder.rs.html#467">consume</a>(<a href="../../../src/h2/hpack/decoder.rs.html#278">buf</a>);
+            Header::new(<a href="../../../src/h2/hpack/decoder.rs.html#293">name</a>, <a href="../../../src/h2/hpack/decoder.rs.html#294">value</a>)
+        } <span class="kw">else </span>{
+            <span class="kw">let </span>e = <span class="self">self</span>.table.get(table_idx)<span class="question-mark">?</span>;
+            <span class="kw">let </span>value = <span class="self">self</span>.decode_string(buf)<span class="question-mark">?</span>;
 
-            <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#297">e</a>.<a class="ident" href="../../../src/h2/hpack/header.rs.html#121">name</a>().<a class="ident" href="../../../src/h2/hpack/header.rs.html#230">into_entry</a>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#298">value</a>)
+            <a href="../../../src/h2/hpack/decoder.rs.html#297">e</a>.<a href="../../../src/h2/hpack/header.rs.html#121">name</a>().<a href="../../../src/h2/hpack/header.rs.html#230">into_entry</a>(<a href="../../../src/h2/hpack/decoder.rs.html#298">value</a>)
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">try_decode_string</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/h2/hpack/decoder.rs.html#145">StringMarker</a>, <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">old_pos</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#306">buf</a>.<span class="ident">position</span>();
-        <span class="kw">const</span> <span class="ident">HUFF_FLAG</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">0b1000_0000</span>;
+    <span class="kw">fn </span>try_decode_string(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        buf: <span class="kw-2">&amp;mut </span>Cursor&lt;<span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/h2/hpack/decoder.rs.html#145">StringMarker</a>, <a href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a>&gt; {
+        <span class="kw">let </span>old_pos = <a href="../../../src/h2/hpack/decoder.rs.html#306">buf</a>.position();
+        <span class="kw">const </span>HUFF_FLAG: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">0b1000_0000</span>;
 
-        <span class="comment">// The first bit in the first byte contains the huffman encoded flag.</span>
-        <span class="kw">let</span> <span class="ident">huff</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#450">peek_u8</a>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#306">buf</a>) {
-            <span class="prelude-val">Some</span>(<span class="ident">hdr</span>) =&gt; (<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#313">hdr</a> <span class="op">&amp;</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#309">HUFF_FLAG</a>) <span class="op">==</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#309">HUFF_FLAG</a>,
-            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#37">DecoderError::NeedMore</a>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#42">NeedMore::UnexpectedEndOfStream</a>)),
+        <span class="comment">// The first bit in the first byte contains the huffman encoded flag.
+        </span><span class="kw">let </span>huff = <span class="kw">match </span><a href="../../../src/h2/hpack/decoder.rs.html#450">peek_u8</a>(<a href="../../../src/h2/hpack/decoder.rs.html#306">buf</a>) {
+            <span class="prelude-val">Some</span>(hdr) =&gt; (<a href="../../../src/h2/hpack/decoder.rs.html#313">hdr</a> &amp; <a href="../../../src/h2/hpack/decoder.rs.html#309">HUFF_FLAG</a>) == <a href="../../../src/h2/hpack/decoder.rs.html#309">HUFF_FLAG</a>,
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/h2/hpack/decoder.rs.html#37">DecoderError::NeedMore</a>(<a href="../../../src/h2/hpack/decoder.rs.html#42">NeedMore::UnexpectedEndOfStream</a>)),
         };
 
-        <span class="comment">// Decode the string length using 7 bit prefix</span>
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">decode_int</span>(<span class="ident">buf</span>, <span class="number">7</span>)<span class="question-mark">?</span>;
+        <span class="comment">// Decode the string length using 7 bit prefix
+        </span><span class="kw">let </span>len = decode_int(buf, <span class="number">7</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="ident">len</span> <span class="op">&gt;</span> <span class="ident">buf</span>.<span class="ident">remaining</span>() {
-            <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="ident">len</span>, <span class="ident">remaining</span> <span class="op">=</span> <span class="ident">buf</span>.<span class="ident">remaining</span>(), <span class="string">&quot;decode_string underflow&quot;</span>,);
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#37">DecoderError::NeedMore</a>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#44">NeedMore::StringUnderflow</a>));
+        <span class="kw">if </span>len &gt; buf.remaining() {
+            <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(len, remaining = buf.remaining(), <span class="string">&quot;decode_string underflow&quot;</span>,);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/h2/hpack/decoder.rs.html#37">DecoderError::NeedMore</a>(<a href="../../../src/h2/hpack/decoder.rs.html#44">NeedMore::StringUnderflow</a>));
         }
 
-        <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> (<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#306">buf</a>.<span class="ident">position</span>() <span class="op">-</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#308">old_pos</a>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <span class="kw">if</span> <span class="ident">huff</span> {
-            <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> {
-                <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/h2/hpack/decoder.rs.html#306">buf</a>.<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">chunk</a>()[..<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#318">len</a>];
-                <a class="ident" href="../../../src/h2/hpack/huffman/mod.rs.html#20">huffman::decode</a>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#328">raw</a>, <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/h2/hpack/decoder.rs.html#305">self</a>.<span class="ident">buffer</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">buf</span><span class="op">|</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#145">StringMarker</a> {
-                    <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#325">offset</a>,
-                    <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#318">len</a>,
-                    <span class="ident">string</span>: <span class="prelude-val">Some</span>(<span class="ident">BytesMut::freeze</span>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#329">buf</a>)),
+        <span class="kw">let </span>offset = (<a href="../../../src/h2/hpack/decoder.rs.html#306">buf</a>.position() - <a href="../../../src/h2/hpack/decoder.rs.html#308">old_pos</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+        <span class="kw">if </span>huff {
+            <span class="kw">let </span>ret = {
+                <span class="kw">let </span>raw = <span class="kw-2">&amp;</span><a href="../../../src/h2/hpack/decoder.rs.html#306">buf</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">chunk</a>()[..<a href="../../../src/h2/hpack/decoder.rs.html#318">len</a>];
+                <a href="../../../src/h2/hpack/huffman/mod.rs.html#20">huffman::decode</a>(<a href="../../../src/h2/hpack/decoder.rs.html#328">raw</a>, <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/h2/hpack/decoder.rs.html#305">self</a>.buffer).map(|buf| <a href="../../../src/h2/hpack/decoder.rs.html#145">StringMarker</a> {
+                    <a href="../../../src/h2/hpack/decoder.rs.html#325">offset</a>,
+                    <a href="../../../src/h2/hpack/decoder.rs.html#318">len</a>,
+                    string: <span class="prelude-val">Some</span>(BytesMut::freeze(<a href="../../../src/h2/hpack/decoder.rs.html#329">buf</a>)),
                 })
             };
 
-            <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#306">buf</a>.<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#318">len</a>);
-            <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#327">ret</a>
-        } <span class="kw">else</span> {
-            <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#306">buf</a>.<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#318">len</a>);
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#145">StringMarker</a> {
-                <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#325">offset</a>,
-                <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#318">len</a>,
-                <span class="ident">string</span>: <span class="prelude-val">None</span>,
+            <a href="../../../src/h2/hpack/decoder.rs.html#306">buf</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a href="../../../src/h2/hpack/decoder.rs.html#318">len</a>);
+            <a href="../../../src/h2/hpack/decoder.rs.html#327">ret</a>
+        } <span class="kw">else </span>{
+            <a href="../../../src/h2/hpack/decoder.rs.html#306">buf</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a href="../../../src/h2/hpack/decoder.rs.html#318">len</a>);
+            <span class="prelude-val">Ok</span>(<a href="../../../src/h2/hpack/decoder.rs.html#145">StringMarker</a> {
+                <a href="../../../src/h2/hpack/decoder.rs.html#325">offset</a>,
+                <a href="../../../src/h2/hpack/decoder.rs.html#318">len</a>,
+                string: <span class="prelude-val">None</span>,
             })
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">decode_string</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>, <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">old_pos</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#348">buf</a>.<span class="ident">position</span>();
-        <span class="kw">let</span> <span class="ident">marker</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_decode_string</span>(<span class="ident">buf</span>)<span class="question-mark">?</span>;
-        <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#348">buf</a>.<span class="ident">set_position</span>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#349">old_pos</a>);
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#350">marker</a>.<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#467">consume</a>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#348">buf</a>))
+    <span class="kw">fn </span>decode_string(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>Cursor&lt;<span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>, <a href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a>&gt; {
+        <span class="kw">let </span>old_pos = <a href="../../../src/h2/hpack/decoder.rs.html#348">buf</a>.position();
+        <span class="kw">let </span>marker = <span class="self">self</span>.try_decode_string(buf)<span class="question-mark">?</span>;
+        <a href="../../../src/h2/hpack/decoder.rs.html#348">buf</a>.set_position(<a href="../../../src/h2/hpack/decoder.rs.html#349">old_pos</a>);
+        <span class="prelude-val">Ok</span>(<a href="../../../src/h2/hpack/decoder.rs.html#350">marker</a>.<a href="../../../src/h2/hpack/decoder.rs.html#467">consume</a>(<a href="../../../src/h2/hpack/decoder.rs.html#348">buf</a>))
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#16">Decoder</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#16">Decoder</a> {
-        <span class="ident">Decoder::new</span>(<span class="number">4096</span>)
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../../src/h2/hpack/decoder.rs.html#16">Decoder</a> {
+    <span class="kw">fn </span>default() -&gt; <a href="../../../src/h2/hpack/decoder.rs.html#16">Decoder</a> {
+        Decoder::new(<span class="number">4096</span>)
     }
 }
 
-<span class="comment">// ===== impl Representation =====</span>
+<span class="comment">// ===== impl Representation =====
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#47">Representation</a> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load</span>(<span class="ident">byte</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/h2/hpack/decoder.rs.html#47">Representation</a>, <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a><span class="op">&gt;</span> {
-        <span class="kw">const</span> <span class="ident">INDEXED</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">0b1000_0000</span>;
-        <span class="kw">const</span> <span class="ident">LITERAL_WITH_INDEXING</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">0b0100_0000</span>;
-        <span class="kw">const</span> <span class="ident">LITERAL_WITHOUT_INDEXING</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">0b1111_0000</span>;
-        <span class="kw">const</span> <span class="ident">LITERAL_NEVER_INDEXED</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">0b0001_0000</span>;
-        <span class="kw">const</span> <span class="ident">SIZE_UPDATE_MASK</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">0b1110_0000</span>;
-        <span class="kw">const</span> <span class="ident">SIZE_UPDATE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">0b0010_0000</span>;
+</span><span class="kw">impl </span><a href="../../../src/h2/hpack/decoder.rs.html#47">Representation</a> {
+    <span class="kw">pub fn </span>load(byte: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/h2/hpack/decoder.rs.html#47">Representation</a>, <a href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a>&gt; {
+        <span class="kw">const </span>INDEXED: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">0b1000_0000</span>;
+        <span class="kw">const </span>LITERAL_WITH_INDEXING: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">0b0100_0000</span>;
+        <span class="kw">const </span>LITERAL_WITHOUT_INDEXING: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">0b1111_0000</span>;
+        <span class="kw">const </span>LITERAL_NEVER_INDEXED: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">0b0001_0000</span>;
+        <span class="kw">const </span>SIZE_UPDATE_MASK: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">0b1110_0000</span>;
+        <span class="kw">const </span>SIZE_UPDATE: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">0b0010_0000</span>;
 
-        <span class="comment">// TODO: What did I even write here?</span>
+        <span class="comment">// TODO: What did I even write here?
 
-        <span class="kw">if</span> <span class="ident">byte</span> <span class="op">&amp;</span> <span class="ident">INDEXED</span> <span class="op">==</span> <span class="ident">INDEXED</span> {
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#61">Representation::Indexed</a>)
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">byte</span> <span class="op">&amp;</span> <span class="ident">LITERAL_WITH_INDEXING</span> <span class="op">==</span> <span class="ident">LITERAL_WITH_INDEXING</span> {
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#81">Representation::LiteralWithIndexing</a>)
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">byte</span> <span class="op">&amp;</span> <span class="ident">LITERAL_WITHOUT_INDEXING</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#101">Representation::LiteralWithoutIndexing</a>)
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">byte</span> <span class="op">&amp;</span> <span class="ident">LITERAL_WITHOUT_INDEXING</span> <span class="op">==</span> <span class="ident">LITERAL_NEVER_INDEXED</span> {
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#120">Representation::LiteralNeverIndexed</a>)
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">byte</span> <span class="op">&amp;</span> <span class="ident">SIZE_UPDATE_MASK</span> <span class="op">==</span> <span class="ident">SIZE_UPDATE</span> {
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#135">Representation::SizeUpdate</a>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#28">DecoderError::InvalidRepresentation</a>)
+        </span><span class="kw">if </span>byte &amp; INDEXED == INDEXED {
+            <span class="prelude-val">Ok</span>(<a href="../../../src/h2/hpack/decoder.rs.html#61">Representation::Indexed</a>)
+        } <span class="kw">else if </span>byte &amp; LITERAL_WITH_INDEXING == LITERAL_WITH_INDEXING {
+            <span class="prelude-val">Ok</span>(<a href="../../../src/h2/hpack/decoder.rs.html#81">Representation::LiteralWithIndexing</a>)
+        } <span class="kw">else if </span>byte &amp; LITERAL_WITHOUT_INDEXING == <span class="number">0 </span>{
+            <span class="prelude-val">Ok</span>(<a href="../../../src/h2/hpack/decoder.rs.html#101">Representation::LiteralWithoutIndexing</a>)
+        } <span class="kw">else if </span>byte &amp; LITERAL_WITHOUT_INDEXING == LITERAL_NEVER_INDEXED {
+            <span class="prelude-val">Ok</span>(<a href="../../../src/h2/hpack/decoder.rs.html#120">Representation::LiteralNeverIndexed</a>)
+        } <span class="kw">else if </span>byte &amp; SIZE_UPDATE_MASK == SIZE_UPDATE {
+            <span class="prelude-val">Ok</span>(<a href="../../../src/h2/hpack/decoder.rs.html#135">Representation::SizeUpdate</a>)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(<a href="../../../src/h2/hpack/decoder.rs.html#28">DecoderError::InvalidRepresentation</a>)
         }
     }
 }
 
-<span class="kw">fn</span> <span class="ident">decode_int</span><span class="op">&lt;</span><span class="ident">B</span>: <a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a><span class="op">&gt;</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">B</span>, <span class="ident">prefix_size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a><span class="op">&gt;</span> {
-    <span class="comment">// The octet limit is chosen such that the maximum allowed *value* can</span>
-    <span class="comment">// never overflow an unsigned 32-bit integer. The maximum value of any</span>
-    <span class="comment">// integer that can be encoded with 5 octets is ~2^28</span>
-    <span class="kw">const</span> <span class="ident">MAX_BYTES</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">5</span>;
-    <span class="kw">const</span> <span class="ident">VARINT_MASK</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">0b0111_1111</span>;
-    <span class="kw">const</span> <span class="ident">VARINT_FLAG</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">0b1000_0000</span>;
+<span class="kw">fn </span>decode_int&lt;B: <a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>&gt;(buf: <span class="kw-2">&amp;mut </span>B, prefix_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a>&gt; {
+    <span class="comment">// The octet limit is chosen such that the maximum allowed *value* can
+    // never overflow an unsigned 32-bit integer. The maximum value of any
+    // integer that can be encoded with 5 octets is ~2^28
+    </span><span class="kw">const </span>MAX_BYTES: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">5</span>;
+    <span class="kw">const </span>VARINT_MASK: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">0b0111_1111</span>;
+    <span class="kw">const </span>VARINT_FLAG: <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> = <span class="number">0b1000_0000</span>;
 
-    <span class="kw">if</span> <span class="ident">prefix_size</span> <span class="op">&lt;</span> <span class="number">1</span> <span class="op">|</span><span class="op">|</span> <span class="ident">prefix_size</span> <span class="op">&gt;</span> <span class="number">8</span> {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#29">DecoderError::InvalidIntegerPrefix</a>);
+    <span class="kw">if </span>prefix_size &lt; <span class="number">1 </span>|| prefix_size &gt; <span class="number">8 </span>{
+        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/h2/hpack/decoder.rs.html#29">DecoderError::InvalidIntegerPrefix</a>);
     }
 
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">buf</span>.<span class="ident">has_remaining</span>() {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#37">DecoderError::NeedMore</a>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#43">NeedMore::IntegerUnderflow</a>));
+    <span class="kw">if </span>!buf.has_remaining() {
+        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/h2/hpack/decoder.rs.html#37">DecoderError::NeedMore</a>(<a href="../../../src/h2/hpack/decoder.rs.html#43">NeedMore::IntegerUnderflow</a>));
     }
 
-    <span class="kw">let</span> <span class="ident">mask</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">prefix_size</span> <span class="op">==</span> <span class="number">8</span> {
-        <span class="number">0xFF</span>
-    } <span class="kw">else</span> {
-        (<span class="number">1u8</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#391">prefix_size</a>).<span class="ident">wrapping_sub</span>(<span class="number">1</span>)
+    <span class="kw">let </span>mask = <span class="kw">if </span>prefix_size == <span class="number">8 </span>{
+        <span class="number">0xFF
+    </span>} <span class="kw">else </span>{
+        (<span class="number">1u8 </span>&lt;&lt; <a href="../../../src/h2/hpack/decoder.rs.html#391">prefix_size</a>).wrapping_sub(<span class="number">1</span>)
     };
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ret</span> <span class="op">=</span> (<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#391">buf</a>.<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">get_u8</a>() <span class="op">&amp;</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#407">mask</a>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+    <span class="kw">let </span><span class="kw-2">mut </span>ret = (<a href="../../../src/h2/hpack/decoder.rs.html#391">buf</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">get_u8</a>() &amp; <a href="../../../src/h2/hpack/decoder.rs.html#407">mask</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
 
-    <span class="kw">if</span> <span class="ident">ret</span> <span class="op">&lt;</span> <span class="ident">mask</span> <span class="kw">as</span> <span class="ident">usize</span> {
-        <span class="comment">// Value fits in the prefix bits</span>
-        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#413">ret</a>);
+    <span class="kw">if </span>ret &lt; mask <span class="kw">as </span>usize {
+        <span class="comment">// Value fits in the prefix bits
+        </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../../src/h2/hpack/decoder.rs.html#413">ret</a>);
     }
 
-    <span class="comment">// The int did not fit in the prefix bits, so continue reading.</span>
-    <span class="comment">//</span>
-    <span class="comment">// The total number of bytes used to represent the int. The first byte was</span>
-    <span class="comment">// the prefix, so start at 1.</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="number">1</span>;
+    <span class="comment">// The int did not fit in the prefix bits, so continue reading.
+    //
+    // The total number of bytes used to represent the int. The first byte was
+    // the prefix, so start at 1.
+    </span><span class="kw">let </span><span class="kw-2">mut </span>bytes = <span class="number">1</span>;
 
-    <span class="comment">// The rest of the int is stored as a varint -- 7 bits for the value and 1</span>
-    <span class="comment">// bit to indicate if it is the last byte.</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">shift</span> <span class="op">=</span> <span class="number">0</span>;
+    <span class="comment">// The rest of the int is stored as a varint -- 7 bits for the value and 1
+    // bit to indicate if it is the last byte.
+    </span><span class="kw">let </span><span class="kw-2">mut </span>shift = <span class="number">0</span>;
 
-    <span class="kw">while</span> <span class="ident">buf</span>.<span class="ident">has_remaining</span>() {
-        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">buf</span>.<span class="ident">get_u8</span>();
+    <span class="kw">while </span>buf.has_remaining() {
+        <span class="kw">let </span>b = buf.get_u8();
 
-        <span class="ident">bytes</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="ident">ret</span> <span class="op">+</span><span class="op">=</span> ((<span class="ident">b</span> <span class="op">&amp;</span> <span class="ident">VARINT_MASK</span>) <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">shift</span>;
-        <span class="ident">shift</span> <span class="op">+</span><span class="op">=</span> <span class="number">7</span>;
+        bytes += <span class="number">1</span>;
+        ret += ((b &amp; VARINT_MASK) <span class="kw">as </span>usize) &lt;&lt; shift;
+        shift += <span class="number">7</span>;
 
-        <span class="kw">if</span> <span class="ident">b</span> <span class="op">&amp;</span> <span class="ident">VARINT_FLAG</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">ret</span>);
+        <span class="kw">if </span>b &amp; VARINT_FLAG == <span class="number">0 </span>{
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(ret);
         }
 
-        <span class="kw">if</span> <span class="ident">bytes</span> <span class="op">==</span> <span class="ident">MAX_BYTES</span> {
-            <span class="comment">// The spec requires that this situation is an error</span>
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">DecoderError::IntegerOverflow</span>);
+        <span class="kw">if </span>bytes == MAX_BYTES {
+            <span class="comment">// The spec requires that this situation is an error
+            </span><span class="kw">return </span><span class="prelude-val">Err</span>(DecoderError::IntegerOverflow);
         }
     }
 
-    <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#37">DecoderError::NeedMore</a>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#43">NeedMore::IntegerUnderflow</a>))
+    <span class="prelude-val">Err</span>(<a href="../../../src/h2/hpack/decoder.rs.html#37">DecoderError::NeedMore</a>(<a href="../../../src/h2/hpack/decoder.rs.html#43">NeedMore::IntegerUnderflow</a>))
 }
 
-<span class="kw">fn</span> <span class="ident">peek_u8</span><span class="op">&lt;</span><span class="ident">B</span>: <a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a><span class="op">&gt;</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">B</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="ident">buf</span>.<span class="ident">has_remaining</span>() {
-        <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#450">buf</a>.<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">chunk</a>()[<span class="number">0</span>])
-    } <span class="kw">else</span> {
-        <span class="prelude-val">None</span>
-    }
+<span class="kw">fn </span>peek_u8&lt;B: <a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>&gt;(buf: <span class="kw-2">&amp;mut </span>B) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
+    <span class="kw">if </span>buf.has_remaining() {
+        <span class="prelude-val">Some</span>(<a href="../../../src/h2/hpack/decoder.rs.html#450">buf</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">chunk</a>()[<span class="number">0</span>])
+    } <span class="kw">else </span>{
+        <span class="prelude-val">None
+    </span>}
 }
 
-<span class="kw">fn</span> <span class="ident">take</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a><span class="op">&gt;</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a> {
-    <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#458">buf</a>.<span class="ident">position</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">head</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#458">buf</a>.<span class="ident">get_mut</span>().<span class="ident">split_to</span>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#459">pos</a> <span class="op">+</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#458">n</a>);
-    <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#458">buf</a>.<span class="ident">set_position</span>(<span class="number">0</span>);
-    <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#460">head</a>.<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#459">pos</a>);
-    <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#460">head</a>.<span class="ident">freeze</span>()
+<span class="kw">fn </span>take(buf: <span class="kw-2">&amp;mut </span>Cursor&lt;<span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>&gt;, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a> {
+    <span class="kw">let </span>pos = <a href="../../../src/h2/hpack/decoder.rs.html#458">buf</a>.position() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+    <span class="kw">let </span><span class="kw-2">mut </span>head = <a href="../../../src/h2/hpack/decoder.rs.html#458">buf</a>.get_mut().split_to(<a href="../../../src/h2/hpack/decoder.rs.html#459">pos</a> + <a href="../../../src/h2/hpack/decoder.rs.html#458">n</a>);
+    <a href="../../../src/h2/hpack/decoder.rs.html#458">buf</a>.set_position(<span class="number">0</span>);
+    <a href="../../../src/h2/hpack/decoder.rs.html#460">head</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a href="../../../src/h2/hpack/decoder.rs.html#459">pos</a>);
+    <a href="../../../src/h2/hpack/decoder.rs.html#460">head</a>.freeze()
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#145">StringMarker</a> {
-    <span class="kw">fn</span> <span class="ident">consume</span>(<span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a> {
-        <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#467">buf</a>.<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a class="self" href="../../../src/h2/hpack/decoder.rs.html#467">self</a>.<span class="ident">offset</span>);
-        <span class="kw">match</span> <a class="self" href="../../../src/h2/hpack/decoder.rs.html#467">self</a>.<span class="ident">string</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">string</span>) =&gt; {
-                <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#467">buf</a>.<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a class="self" href="../../../src/h2/hpack/decoder.rs.html#467">self</a>.<span class="ident">len</span>);
-                <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#470">string</a>
+<span class="kw">impl </span><a href="../../../src/h2/hpack/decoder.rs.html#145">StringMarker</a> {
+    <span class="kw">fn </span>consume(<span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>Cursor&lt;<span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>&gt;) -&gt; <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a> {
+        <a href="../../../src/h2/hpack/decoder.rs.html#467">buf</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a class="self" href="../../../src/h2/hpack/decoder.rs.html#467">self</a>.offset);
+        <span class="kw">match </span><a class="self" href="../../../src/h2/hpack/decoder.rs.html#467">self</a>.string {
+            <span class="prelude-val">Some</span>(string) =&gt; {
+                <a href="../../../src/h2/hpack/decoder.rs.html#467">buf</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a class="self" href="../../../src/h2/hpack/decoder.rs.html#467">self</a>.len);
+                <a href="../../../src/h2/hpack/decoder.rs.html#470">string</a>
             }
-            <span class="prelude-val">None</span> =&gt; <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#458">take</a>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#467">buf</a>, <a class="self" href="../../../src/h2/hpack/decoder.rs.html#467">self</a>.<span class="ident">len</span>),
+            <span class="prelude-val">None </span>=&gt; <a href="../../../src/h2/hpack/decoder.rs.html#458">take</a>(<a href="../../../src/h2/hpack/decoder.rs.html#467">buf</a>, <a class="self" href="../../../src/h2/hpack/decoder.rs.html#467">self</a>.len),
         }
     }
 }
 
-<span class="kw">fn</span> <span class="ident">consume</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a><span class="op">&gt;</span>) {
-    <span class="comment">// remove bytes from the internal BytesMut when they have been successfully</span>
-    <span class="comment">// decoded. This is a more permanent cursor position, which will be</span>
-    <span class="comment">// used to resume if decoding was only partial.</span>
-    <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#458">take</a>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#479">buf</a>, <span class="number">0</span>);
+<span class="kw">fn </span>consume(buf: <span class="kw-2">&amp;mut </span>Cursor&lt;<span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>&gt;) {
+    <span class="comment">// remove bytes from the internal BytesMut when they have been successfully
+    // decoded. This is a more permanent cursor position, which will be
+    // used to resume if decoding was only partial.
+    </span><a href="../../../src/h2/hpack/decoder.rs.html#458">take</a>(<a href="../../../src/h2/hpack/decoder.rs.html#479">buf</a>, <span class="number">0</span>);
 }
 
-<span class="comment">// ===== impl Table =====</span>
+<span class="comment">// ===== impl Table =====
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#139">Table</a> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">max_size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#139">Table</a> {
-        <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#139">Table</a> {
-            <span class="ident">entries</span>: <span class="ident">VecDeque::new</span>(),
-            <span class="ident">size</span>: <span class="number">0</span>,
-            <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#489">max_size</a>,
+</span><span class="kw">impl </span><a href="../../../src/h2/hpack/decoder.rs.html#139">Table</a> {
+    <span class="kw">fn </span>new(max_size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../../src/h2/hpack/decoder.rs.html#139">Table</a> {
+        <a href="../../../src/h2/hpack/decoder.rs.html#139">Table</a> {
+            entries: VecDeque::new(),
+            size: <span class="number">0</span>,
+            <a href="../../../src/h2/hpack/decoder.rs.html#489">max_size</a>,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/h2/hpack/decoder.rs.html#497">self</a>.<span class="ident">size</span>
+    <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../../src/h2/hpack/decoder.rs.html#497">self</a>.size
     }
 
-    <span class="doccomment">/// Returns the entry located at the given index.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The table is 1-indexed and constructed in such a way that the first</span>
-    <span class="doccomment">/// entries belong to the static table, followed by entries in the dynamic</span>
-    <span class="doccomment">/// table. They are merged into a single index address space, though.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is according to the [HPACK spec, section 2.3.3.]</span>
-    <span class="doccomment">/// (http://http2.github.io/http2-spec/compression.html#index.address.space)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/h2/hpack/header.rs.html#11">Header</a>, <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">index</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#30">DecoderError::InvalidTableIndex</a>);
+    <span class="doccomment">/// Returns the entry located at the given index.
+    ///
+    /// The table is 1-indexed and constructed in such a way that the first
+    /// entries belong to the static table, followed by entries in the dynamic
+    /// table. They are merged into a single index address space, though.
+    ///
+    /// This is according to the [HPACK spec, section 2.3.3.]
+    /// (http://http2.github.io/http2-spec/compression.html#index.address.space)
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/h2/hpack/header.rs.html#11">Header</a>, <a href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a>&gt; {
+        <span class="kw">if </span>index == <span class="number">0 </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/h2/hpack/decoder.rs.html#30">DecoderError::InvalidTableIndex</a>);
         }
 
-        <span class="kw">if</span> <span class="ident">index</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">61</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#619">get_static</a>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#509">index</a>));
+        <span class="kw">if </span>index &lt;= <span class="number">61 </span>{
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="../../../src/h2/hpack/decoder.rs.html#619">get_static</a>(<a href="../../../src/h2/hpack/decoder.rs.html#509">index</a>));
         }
 
-        <span class="comment">// Convert the index for lookup in the entries structure.</span>
-        <span class="kw">match</span> <a class="self" href="../../../src/h2/hpack/decoder.rs.html#509">self</a>.<span class="ident">entries</span>.<span class="ident">get</span>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#509">index</a> <span class="op">-</span> <span class="number">62</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#520">e</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
-            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#30">DecoderError::InvalidTableIndex</a>),
-        }
-    }
-
-    <span class="kw">fn</span> <span class="ident">insert</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">entry</span>: <a class="ident" href="../../../src/h2/hpack/header.rs.html#11">Header</a>) {
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#525">entry</a>.<a class="ident" href="../../../src/h2/hpack/header.rs.html#105">len</a>();
-
-        <a class="self" href="../../../src/h2/hpack/decoder.rs.html#525">self</a>.<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#544">reserve</a>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#526">len</a>);
-
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">size</span> <span class="op">+</span> <span class="ident">len</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">max_size</span> {
-            <a class="self" href="../../../src/h2/hpack/decoder.rs.html#525">self</a>.<span class="ident">size</span> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#526">len</a>;
-
-            <span class="comment">// Track the entry</span>
-            <a class="self" href="../../../src/h2/hpack/decoder.rs.html#525">self</a>.<span class="ident">entries</span>.<span class="ident">push_front</span>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#525">entry</a>);
+        <span class="comment">// Convert the index for lookup in the entries structure.
+        </span><span class="kw">match </span><a class="self" href="../../../src/h2/hpack/decoder.rs.html#509">self</a>.entries.get(<a href="../../../src/h2/hpack/decoder.rs.html#509">index</a> - <span class="number">62</span>) {
+            <span class="prelude-val">Some</span>(e) =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/h2/hpack/decoder.rs.html#520">e</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../../src/h2/hpack/decoder.rs.html#30">DecoderError::InvalidTableIndex</a>),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">set_max_size</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="../../../src/h2/hpack/decoder.rs.html#538">self</a>.<span class="ident">max_size</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#538">size</a>;
-        <span class="comment">// Make the table size fit within the new constraints.</span>
-        <a class="self" href="../../../src/h2/hpack/decoder.rs.html#538">self</a>.<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#555">consolidate</a>();
+    <span class="kw">fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, entry: <a href="../../../src/h2/hpack/header.rs.html#11">Header</a>) {
+        <span class="kw">let </span>len = <a href="../../../src/h2/hpack/decoder.rs.html#525">entry</a>.<a href="../../../src/h2/hpack/header.rs.html#105">len</a>();
+
+        <a class="self" href="../../../src/h2/hpack/decoder.rs.html#525">self</a>.<a href="../../../src/h2/hpack/decoder.rs.html#544">reserve</a>(<a href="../../../src/h2/hpack/decoder.rs.html#526">len</a>);
+
+        <span class="kw">if </span><span class="self">self</span>.size + len &lt;= <span class="self">self</span>.max_size {
+            <a class="self" href="../../../src/h2/hpack/decoder.rs.html#525">self</a>.size += <a href="../../../src/h2/hpack/decoder.rs.html#526">len</a>;
+
+            <span class="comment">// Track the entry
+            </span><a class="self" href="../../../src/h2/hpack/decoder.rs.html#525">self</a>.entries.push_front(<a href="../../../src/h2/hpack/decoder.rs.html#525">entry</a>);
+        }
     }
 
-    <span class="kw">fn</span> <span class="ident">reserve</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">while</span> <span class="self">self</span>.<span class="ident">size</span> <span class="op">+</span> <span class="ident">size</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">max_size</span> {
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">entries</span>.<span class="ident">pop_back</span>() {
-                <span class="prelude-val">Some</span>(<span class="ident">last</span>) =&gt; {
-                    <span class="self">self</span>.<span class="ident">size</span> <span class="op">-</span><span class="op">=</span> <span class="ident">last</span>.<span class="ident">len</span>();
+    <span class="kw">fn </span>set_max_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <a class="self" href="../../../src/h2/hpack/decoder.rs.html#538">self</a>.max_size = <a href="../../../src/h2/hpack/decoder.rs.html#538">size</a>;
+        <span class="comment">// Make the table size fit within the new constraints.
+        </span><a class="self" href="../../../src/h2/hpack/decoder.rs.html#538">self</a>.<a href="../../../src/h2/hpack/decoder.rs.html#555">consolidate</a>();
+    }
+
+    <span class="kw">fn </span>reserve(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <span class="kw">while </span><span class="self">self</span>.size + size &gt; <span class="self">self</span>.max_size {
+            <span class="kw">match </span><span class="self">self</span>.entries.pop_back() {
+                <span class="prelude-val">Some</span>(last) =&gt; {
+                    <span class="self">self</span>.size -= last.len();
                 }
-                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span>,
+                <span class="prelude-val">None </span>=&gt; <span class="kw">return</span>,
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">consolidate</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">while</span> <span class="self">self</span>.<span class="ident">size</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">max_size</span> {
+    <span class="kw">fn </span>consolidate(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">while </span><span class="self">self</span>.size &gt; <span class="self">self</span>.max_size {
             {
-                <span class="kw">let</span> <span class="ident">last</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">entries</span>.<span class="ident">back</span>() {
-                    <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
-                    <span class="prelude-val">None</span> =&gt; {
-                        <span class="comment">// Can never happen as the size of the table must reach</span>
-                        <span class="comment">// 0 by the time we&#39;ve exhausted all elements.</span>
-                        <span class="macro">panic!</span>(<span class="string">&quot;Size of table != 0, but no headers left!&quot;</span>);
+                <span class="kw">let </span>last = <span class="kw">match </span><span class="self">self</span>.entries.back() {
+                    <span class="prelude-val">Some</span>(x) =&gt; x,
+                    <span class="prelude-val">None </span>=&gt; {
+                        <span class="comment">// Can never happen as the size of the table must reach
+                        // 0 by the time we&#39;ve exhausted all elements.
+                        </span><span class="macro">panic!</span>(<span class="string">&quot;Size of table != 0, but no headers left!&quot;</span>);
                     }
                 };
 
-                <span class="self">self</span>.<span class="ident">size</span> <span class="op">-</span><span class="op">=</span> <span class="ident">last</span>.<span class="ident">len</span>();
+                <span class="self">self</span>.size -= last.len();
             }
 
-            <span class="self">self</span>.<span class="ident">entries</span>.<span class="ident">pop_back</span>();
+            <span class="self">self</span>.entries.pop_back();
         }
     }
 }
 
-<span class="comment">// ===== impl DecoderError =====</span>
+<span class="comment">// ===== impl DecoderError =====
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/str/error/struct.Utf8Error.html">Utf8Error</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="kw">_</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/error/struct.Utf8Error.html">Utf8Error</a>) -&gt; <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a> {
-        <span class="comment">// TODO: Better error?</span>
-        <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#32">DecoderError::InvalidUtf8</a>
+</span><span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/core/str/error/struct.Utf8Error.html">Utf8Error</a>&gt; <span class="kw">for </span><a href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a> {
+    <span class="kw">fn </span>from(<span class="kw">_</span>: <a href="https://doc.rust-lang.org/nightly/core/str/error/struct.Utf8Error.html">Utf8Error</a>) -&gt; <a href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a> {
+        <span class="comment">// TODO: Better error?
+        </span><a href="../../../src/h2/hpack/decoder.rs.html#32">DecoderError::InvalidUtf8</a>
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../http/header/value/struct.InvalidHeaderValue.html">header::InvalidHeaderValue</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="kw">_</span>: <a class="ident" href="../../../http/header/value/struct.InvalidHeaderValue.html">header::InvalidHeaderValue</a>) -&gt; <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a> {
-        <span class="comment">// TODO: Better error?</span>
-        <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#32">DecoderError::InvalidUtf8</a>
+<span class="kw">impl </span>From&lt;<a href="../../../http/header/value/struct.InvalidHeaderValue.html">header::InvalidHeaderValue</a>&gt; <span class="kw">for </span><a href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a> {
+    <span class="kw">fn </span>from(<span class="kw">_</span>: <a href="../../../http/header/value/struct.InvalidHeaderValue.html">header::InvalidHeaderValue</a>) -&gt; <a href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a> {
+        <span class="comment">// TODO: Better error?
+        </span><a href="../../../src/h2/hpack/decoder.rs.html#32">DecoderError::InvalidUtf8</a>
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../http/header/name/struct.InvalidHeaderName.html">header::InvalidHeaderName</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="kw">_</span>: <a class="ident" href="../../../http/header/name/struct.InvalidHeaderName.html">header::InvalidHeaderName</a>) -&gt; <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a> {
-        <span class="comment">// TODO: Better error</span>
-        <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#32">DecoderError::InvalidUtf8</a>
+<span class="kw">impl </span>From&lt;<a href="../../../http/header/name/struct.InvalidHeaderName.html">header::InvalidHeaderName</a>&gt; <span class="kw">for </span><a href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a> {
+    <span class="kw">fn </span>from(<span class="kw">_</span>: <a href="../../../http/header/name/struct.InvalidHeaderName.html">header::InvalidHeaderName</a>) -&gt; <a href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a> {
+        <span class="comment">// TODO: Better error
+        </span><a href="../../../src/h2/hpack/decoder.rs.html#32">DecoderError::InvalidUtf8</a>
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../http/method/struct.InvalidMethod.html">method::InvalidMethod</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="kw">_</span>: <a class="ident" href="../../../http/method/struct.InvalidMethod.html">method::InvalidMethod</a>) -&gt; <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a> {
-        <span class="comment">// TODO: Better error</span>
-        <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#32">DecoderError::InvalidUtf8</a>
+<span class="kw">impl </span>From&lt;<a href="../../../http/method/struct.InvalidMethod.html">method::InvalidMethod</a>&gt; <span class="kw">for </span><a href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a> {
+    <span class="kw">fn </span>from(<span class="kw">_</span>: <a href="../../../http/method/struct.InvalidMethod.html">method::InvalidMethod</a>) -&gt; <a href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a> {
+        <span class="comment">// TODO: Better error
+        </span><a href="../../../src/h2/hpack/decoder.rs.html#32">DecoderError::InvalidUtf8</a>
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../http/status/struct.InvalidStatusCode.html">status::InvalidStatusCode</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="kw">_</span>: <a class="ident" href="../../../http/status/struct.InvalidStatusCode.html">status::InvalidStatusCode</a>) -&gt; <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a> {
-        <span class="comment">// TODO: Better error</span>
-        <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#32">DecoderError::InvalidUtf8</a>
+<span class="kw">impl </span>From&lt;<a href="../../../http/status/struct.InvalidStatusCode.html">status::InvalidStatusCode</a>&gt; <span class="kw">for </span><a href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a> {
+    <span class="kw">fn </span>from(<span class="kw">_</span>: <a href="../../../http/status/struct.InvalidStatusCode.html">status::InvalidStatusCode</a>) -&gt; <a href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a> {
+        <span class="comment">// TODO: Better error
+        </span><a href="../../../src/h2/hpack/decoder.rs.html#32">DecoderError::InvalidUtf8</a>
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/h2/frame/mod.rs.html#123">frame::Error</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">src</span>: <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/h2/frame/mod.rs.html#160">frame::Error::Hpack</a>(<a class="ident" href="../../../src/h2/hpack/decoder.rs.html#613">src</a>)
+<span class="kw">impl </span>From&lt;<a href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a>&gt; <span class="kw">for </span><a href="../../../src/h2/frame/mod.rs.html#133">frame::Error</a> {
+    <span class="kw">fn </span>from(src: <a href="../../../src/h2/hpack/decoder.rs.html#27">DecoderError</a>) -&gt; <span class="self">Self </span>{
+        <a href="../../../src/h2/frame/mod.rs.html#170">frame::Error::Hpack</a>(<a href="../../../src/h2/hpack/decoder.rs.html#613">src</a>)
     }
 }
 
-<span class="doccomment">/// Get an entry from the static table</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_static</span>(<span class="ident">idx</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#11">Header</a> {
-    <span class="kw">use</span> <a class="ident" href="../../../http/header/value/struct.HeaderValue.html">http::header::HeaderValue</a>;
+<span class="doccomment">/// Get an entry from the static table
+</span><span class="kw">pub fn </span>get_static(idx: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="../../../src/h2/hpack/header.rs.html#11">Header</a> {
+    <span class="kw">use </span><a href="../../../http/header/value/struct.HeaderValue.html">http::header::HeaderValue</a>;
 
-    <span class="kw">match</span> <a class="ident" href="../../../src/h2/hpack/decoder.rs.html#619">idx</a> {
-        <span class="number">1</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#14">Header::Authority</a>(<span class="ident">BytesStr::from_static</span>(<span class="string">&quot;&quot;</span>)),
-        <span class="number">2</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#15">Header::Method</a>(<span class="ident">Method::GET</span>),
-        <span class="number">3</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#15">Header::Method</a>(<span class="ident">Method::POST</span>),
-        <span class="number">4</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#17">Header::Path</a>(<span class="ident">BytesStr::from_static</span>(<span class="string">&quot;/&quot;</span>)),
-        <span class="number">5</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#17">Header::Path</a>(<span class="ident">BytesStr::from_static</span>(<span class="string">&quot;/index.html&quot;</span>)),
-        <span class="number">6</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#16">Header::Scheme</a>(<span class="ident">BytesStr::from_static</span>(<span class="string">&quot;http&quot;</span>)),
-        <span class="number">7</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#16">Header::Scheme</a>(<span class="ident">BytesStr::from_static</span>(<span class="string">&quot;https&quot;</span>)),
-        <span class="number">8</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#19">Header::Status</a>(<span class="ident">StatusCode::OK</span>),
-        <span class="number">9</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#19">Header::Status</a>(<span class="ident">StatusCode::NO_CONTENT</span>),
-        <span class="number">10</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#19">Header::Status</a>(<span class="ident">StatusCode::PARTIAL_CONTENT</span>),
-        <span class="number">11</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#19">Header::Status</a>(<span class="ident">StatusCode::NOT_MODIFIED</span>),
-        <span class="number">12</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#19">Header::Status</a>(<span class="ident">StatusCode::BAD_REQUEST</span>),
-        <span class="number">13</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#19">Header::Status</a>(<span class="ident">StatusCode::NOT_FOUND</span>),
-        <span class="number">14</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#19">Header::Status</a>(<span class="ident">StatusCode::INTERNAL_SERVER_ERROR</span>),
-        <span class="number">15</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::ACCEPT_CHARSET</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+    <span class="kw">match </span><a href="../../../src/h2/hpack/decoder.rs.html#619">idx</a> {
+        <span class="number">1 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#14">Header::Authority</a>(BytesStr::from_static(<span class="string">&quot;&quot;</span>)),
+        <span class="number">2 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#15">Header::Method</a>(Method::GET),
+        <span class="number">3 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#15">Header::Method</a>(Method::POST),
+        <span class="number">4 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#17">Header::Path</a>(BytesStr::from_static(<span class="string">&quot;/&quot;</span>)),
+        <span class="number">5 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#17">Header::Path</a>(BytesStr::from_static(<span class="string">&quot;/index.html&quot;</span>)),
+        <span class="number">6 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#16">Header::Scheme</a>(BytesStr::from_static(<span class="string">&quot;http&quot;</span>)),
+        <span class="number">7 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#16">Header::Scheme</a>(BytesStr::from_static(<span class="string">&quot;https&quot;</span>)),
+        <span class="number">8 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#19">Header::Status</a>(StatusCode::OK),
+        <span class="number">9 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#19">Header::Status</a>(StatusCode::NO_CONTENT),
+        <span class="number">10 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#19">Header::Status</a>(StatusCode::PARTIAL_CONTENT),
+        <span class="number">11 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#19">Header::Status</a>(StatusCode::NOT_MODIFIED),
+        <span class="number">12 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#19">Header::Status</a>(StatusCode::BAD_REQUEST),
+        <span class="number">13 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#19">Header::Status</a>(StatusCode::NOT_FOUND),
+        <span class="number">14 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#19">Header::Status</a>(StatusCode::INTERNAL_SERVER_ERROR),
+        <span class="number">15 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::ACCEPT_CHARSET,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">16</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::ACCEPT_ENCODING</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;gzip, deflate&quot;</span>),
+        <span class="number">16 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::ACCEPT_ENCODING,
+            value: HeaderValue::from_static(<span class="string">&quot;gzip, deflate&quot;</span>),
         },
-        <span class="number">17</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::ACCEPT_LANGUAGE</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">17 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::ACCEPT_LANGUAGE,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">18</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::ACCEPT_RANGES</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">18 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::ACCEPT_RANGES,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">19</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::ACCEPT</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">19 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::ACCEPT,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">20</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::ACCESS_CONTROL_ALLOW_ORIGIN</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">20 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::ACCESS_CONTROL_ALLOW_ORIGIN,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">21</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::AGE</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">21 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::AGE,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">22</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::ALLOW</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">22 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::ALLOW,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">23</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::AUTHORIZATION</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">23 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::AUTHORIZATION,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">24</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::CACHE_CONTROL</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">24 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::CACHE_CONTROL,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">25</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::CONTENT_DISPOSITION</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">25 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::CONTENT_DISPOSITION,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">26</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::CONTENT_ENCODING</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">26 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::CONTENT_ENCODING,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">27</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::CONTENT_LANGUAGE</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">27 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::CONTENT_LANGUAGE,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">28</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::CONTENT_LENGTH</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">28 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::CONTENT_LENGTH,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">29</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::CONTENT_LOCATION</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">29 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::CONTENT_LOCATION,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">30</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::CONTENT_RANGE</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">30 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::CONTENT_RANGE,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">31</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::CONTENT_TYPE</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">31 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::CONTENT_TYPE,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">32</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::COOKIE</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">32 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::COOKIE,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">33</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::DATE</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">33 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::DATE,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">34</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::ETAG</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">34 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::ETAG,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">35</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::EXPECT</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">35 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::EXPECT,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">36</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::EXPIRES</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">36 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::EXPIRES,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">37</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::FROM</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">37 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::FROM,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">38</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::HOST</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">38 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::HOST,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">39</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::IF_MATCH</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">39 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::IF_MATCH,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">40</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::IF_MODIFIED_SINCE</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">40 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::IF_MODIFIED_SINCE,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">41</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::IF_NONE_MATCH</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">41 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::IF_NONE_MATCH,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">42</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::IF_RANGE</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">42 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::IF_RANGE,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">43</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::IF_UNMODIFIED_SINCE</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">43 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::IF_UNMODIFIED_SINCE,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">44</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::LAST_MODIFIED</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">44 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::LAST_MODIFIED,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">45</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::LINK</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">45 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::LINK,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">46</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::LOCATION</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">46 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::LOCATION,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">47</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::MAX_FORWARDS</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">47 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::MAX_FORWARDS,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">48</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::PROXY_AUTHENTICATE</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">48 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::PROXY_AUTHENTICATE,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">49</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::PROXY_AUTHORIZATION</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">49 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::PROXY_AUTHORIZATION,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">50</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::RANGE</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">50 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::RANGE,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">51</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::REFERER</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">51 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::REFERER,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">52</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::REFRESH</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">52 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::REFRESH,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">53</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::RETRY_AFTER</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">53 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::RETRY_AFTER,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">54</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::SERVER</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">54 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::SERVER,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">55</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::SET_COOKIE</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">55 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::SET_COOKIE,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">56</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::STRICT_TRANSPORT_SECURITY</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">56 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::STRICT_TRANSPORT_SECURITY,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">57</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::TRANSFER_ENCODING</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">57 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::TRANSFER_ENCODING,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">58</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::USER_AGENT</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">58 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::USER_AGENT,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">59</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::VARY</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">59 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::VARY,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">60</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::VIA</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">60 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::VIA,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="number">61</span> =&gt; <a class="ident" href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
-            <span class="ident">name</span>: <span class="ident">header::WWW_AUTHENTICATE</span>,
-            <span class="ident">value</span>: <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;&quot;</span>),
+        <span class="number">61 </span>=&gt; <a href="../../../src/h2/hpack/header.rs.html#12">Header::Field</a> {
+            name: header::WWW_AUTHENTICATE,
+            value: HeaderValue::from_static(<span class="string">&quot;&quot;</span>),
         },
-        <span class="kw">_</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+        <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">test</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::hpack::Header</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>test {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span><span class="kw">crate</span>::hpack::Header;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_peek_u8</span>() {
-        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="number">0xff</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">Cursor::new</span>(<span class="macro">vec!</span>[<span class="ident">b</span>]);
-        <span class="macro">assert_eq!</span>(<span class="ident">peek_u8</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>), <span class="prelude-val">Some</span>(<span class="ident">b</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">buf</span>.<span class="ident">get_u8</span>(), <span class="ident">b</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">peek_u8</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>), <span class="prelude-val">None</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_peek_u8() {
+        <span class="kw">let </span>b = <span class="number">0xff</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = Cursor::new(<span class="macro">vec!</span>[b]);
+        <span class="macro">assert_eq!</span>(peek_u8(<span class="kw-2">&amp;mut </span>buf), <span class="prelude-val">Some</span>(b));
+        <span class="macro">assert_eq!</span>(buf.get_u8(), b);
+        <span class="macro">assert_eq!</span>(peek_u8(<span class="kw-2">&amp;mut </span>buf), <span class="prelude-val">None</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_decode_string_empty</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">de</span> <span class="op">=</span> <span class="ident">Decoder::new</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">BytesMut::new</span>();
-        <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="ident">de</span>.<span class="ident">decode_string</span>(<span class="kw-2">&amp;mut</span> <span class="ident">Cursor::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>)).<span class="ident">unwrap_err</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">err</span>, <span class="ident">DecoderError::NeedMore</span>(<span class="ident">NeedMore::UnexpectedEndOfStream</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_decode_string_empty() {
+        <span class="kw">let </span><span class="kw-2">mut </span>de = Decoder::new(<span class="number">0</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = BytesMut::new();
+        <span class="kw">let </span>err = de.decode_string(<span class="kw-2">&amp;mut </span>Cursor::new(<span class="kw-2">&amp;mut </span>buf)).unwrap_err();
+        <span class="macro">assert_eq!</span>(err, DecoderError::NeedMore(NeedMore::UnexpectedEndOfStream));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_decode_empty</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">de</span> <span class="op">=</span> <span class="ident">Decoder::new</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">BytesMut::new</span>();
-        <span class="kw">let</span> <span class="ident">empty</span> <span class="op">=</span> <span class="ident">de</span>.<span class="ident">decode</span>(<span class="kw-2">&amp;mut</span> <span class="ident">Cursor::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>), <span class="op">|</span><span class="kw">_</span><span class="op">|</span> {}).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">empty</span>, ());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_decode_empty() {
+        <span class="kw">let </span><span class="kw-2">mut </span>de = Decoder::new(<span class="number">0</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = BytesMut::new();
+        <span class="kw">let </span>empty = de.decode(<span class="kw-2">&amp;mut </span>Cursor::new(<span class="kw-2">&amp;mut </span>buf), |<span class="kw">_</span>| {}).unwrap();
+        <span class="macro">assert_eq!</span>(empty, ());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_decode_indexed_larger_than_table</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">de</span> <span class="op">=</span> <span class="ident">Decoder::new</span>(<span class="number">0</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_decode_indexed_larger_than_table() {
+        <span class="kw">let </span><span class="kw-2">mut </span>de = Decoder::new(<span class="number">0</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">BytesMut::new</span>();
-        <span class="ident">buf</span>.<span class="ident">extend</span>(<span class="kw-2">&amp;</span>[<span class="number">0b01000000</span>, <span class="number">0x80</span> <span class="op">|</span> <span class="number">2</span>]);
-        <span class="ident">buf</span>.<span class="ident">extend</span>(<span class="ident">huff_encode</span>(<span class="string">b&quot;foo&quot;</span>));
-        <span class="ident">buf</span>.<span class="ident">extend</span>(<span class="kw-2">&amp;</span>[<span class="number">0x80</span> <span class="op">|</span> <span class="number">3</span>]);
-        <span class="ident">buf</span>.<span class="ident">extend</span>(<span class="ident">huff_encode</span>(<span class="string">b&quot;bar&quot;</span>));
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = BytesMut::new();
+        buf.extend(<span class="kw-2">&amp;</span>[<span class="number">0b01000000</span>, <span class="number">0x80 </span>| <span class="number">2</span>]);
+        buf.extend(huff_encode(<span class="string">b&quot;foo&quot;</span>));
+        buf.extend(<span class="kw-2">&amp;</span>[<span class="number">0x80 </span>| <span class="number">3</span>]);
+        buf.extend(huff_encode(<span class="string">b&quot;bar&quot;</span>));
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">de</span>
-            .<span class="ident">decode</span>(<span class="kw-2">&amp;mut</span> <span class="ident">Cursor::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>), <span class="op">|</span><span class="ident">h</span><span class="op">|</span> {
-                <span class="ident">res</span>.<span class="ident">push</span>(<span class="ident">h</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>res = <span class="macro">vec!</span>[];
+        <span class="kw">let _ </span>= de
+            .decode(<span class="kw-2">&amp;mut </span>Cursor::new(<span class="kw-2">&amp;mut </span>buf), |h| {
+                res.push(h);
             })
-            .<span class="ident">unwrap</span>();
+            .unwrap();
 
-        <span class="macro">assert_eq!</span>(<span class="ident">res</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">de</span>.<span class="ident">table</span>.<span class="ident">size</span>(), <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(res.len(), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(de.table.size(), <span class="number">0</span>);
 
-        <span class="kw">match</span> <span class="ident">res</span>[<span class="number">0</span>] {
-            <span class="ident">Header::Field</span> {
-                <span class="kw-2">ref</span> <span class="ident">name</span>,
-                <span class="kw-2">ref</span> <span class="ident">value</span>,
+        <span class="kw">match </span>res[<span class="number">0</span>] {
+            Header::Field {
+                <span class="kw-2">ref </span>name,
+                <span class="kw-2">ref </span>value,
             } =&gt; {
-                <span class="macro">assert_eq!</span>(<span class="ident">name</span>, <span class="string">&quot;foo&quot;</span>);
-                <span class="macro">assert_eq!</span>(<span class="ident">value</span>, <span class="string">&quot;bar&quot;</span>);
+                <span class="macro">assert_eq!</span>(name, <span class="string">&quot;foo&quot;</span>);
+                <span class="macro">assert_eq!</span>(value, <span class="string">&quot;bar&quot;</span>);
             }
-            <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(),
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">huff_encode</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">BytesMut</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">BytesMut::new</span>();
-        <span class="ident">huffman::encode</span>(<span class="ident">src</span>, <span class="kw-2">&amp;mut</span> <span class="ident">buf</span>);
-        <span class="ident">buf</span>
+    <span class="kw">fn </span>huff_encode(src: <span class="kw-2">&amp;</span>[u8]) -&gt; BytesMut {
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = BytesMut::new();
+        huffman::encode(src, <span class="kw-2">&amp;mut </span>buf);
+        buf
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_decode_continuation_header_with_non_huff_encoded_name</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">de</span> <span class="op">=</span> <span class="ident">Decoder::new</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">huff_encode</span>(<span class="string">b&quot;bar&quot;</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">BytesMut::new</span>();
-        <span class="comment">// header name is non_huff encoded</span>
-        <span class="ident">buf</span>.<span class="ident">extend</span>(<span class="kw-2">&amp;</span>[<span class="number">0b01000000</span>, <span class="number">0x00</span> <span class="op">|</span> <span class="number">3</span>]);
-        <span class="ident">buf</span>.<span class="ident">extend</span>(<span class="string">b&quot;foo&quot;</span>);
-        <span class="comment">// header value is partial</span>
-        <span class="ident">buf</span>.<span class="ident">extend</span>(<span class="kw-2">&amp;</span>[<span class="number">0x80</span> <span class="op">|</span> <span class="number">3</span>]);
-        <span class="ident">buf</span>.<span class="ident">extend</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>[<span class="number">0</span>..<span class="number">1</span>]);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_decode_continuation_header_with_non_huff_encoded_name() {
+        <span class="kw">let </span><span class="kw-2">mut </span>de = Decoder::new(<span class="number">0</span>);
+        <span class="kw">let </span>value = huff_encode(<span class="string">b&quot;bar&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = BytesMut::new();
+        <span class="comment">// header name is non_huff encoded
+        </span>buf.extend(<span class="kw-2">&amp;</span>[<span class="number">0b01000000</span>, <span class="number">0x00 </span>| <span class="number">3</span>]);
+        buf.extend(<span class="string">b&quot;foo&quot;</span>);
+        <span class="comment">// header value is partial
+        </span>buf.extend(<span class="kw-2">&amp;</span>[<span class="number">0x80 </span>| <span class="number">3</span>]);
+        buf.extend(<span class="kw-2">&amp;</span>value[<span class="number">0</span>..<span class="number">1</span>]);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-        <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="ident">de</span>
-            .<span class="ident">decode</span>(<span class="kw-2">&amp;mut</span> <span class="ident">Cursor::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>), <span class="op">|</span><span class="ident">h</span><span class="op">|</span> {
-                <span class="ident">res</span>.<span class="ident">push</span>(<span class="ident">h</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>res = <span class="macro">vec!</span>[];
+        <span class="kw">let </span>e = de
+            .decode(<span class="kw-2">&amp;mut </span>Cursor::new(<span class="kw-2">&amp;mut </span>buf), |h| {
+                res.push(h);
             })
-            .<span class="ident">unwrap_err</span>();
-        <span class="comment">// decode error because the header value is partial</span>
-        <span class="macro">assert_eq!</span>(<span class="ident">e</span>, <span class="ident">DecoderError::NeedMore</span>(<span class="ident">NeedMore::StringUnderflow</span>));
+            .unwrap_err();
+        <span class="comment">// decode error because the header value is partial
+        </span><span class="macro">assert_eq!</span>(e, DecoderError::NeedMore(NeedMore::StringUnderflow));
 
-        <span class="comment">// extend buf with the remaining header value</span>
-        <span class="ident">buf</span>.<span class="ident">extend</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>[<span class="number">1</span>..]);
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">de</span>
-            .<span class="ident">decode</span>(<span class="kw-2">&amp;mut</span> <span class="ident">Cursor::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>), <span class="op">|</span><span class="ident">h</span><span class="op">|</span> {
-                <span class="ident">res</span>.<span class="ident">push</span>(<span class="ident">h</span>);
+        <span class="comment">// extend buf with the remaining header value
+        </span>buf.extend(<span class="kw-2">&amp;</span>value[<span class="number">1</span>..]);
+        <span class="kw">let _ </span>= de
+            .decode(<span class="kw-2">&amp;mut </span>Cursor::new(<span class="kw-2">&amp;mut </span>buf), |h| {
+                res.push(h);
             })
-            .<span class="ident">unwrap</span>();
+            .unwrap();
 
-        <span class="macro">assert_eq!</span>(<span class="ident">res</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">de</span>.<span class="ident">table</span>.<span class="ident">size</span>(), <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(res.len(), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(de.table.size(), <span class="number">0</span>);
 
-        <span class="kw">match</span> <span class="ident">res</span>[<span class="number">0</span>] {
-            <span class="ident">Header::Field</span> {
-                <span class="kw-2">ref</span> <span class="ident">name</span>,
-                <span class="kw-2">ref</span> <span class="ident">value</span>,
+        <span class="kw">match </span>res[<span class="number">0</span>] {
+            Header::Field {
+                <span class="kw-2">ref </span>name,
+                <span class="kw-2">ref </span>value,
             } =&gt; {
-                <span class="macro">assert_eq!</span>(<span class="ident">name</span>, <span class="string">&quot;foo&quot;</span>);
-                <span class="macro">assert_eq!</span>(<span class="ident">value</span>, <span class="string">&quot;bar&quot;</span>);
+                <span class="macro">assert_eq!</span>(name, <span class="string">&quot;foo&quot;</span>);
+                <span class="macro">assert_eq!</span>(value, <span class="string">&quot;bar&quot;</span>);
             }
-            <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(),
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="h2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="h2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

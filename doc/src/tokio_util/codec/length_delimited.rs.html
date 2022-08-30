@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.7.3/src/codec/length_delimited.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>length_delimited.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.7.3/src/codec/length_delimited.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>length_delimited.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1045,1052 +1045,1052 @@
 <span id="1045">1045</span>
 <span id="1046">1046</span>
 <span id="1047">1047</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Frame a stream of bytes based on a length prefix</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Many protocols delimit their frames by prefacing frame data with a</span>
-<span class="doccomment">//! frame head that specifies the length of the frame. The</span>
-<span class="doccomment">//! `length_delimited` module provides utilities for handling the length</span>
-<span class="doccomment">//! based framing. This allows the consumer to work with entire frames</span>
-<span class="doccomment">//! without having to worry about buffering or other framing logic.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Getting started</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! If implementing a protocol from scratch, using length delimited framing</span>
-<span class="doccomment">//! is an easy way to get started. [`LengthDelimitedCodec::new()`] will</span>
-<span class="doccomment">//! return a length delimited codec using default configuration values.</span>
-<span class="doccomment">//! This can then be used to construct a framer to adapt a full-duplex</span>
-<span class="doccomment">//! byte stream into a stream of frames.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! use tokio::io::{AsyncRead, AsyncWrite};</span>
-<span class="doccomment">//! use tokio_util::codec::{Framed, LengthDelimitedCodec};</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! fn bind_transport&lt;T: AsyncRead + AsyncWrite&gt;(io: T)</span>
-<span class="doccomment">//!     -&gt; Framed&lt;T, LengthDelimitedCodec&gt;</span>
-<span class="doccomment">//! {</span>
-<span class="doccomment">//!     Framed::new(io, LengthDelimitedCodec::new())</span>
-<span class="doccomment">//! }</span>
-<span class="doccomment">//! # pub fn main() {}</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The returned transport implements `Sink + Stream` for `BytesMut`. It</span>
-<span class="doccomment">//! encodes the frame with a big-endian `u32` header denoting the frame</span>
-<span class="doccomment">//! payload length:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```text</span>
-<span class="doccomment">//! +----------+--------------------------------+</span>
-<span class="doccomment">//! | len: u32 |          frame payload         |</span>
-<span class="doccomment">//! +----------+--------------------------------+</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Specifically, given the following:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! use tokio::io::{AsyncRead, AsyncWrite};</span>
-<span class="doccomment">//! use tokio_util::codec::{Framed, LengthDelimitedCodec};</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! use futures::SinkExt;</span>
-<span class="doccomment">//! use bytes::Bytes;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! async fn write_frame&lt;T&gt;(io: T) -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt;</span>
-<span class="doccomment">//! where</span>
-<span class="doccomment">//!     T: AsyncRead + AsyncWrite + Unpin,</span>
-<span class="doccomment">//! {</span>
-<span class="doccomment">//!     let mut transport = Framed::new(io, LengthDelimitedCodec::new());</span>
-<span class="doccomment">//!     let frame = Bytes::from(&quot;hello world&quot;);</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!     transport.send(frame).await?;</span>
-<span class="doccomment">//!     Ok(())</span>
-<span class="doccomment">//! }</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The encoded frame will look like this:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```text</span>
-<span class="doccomment">//! +---- len: u32 ----+---- data ----+</span>
-<span class="doccomment">//! | \x00\x00\x00\x0b |  hello world |</span>
-<span class="doccomment">//! +------------------+--------------+</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Decoding</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [`FramedRead`] adapts an [`AsyncRead`] into a `Stream` of [`BytesMut`],</span>
-<span class="doccomment">//! such that each yielded [`BytesMut`] value contains the contents of an</span>
-<span class="doccomment">//! entire frame. There are many configuration parameters enabling</span>
-<span class="doccomment">//! [`FramedRead`] to handle a wide range of protocols. Here are some</span>
-<span class="doccomment">//! examples that will cover the various options at a high level.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## Example 1</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The following will parse a `u16` length field at offset 0, including the</span>
-<span class="doccomment">//! frame head in the yielded `BytesMut`.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! # use tokio::io::AsyncRead;</span>
-<span class="doccomment">//! # use tokio_util::codec::LengthDelimitedCodec;</span>
-<span class="doccomment">//! # fn bind_read&lt;T: AsyncRead&gt;(io: T) {</span>
-<span class="doccomment">//! LengthDelimitedCodec::builder()</span>
-<span class="doccomment">//!     .length_field_offset(0) // default value</span>
-<span class="doccomment">//!     .length_field_type::&lt;u16&gt;()</span>
-<span class="doccomment">//!     .length_adjustment(0)   // default value</span>
-<span class="doccomment">//!     .num_skip(0) // Do not strip frame header</span>
-<span class="doccomment">//!     .new_read(io);</span>
-<span class="doccomment">//! # }</span>
-<span class="doccomment">//! # pub fn main() {}</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The following frame will be decoded as such:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```text</span>
-<span class="doccomment">//!          INPUT                           DECODED</span>
-<span class="doccomment">//! +-- len ---+--- Payload ---+     +-- len ---+--- Payload ---+</span>
-<span class="doccomment">//! | \x00\x0B |  Hello world  | --&gt; | \x00\x0B |  Hello world  |</span>
-<span class="doccomment">//! +----------+---------------+     +----------+---------------+</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The value of the length field is 11 (`\x0B`) which represents the length</span>
-<span class="doccomment">//! of the payload, `hello world`. By default, [`FramedRead`] assumes that</span>
-<span class="doccomment">//! the length field represents the number of bytes that **follows** the</span>
-<span class="doccomment">//! length field. Thus, the entire frame has a length of 13: 2 bytes for the</span>
-<span class="doccomment">//! frame head + 11 bytes for the payload.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## Example 2</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The following will parse a `u16` length field at offset 0, omitting the</span>
-<span class="doccomment">//! frame head in the yielded `BytesMut`.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! # use tokio::io::AsyncRead;</span>
-<span class="doccomment">//! # use tokio_util::codec::LengthDelimitedCodec;</span>
-<span class="doccomment">//! # fn bind_read&lt;T: AsyncRead&gt;(io: T) {</span>
-<span class="doccomment">//! LengthDelimitedCodec::builder()</span>
-<span class="doccomment">//!     .length_field_offset(0) // default value</span>
-<span class="doccomment">//!     .length_field_type::&lt;u16&gt;()</span>
-<span class="doccomment">//!     .length_adjustment(0)   // default value</span>
-<span class="doccomment">//!     // `num_skip` is not needed, the default is to skip</span>
-<span class="doccomment">//!     .new_read(io);</span>
-<span class="doccomment">//! # }</span>
-<span class="doccomment">//! # pub fn main() {}</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The following frame will be decoded as such:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```text</span>
-<span class="doccomment">//!          INPUT                        DECODED</span>
-<span class="doccomment">//! +-- len ---+--- Payload ---+     +--- Payload ---+</span>
-<span class="doccomment">//! | \x00\x0B |  Hello world  | --&gt; |  Hello world  |</span>
-<span class="doccomment">//! +----------+---------------+     +---------------+</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This is similar to the first example, the only difference is that the</span>
-<span class="doccomment">//! frame head is **not** included in the yielded `BytesMut` value.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## Example 3</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The following will parse a `u16` length field at offset 0, including the</span>
-<span class="doccomment">//! frame head in the yielded `BytesMut`. In this case, the length field</span>
-<span class="doccomment">//! **includes** the frame head length.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! # use tokio::io::AsyncRead;</span>
-<span class="doccomment">//! # use tokio_util::codec::LengthDelimitedCodec;</span>
-<span class="doccomment">//! # fn bind_read&lt;T: AsyncRead&gt;(io: T) {</span>
-<span class="doccomment">//! LengthDelimitedCodec::builder()</span>
-<span class="doccomment">//!     .length_field_offset(0) // default value</span>
-<span class="doccomment">//!     .length_field_type::&lt;u16&gt;()</span>
-<span class="doccomment">//!     .length_adjustment(-2)  // size of head</span>
-<span class="doccomment">//!     .num_skip(0)</span>
-<span class="doccomment">//!     .new_read(io);</span>
-<span class="doccomment">//! # }</span>
-<span class="doccomment">//! # pub fn main() {}</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The following frame will be decoded as such:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```text</span>
-<span class="doccomment">//!          INPUT                           DECODED</span>
-<span class="doccomment">//! +-- len ---+--- Payload ---+     +-- len ---+--- Payload ---+</span>
-<span class="doccomment">//! | \x00\x0D |  Hello world  | --&gt; | \x00\x0D |  Hello world  |</span>
-<span class="doccomment">//! +----------+---------------+     +----------+---------------+</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! In most cases, the length field represents the length of the payload</span>
-<span class="doccomment">//! only, as shown in the previous examples. However, in some protocols the</span>
-<span class="doccomment">//! length field represents the length of the whole frame, including the</span>
-<span class="doccomment">//! head. In such cases, we specify a negative `length_adjustment` to adjust</span>
-<span class="doccomment">//! the value provided in the frame head to represent the payload length.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## Example 4</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The following will parse a 3 byte length field at offset 0 in a 5 byte</span>
-<span class="doccomment">//! frame head, including the frame head in the yielded `BytesMut`.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! # use tokio::io::AsyncRead;</span>
-<span class="doccomment">//! # use tokio_util::codec::LengthDelimitedCodec;</span>
-<span class="doccomment">//! # fn bind_read&lt;T: AsyncRead&gt;(io: T) {</span>
-<span class="doccomment">//! LengthDelimitedCodec::builder()</span>
-<span class="doccomment">//!     .length_field_offset(0) // default value</span>
-<span class="doccomment">//!     .length_field_length(3)</span>
-<span class="doccomment">//!     .length_adjustment(2)  // remaining head</span>
-<span class="doccomment">//!     .num_skip(0)</span>
-<span class="doccomment">//!     .new_read(io);</span>
-<span class="doccomment">//! # }</span>
-<span class="doccomment">//! # pub fn main() {}</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The following frame will be decoded as such:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```text</span>
-<span class="doccomment">//!                  INPUT</span>
-<span class="doccomment">//! +---- len -----+- head -+--- Payload ---+</span>
-<span class="doccomment">//! | \x00\x00\x0B | \xCAFE |  Hello world  |</span>
-<span class="doccomment">//! +--------------+--------+---------------+</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!                  DECODED</span>
-<span class="doccomment">//! +---- len -----+- head -+--- Payload ---+</span>
-<span class="doccomment">//! | \x00\x00\x0B | \xCAFE |  Hello world  |</span>
-<span class="doccomment">//! +--------------+--------+---------------+</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! A more advanced example that shows a case where there is extra frame</span>
-<span class="doccomment">//! head data between the length field and the payload. In such cases, it is</span>
-<span class="doccomment">//! usually desirable to include the frame head as part of the yielded</span>
-<span class="doccomment">//! `BytesMut`. This lets consumers of the length delimited framer to</span>
-<span class="doccomment">//! process the frame head as needed.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The positive `length_adjustment` value lets `FramedRead` factor in the</span>
-<span class="doccomment">//! additional head into the frame length calculation.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## Example 5</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The following will parse a `u16` length field at offset 1 of a 4 byte</span>
-<span class="doccomment">//! frame head. The first byte and the length field will be omitted from the</span>
-<span class="doccomment">//! yielded `BytesMut`, but the trailing 2 bytes of the frame head will be</span>
-<span class="doccomment">//! included.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! # use tokio::io::AsyncRead;</span>
-<span class="doccomment">//! # use tokio_util::codec::LengthDelimitedCodec;</span>
-<span class="doccomment">//! # fn bind_read&lt;T: AsyncRead&gt;(io: T) {</span>
-<span class="doccomment">//! LengthDelimitedCodec::builder()</span>
-<span class="doccomment">//!     .length_field_offset(1) // length of hdr1</span>
-<span class="doccomment">//!     .length_field_type::&lt;u16&gt;()</span>
-<span class="doccomment">//!     .length_adjustment(1)  // length of hdr2</span>
-<span class="doccomment">//!     .num_skip(3) // length of hdr1 + LEN</span>
-<span class="doccomment">//!     .new_read(io);</span>
-<span class="doccomment">//! # }</span>
-<span class="doccomment">//! # pub fn main() {}</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The following frame will be decoded as such:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```text</span>
-<span class="doccomment">//!                  INPUT</span>
-<span class="doccomment">//! +- hdr1 -+-- len ---+- hdr2 -+--- Payload ---+</span>
-<span class="doccomment">//! |  \xCA  | \x00\x0B |  \xFE  |  Hello world  |</span>
-<span class="doccomment">//! +--------+----------+--------+---------------+</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!          DECODED</span>
-<span class="doccomment">//! +- hdr2 -+--- Payload ---+</span>
-<span class="doccomment">//! |  \xFE  |  Hello world  |</span>
-<span class="doccomment">//! +--------+---------------+</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The length field is situated in the middle of the frame head. In this</span>
-<span class="doccomment">//! case, the first byte in the frame head could be a version or some other</span>
-<span class="doccomment">//! identifier that is not needed for processing. On the other hand, the</span>
-<span class="doccomment">//! second half of the head is needed.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! `length_field_offset` indicates how many bytes to skip before starting</span>
-<span class="doccomment">//! to read the length field.  `length_adjustment` is the number of bytes to</span>
-<span class="doccomment">//! skip starting at the end of the length field. In this case, it is the</span>
-<span class="doccomment">//! second half of the head.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## Example 6</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The following will parse a `u16` length field at offset 1 of a 4 byte</span>
-<span class="doccomment">//! frame head. The first byte and the length field will be omitted from the</span>
-<span class="doccomment">//! yielded `BytesMut`, but the trailing 2 bytes of the frame head will be</span>
-<span class="doccomment">//! included. In this case, the length field **includes** the frame head</span>
-<span class="doccomment">//! length.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! # use tokio::io::AsyncRead;</span>
-<span class="doccomment">//! # use tokio_util::codec::LengthDelimitedCodec;</span>
-<span class="doccomment">//! # fn bind_read&lt;T: AsyncRead&gt;(io: T) {</span>
-<span class="doccomment">//! LengthDelimitedCodec::builder()</span>
-<span class="doccomment">//!     .length_field_offset(1) // length of hdr1</span>
-<span class="doccomment">//!     .length_field_type::&lt;u16&gt;()</span>
-<span class="doccomment">//!     .length_adjustment(-3)  // length of hdr1 + LEN, negative</span>
-<span class="doccomment">//!     .num_skip(3)</span>
-<span class="doccomment">//!     .new_read(io);</span>
-<span class="doccomment">//! # }</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The following frame will be decoded as such:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```text</span>
-<span class="doccomment">//!                  INPUT</span>
-<span class="doccomment">//! +- hdr1 -+-- len ---+- hdr2 -+--- Payload ---+</span>
-<span class="doccomment">//! |  \xCA  | \x00\x0F |  \xFE  |  Hello world  |</span>
-<span class="doccomment">//! +--------+----------+--------+---------------+</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!          DECODED</span>
-<span class="doccomment">//! +- hdr2 -+--- Payload ---+</span>
-<span class="doccomment">//! |  \xFE  |  Hello world  |</span>
-<span class="doccomment">//! +--------+---------------+</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Similar to the example above, the difference is that the length field</span>
-<span class="doccomment">//! represents the length of the entire frame instead of just the payload.</span>
-<span class="doccomment">//! The length of `hdr1` and `len` must be counted in `length_adjustment`.</span>
-<span class="doccomment">//! Note that the length of `hdr2` does **not** need to be explicitly set</span>
-<span class="doccomment">//! anywhere because it already is factored into the total frame length that</span>
-<span class="doccomment">//! is read from the byte stream.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## Example 7</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The following will parse a 3 byte length field at offset 0 in a 4 byte</span>
-<span class="doccomment">//! frame head, excluding the 4th byte from the yielded `BytesMut`.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! # use tokio::io::AsyncRead;</span>
-<span class="doccomment">//! # use tokio_util::codec::LengthDelimitedCodec;</span>
-<span class="doccomment">//! # fn bind_read&lt;T: AsyncRead&gt;(io: T) {</span>
-<span class="doccomment">//! LengthDelimitedCodec::builder()</span>
-<span class="doccomment">//!     .length_field_offset(0) // default value</span>
-<span class="doccomment">//!     .length_field_length(3)</span>
-<span class="doccomment">//!     .length_adjustment(0)  // default value</span>
-<span class="doccomment">//!     .num_skip(4) // skip the first 4 bytes</span>
-<span class="doccomment">//!     .new_read(io);</span>
-<span class="doccomment">//! # }</span>
-<span class="doccomment">//! # pub fn main() {}</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The following frame will be decoded as such:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```text</span>
-<span class="doccomment">//!                  INPUT                       DECODED</span>
-<span class="doccomment">//! +------- len ------+--- Payload ---+    +--- Payload ---+</span>
-<span class="doccomment">//! | \x00\x00\x0B\xFF |  Hello world  | =&gt; |  Hello world  |</span>
-<span class="doccomment">//! +------------------+---------------+    +---------------+</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! A simple example where there are unused bytes between the length field</span>
-<span class="doccomment">//! and the payload.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Encoding</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [`FramedWrite`] adapts an [`AsyncWrite`] into a `Sink` of [`BytesMut`],</span>
-<span class="doccomment">//! such that each submitted [`BytesMut`] is prefaced by a length field.</span>
-<span class="doccomment">//! There are fewer configuration options than [`FramedRead`]. Given</span>
-<span class="doccomment">//! protocols that have more complex frame heads, an encoder should probably</span>
-<span class="doccomment">//! be written by hand using [`Encoder`].</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Here is a simple example, given a `FramedWrite` with the following</span>
-<span class="doccomment">//! configuration:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! # use tokio::io::AsyncWrite;</span>
-<span class="doccomment">//! # use tokio_util::codec::LengthDelimitedCodec;</span>
-<span class="doccomment">//! # fn write_frame&lt;T: AsyncWrite&gt;(io: T) {</span>
-<span class="doccomment">//! # let _ =</span>
-<span class="doccomment">//! LengthDelimitedCodec::builder()</span>
-<span class="doccomment">//!     .length_field_type::&lt;u16&gt;()</span>
-<span class="doccomment">//!     .new_write(io);</span>
-<span class="doccomment">//! # }</span>
-<span class="doccomment">//! # pub fn main() {}</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! A payload of `hello world` will be encoded as:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```text</span>
-<span class="doccomment">//! +- len: u16 -+---- data ----+</span>
-<span class="doccomment">//! |  \x00\x0b  |  hello world |</span>
-<span class="doccomment">//! +------------+--------------+</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [`LengthDelimitedCodec::new()`]: method@LengthDelimitedCodec::new</span>
-<span class="doccomment">//! [`FramedRead`]: struct@FramedRead</span>
-<span class="doccomment">//! [`FramedWrite`]: struct@FramedWrite</span>
-<span class="doccomment">//! [`AsyncRead`]: trait@tokio::io::AsyncRead</span>
-<span class="doccomment">//! [`AsyncWrite`]: trait@tokio::io::AsyncWrite</span>
-<span class="doccomment">//! [`Encoder`]: trait@Encoder</span>
-<span class="doccomment">//! [`BytesMut`]: bytes::BytesMut</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Frame a stream of bytes based on a length prefix
+//!
+//! Many protocols delimit their frames by prefacing frame data with a
+//! frame head that specifies the length of the frame. The
+//! `length_delimited` module provides utilities for handling the length
+//! based framing. This allows the consumer to work with entire frames
+//! without having to worry about buffering or other framing logic.
+//!
+//! # Getting started
+//!
+//! If implementing a protocol from scratch, using length delimited framing
+//! is an easy way to get started. [`LengthDelimitedCodec::new()`] will
+//! return a length delimited codec using default configuration values.
+//! This can then be used to construct a framer to adapt a full-duplex
+//! byte stream into a stream of frames.
+//!
+//! ```
+//! use tokio::io::{AsyncRead, AsyncWrite};
+//! use tokio_util::codec::{Framed, LengthDelimitedCodec};
+//!
+//! fn bind_transport&lt;T: AsyncRead + AsyncWrite&gt;(io: T)
+//!     -&gt; Framed&lt;T, LengthDelimitedCodec&gt;
+//! {
+//!     Framed::new(io, LengthDelimitedCodec::new())
+//! }
+//! # pub fn main() {}
+//! ```
+//!
+//! The returned transport implements `Sink + Stream` for `BytesMut`. It
+//! encodes the frame with a big-endian `u32` header denoting the frame
+//! payload length:
+//!
+//! ```text
+//! +----------+--------------------------------+
+//! | len: u32 |          frame payload         |
+//! +----------+--------------------------------+
+//! ```
+//!
+//! Specifically, given the following:
+//!
+//! ```
+//! use tokio::io::{AsyncRead, AsyncWrite};
+//! use tokio_util::codec::{Framed, LengthDelimitedCodec};
+//!
+//! use futures::SinkExt;
+//! use bytes::Bytes;
+//!
+//! async fn write_frame&lt;T&gt;(io: T) -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt;
+//! where
+//!     T: AsyncRead + AsyncWrite + Unpin,
+//! {
+//!     let mut transport = Framed::new(io, LengthDelimitedCodec::new());
+//!     let frame = Bytes::from(&quot;hello world&quot;);
+//!
+//!     transport.send(frame).await?;
+//!     Ok(())
+//! }
+//! ```
+//!
+//! The encoded frame will look like this:
+//!
+//! ```text
+//! +---- len: u32 ----+---- data ----+
+//! | \x00\x00\x00\x0b |  hello world |
+//! +------------------+--------------+
+//! ```
+//!
+//! # Decoding
+//!
+//! [`FramedRead`] adapts an [`AsyncRead`] into a `Stream` of [`BytesMut`],
+//! such that each yielded [`BytesMut`] value contains the contents of an
+//! entire frame. There are many configuration parameters enabling
+//! [`FramedRead`] to handle a wide range of protocols. Here are some
+//! examples that will cover the various options at a high level.
+//!
+//! ## Example 1
+//!
+//! The following will parse a `u16` length field at offset 0, including the
+//! frame head in the yielded `BytesMut`.
+//!
+//! ```
+//! # use tokio::io::AsyncRead;
+//! # use tokio_util::codec::LengthDelimitedCodec;
+//! # fn bind_read&lt;T: AsyncRead&gt;(io: T) {
+//! LengthDelimitedCodec::builder()
+//!     .length_field_offset(0) // default value
+//!     .length_field_type::&lt;u16&gt;()
+//!     .length_adjustment(0)   // default value
+//!     .num_skip(0) // Do not strip frame header
+//!     .new_read(io);
+//! # }
+//! # pub fn main() {}
+//! ```
+//!
+//! The following frame will be decoded as such:
+//!
+//! ```text
+//!          INPUT                           DECODED
+//! +-- len ---+--- Payload ---+     +-- len ---+--- Payload ---+
+//! | \x00\x0B |  Hello world  | --&gt; | \x00\x0B |  Hello world  |
+//! +----------+---------------+     +----------+---------------+
+//! ```
+//!
+//! The value of the length field is 11 (`\x0B`) which represents the length
+//! of the payload, `hello world`. By default, [`FramedRead`] assumes that
+//! the length field represents the number of bytes that **follows** the
+//! length field. Thus, the entire frame has a length of 13: 2 bytes for the
+//! frame head + 11 bytes for the payload.
+//!
+//! ## Example 2
+//!
+//! The following will parse a `u16` length field at offset 0, omitting the
+//! frame head in the yielded `BytesMut`.
+//!
+//! ```
+//! # use tokio::io::AsyncRead;
+//! # use tokio_util::codec::LengthDelimitedCodec;
+//! # fn bind_read&lt;T: AsyncRead&gt;(io: T) {
+//! LengthDelimitedCodec::builder()
+//!     .length_field_offset(0) // default value
+//!     .length_field_type::&lt;u16&gt;()
+//!     .length_adjustment(0)   // default value
+//!     // `num_skip` is not needed, the default is to skip
+//!     .new_read(io);
+//! # }
+//! # pub fn main() {}
+//! ```
+//!
+//! The following frame will be decoded as such:
+//!
+//! ```text
+//!          INPUT                        DECODED
+//! +-- len ---+--- Payload ---+     +--- Payload ---+
+//! | \x00\x0B |  Hello world  | --&gt; |  Hello world  |
+//! +----------+---------------+     +---------------+
+//! ```
+//!
+//! This is similar to the first example, the only difference is that the
+//! frame head is **not** included in the yielded `BytesMut` value.
+//!
+//! ## Example 3
+//!
+//! The following will parse a `u16` length field at offset 0, including the
+//! frame head in the yielded `BytesMut`. In this case, the length field
+//! **includes** the frame head length.
+//!
+//! ```
+//! # use tokio::io::AsyncRead;
+//! # use tokio_util::codec::LengthDelimitedCodec;
+//! # fn bind_read&lt;T: AsyncRead&gt;(io: T) {
+//! LengthDelimitedCodec::builder()
+//!     .length_field_offset(0) // default value
+//!     .length_field_type::&lt;u16&gt;()
+//!     .length_adjustment(-2)  // size of head
+//!     .num_skip(0)
+//!     .new_read(io);
+//! # }
+//! # pub fn main() {}
+//! ```
+//!
+//! The following frame will be decoded as such:
+//!
+//! ```text
+//!          INPUT                           DECODED
+//! +-- len ---+--- Payload ---+     +-- len ---+--- Payload ---+
+//! | \x00\x0D |  Hello world  | --&gt; | \x00\x0D |  Hello world  |
+//! +----------+---------------+     +----------+---------------+
+//! ```
+//!
+//! In most cases, the length field represents the length of the payload
+//! only, as shown in the previous examples. However, in some protocols the
+//! length field represents the length of the whole frame, including the
+//! head. In such cases, we specify a negative `length_adjustment` to adjust
+//! the value provided in the frame head to represent the payload length.
+//!
+//! ## Example 4
+//!
+//! The following will parse a 3 byte length field at offset 0 in a 5 byte
+//! frame head, including the frame head in the yielded `BytesMut`.
+//!
+//! ```
+//! # use tokio::io::AsyncRead;
+//! # use tokio_util::codec::LengthDelimitedCodec;
+//! # fn bind_read&lt;T: AsyncRead&gt;(io: T) {
+//! LengthDelimitedCodec::builder()
+//!     .length_field_offset(0) // default value
+//!     .length_field_length(3)
+//!     .length_adjustment(2)  // remaining head
+//!     .num_skip(0)
+//!     .new_read(io);
+//! # }
+//! # pub fn main() {}
+//! ```
+//!
+//! The following frame will be decoded as such:
+//!
+//! ```text
+//!                  INPUT
+//! +---- len -----+- head -+--- Payload ---+
+//! | \x00\x00\x0B | \xCAFE |  Hello world  |
+//! +--------------+--------+---------------+
+//!
+//!                  DECODED
+//! +---- len -----+- head -+--- Payload ---+
+//! | \x00\x00\x0B | \xCAFE |  Hello world  |
+//! +--------------+--------+---------------+
+//! ```
+//!
+//! A more advanced example that shows a case where there is extra frame
+//! head data between the length field and the payload. In such cases, it is
+//! usually desirable to include the frame head as part of the yielded
+//! `BytesMut`. This lets consumers of the length delimited framer to
+//! process the frame head as needed.
+//!
+//! The positive `length_adjustment` value lets `FramedRead` factor in the
+//! additional head into the frame length calculation.
+//!
+//! ## Example 5
+//!
+//! The following will parse a `u16` length field at offset 1 of a 4 byte
+//! frame head. The first byte and the length field will be omitted from the
+//! yielded `BytesMut`, but the trailing 2 bytes of the frame head will be
+//! included.
+//!
+//! ```
+//! # use tokio::io::AsyncRead;
+//! # use tokio_util::codec::LengthDelimitedCodec;
+//! # fn bind_read&lt;T: AsyncRead&gt;(io: T) {
+//! LengthDelimitedCodec::builder()
+//!     .length_field_offset(1) // length of hdr1
+//!     .length_field_type::&lt;u16&gt;()
+//!     .length_adjustment(1)  // length of hdr2
+//!     .num_skip(3) // length of hdr1 + LEN
+//!     .new_read(io);
+//! # }
+//! # pub fn main() {}
+//! ```
+//!
+//! The following frame will be decoded as such:
+//!
+//! ```text
+//!                  INPUT
+//! +- hdr1 -+-- len ---+- hdr2 -+--- Payload ---+
+//! |  \xCA  | \x00\x0B |  \xFE  |  Hello world  |
+//! +--------+----------+--------+---------------+
+//!
+//!          DECODED
+//! +- hdr2 -+--- Payload ---+
+//! |  \xFE  |  Hello world  |
+//! +--------+---------------+
+//! ```
+//!
+//! The length field is situated in the middle of the frame head. In this
+//! case, the first byte in the frame head could be a version or some other
+//! identifier that is not needed for processing. On the other hand, the
+//! second half of the head is needed.
+//!
+//! `length_field_offset` indicates how many bytes to skip before starting
+//! to read the length field.  `length_adjustment` is the number of bytes to
+//! skip starting at the end of the length field. In this case, it is the
+//! second half of the head.
+//!
+//! ## Example 6
+//!
+//! The following will parse a `u16` length field at offset 1 of a 4 byte
+//! frame head. The first byte and the length field will be omitted from the
+//! yielded `BytesMut`, but the trailing 2 bytes of the frame head will be
+//! included. In this case, the length field **includes** the frame head
+//! length.
+//!
+//! ```
+//! # use tokio::io::AsyncRead;
+//! # use tokio_util::codec::LengthDelimitedCodec;
+//! # fn bind_read&lt;T: AsyncRead&gt;(io: T) {
+//! LengthDelimitedCodec::builder()
+//!     .length_field_offset(1) // length of hdr1
+//!     .length_field_type::&lt;u16&gt;()
+//!     .length_adjustment(-3)  // length of hdr1 + LEN, negative
+//!     .num_skip(3)
+//!     .new_read(io);
+//! # }
+//! ```
+//!
+//! The following frame will be decoded as such:
+//!
+//! ```text
+//!                  INPUT
+//! +- hdr1 -+-- len ---+- hdr2 -+--- Payload ---+
+//! |  \xCA  | \x00\x0F |  \xFE  |  Hello world  |
+//! +--------+----------+--------+---------------+
+//!
+//!          DECODED
+//! +- hdr2 -+--- Payload ---+
+//! |  \xFE  |  Hello world  |
+//! +--------+---------------+
+//! ```
+//!
+//! Similar to the example above, the difference is that the length field
+//! represents the length of the entire frame instead of just the payload.
+//! The length of `hdr1` and `len` must be counted in `length_adjustment`.
+//! Note that the length of `hdr2` does **not** need to be explicitly set
+//! anywhere because it already is factored into the total frame length that
+//! is read from the byte stream.
+//!
+//! ## Example 7
+//!
+//! The following will parse a 3 byte length field at offset 0 in a 4 byte
+//! frame head, excluding the 4th byte from the yielded `BytesMut`.
+//!
+//! ```
+//! # use tokio::io::AsyncRead;
+//! # use tokio_util::codec::LengthDelimitedCodec;
+//! # fn bind_read&lt;T: AsyncRead&gt;(io: T) {
+//! LengthDelimitedCodec::builder()
+//!     .length_field_offset(0) // default value
+//!     .length_field_length(3)
+//!     .length_adjustment(0)  // default value
+//!     .num_skip(4) // skip the first 4 bytes
+//!     .new_read(io);
+//! # }
+//! # pub fn main() {}
+//! ```
+//!
+//! The following frame will be decoded as such:
+//!
+//! ```text
+//!                  INPUT                       DECODED
+//! +------- len ------+--- Payload ---+    +--- Payload ---+
+//! | \x00\x00\x0B\xFF |  Hello world  | =&gt; |  Hello world  |
+//! +------------------+---------------+    +---------------+
+//! ```
+//!
+//! A simple example where there are unused bytes between the length field
+//! and the payload.
+//!
+//! # Encoding
+//!
+//! [`FramedWrite`] adapts an [`AsyncWrite`] into a `Sink` of [`BytesMut`],
+//! such that each submitted [`BytesMut`] is prefaced by a length field.
+//! There are fewer configuration options than [`FramedRead`]. Given
+//! protocols that have more complex frame heads, an encoder should probably
+//! be written by hand using [`Encoder`].
+//!
+//! Here is a simple example, given a `FramedWrite` with the following
+//! configuration:
+//!
+//! ```
+//! # use tokio::io::AsyncWrite;
+//! # use tokio_util::codec::LengthDelimitedCodec;
+//! # fn write_frame&lt;T: AsyncWrite&gt;(io: T) {
+//! # let _ =
+//! LengthDelimitedCodec::builder()
+//!     .length_field_type::&lt;u16&gt;()
+//!     .new_write(io);
+//! # }
+//! # pub fn main() {}
+//! ```
+//!
+//! A payload of `hello world` will be encoded as:
+//!
+//! ```text
+//! +- len: u16 -+---- data ----+
+//! |  \x00\x0b  |  hello world |
+//! +------------+--------------+
+//! ```
+//!
+//! [`LengthDelimitedCodec::new()`]: method@LengthDelimitedCodec::new
+//! [`FramedRead`]: struct@FramedRead
+//! [`FramedWrite`]: struct@FramedWrite
+//! [`AsyncRead`]: trait@tokio::io::AsyncRead
+//! [`AsyncWrite`]: trait@tokio::io::AsyncWrite
+//! [`Encoder`]: trait@Encoder
+//! [`BytesMut`]: bytes::BytesMut
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::codec</span>::{<a class="ident" href="../../../src/tokio_util/codec/decoder.rs.html#35">Decoder</a>, <a class="ident" href="../../../src/tokio_util/codec/encoder.rs.html#8">Encoder</a>, <a class="ident" href="../../../src/tokio_util/codec/framed.rs.html#16-31">Framed</a>, <a class="ident" href="../../../src/tokio_util/codec/framed_read.rs.html#14-23">FramedRead</a>, <a class="ident" href="../../../src/tokio_util/codec/framed_write.rs.html#15-23">FramedWrite</a>};
+</span><span class="kw">use </span><span class="kw">crate</span>::codec::{<a href="../../../src/tokio_util/codec/decoder.rs.html#35">Decoder</a>, <a href="../../../src/tokio_util/codec/encoder.rs.html#8">Encoder</a>, <a href="../../../src/tokio_util/codec/framed.rs.html#16-31">Framed</a>, <a href="../../../src/tokio_util/codec/framed_read.rs.html#14-23">FramedRead</a>, <a href="../../../src/tokio_util/codec/framed_write.rs.html#15-23">FramedWrite</a>};
 
-<span class="kw">use</span> <span class="ident">tokio::io</span>::{<a class="ident" href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a class="ident" href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>};
+<span class="kw">use </span>tokio::io::{<a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>};
 
-<span class="kw">use</span> <span class="ident">bytes</span>::{<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, <a class="ident" href="../../../bytes/buf/buf_mut/trait.BufMut.html">BufMut</a>, <a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>, <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">as</span> <span class="ident">StdError</span>;
-<span class="kw">use</span> <span class="ident">std::io</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/cursor/struct.Cursor.html">Cursor</a>};
-<span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>};
+<span class="kw">use </span>bytes::{<a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, <a href="../../../bytes/buf/buf_mut/trait.BufMut.html">BufMut</a>, <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>, <a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">as </span>StdError;
+<span class="kw">use </span>std::io::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/std/io/cursor/struct.Cursor.html">Cursor</a>};
+<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/core/cmp/index.html">cmp</a>, <a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>};
 
-<span class="doccomment">/// Configure length delimited `LengthDelimitedCodec`s.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `Builder` enables constructing configured length delimited codecs. Note</span>
-<span class="doccomment">/// that not all configuration settings apply to both encoding and decoding. See</span>
-<span class="doccomment">/// the documentation for specific methods for more detail.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Builder</span> {
-    <span class="comment">// Maximum frame length</span>
-    <span class="ident">max_frame_len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+<span class="doccomment">/// Configure length delimited `LengthDelimitedCodec`s.
+///
+/// `Builder` enables constructing configured length delimited codecs. Note
+/// that not all configuration settings apply to both encoding and decoding. See
+/// the documentation for specific methods for more detail.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub struct </span>Builder {
+    <span class="comment">// Maximum frame length
+    </span>max_frame_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 
-    <span class="comment">// Number of bytes representing the field length</span>
-    <span class="ident">length_field_len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    <span class="comment">// Number of bytes representing the field length
+    </span>length_field_len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 
-    <span class="comment">// Number of bytes in the header before the length field</span>
-    <span class="ident">length_field_offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    <span class="comment">// Number of bytes in the header before the length field
+    </span>length_field_offset: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 
-    <span class="comment">// Adjust the length specified in the header field by this amount</span>
-    <span class="ident">length_adjustment</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>,
+    <span class="comment">// Adjust the length specified in the header field by this amount
+    </span>length_adjustment: <a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>,
 
-    <span class="comment">// Total number of bytes to skip before reading the payload, if not set,</span>
-    <span class="comment">// `length_field_len + length_field_offset`</span>
-    <span class="ident">num_skip</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
+    <span class="comment">// Total number of bytes to skip before reading the payload, if not set,
+    // `length_field_len + length_field_offset`
+    </span>num_skip: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
 
-    <span class="comment">// Length field byte order (little or big endian)</span>
-    <span class="ident">length_field_is_big_endian</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    <span class="comment">// Length field byte order (little or big endian)
+    </span>length_field_is_big_endian: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 }
 
-<span class="doccomment">/// An error when the number of bytes read is more than max frame length.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LengthDelimitedCodecError</span> {
-    <span class="ident">_priv</span>: (),
+<span class="doccomment">/// An error when the number of bytes read is more than max frame length.
+</span><span class="kw">pub struct </span>LengthDelimitedCodecError {
+    _priv: (),
 }
 
-<span class="doccomment">/// A codec for frames delimited by a frame head specifying their lengths.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This allows the consumer to work with entire frames without having to worry</span>
-<span class="doccomment">/// about buffering or other framing logic.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See [module level] documentation for more detail.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [module level]: index.html</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LengthDelimitedCodec</span> {
-    <span class="comment">// Configuration values</span>
-    <span class="ident">builder</span>: <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#390">Builder</a>,
+<span class="doccomment">/// A codec for frames delimited by a frame head specifying their lengths.
+///
+/// This allows the consumer to work with entire frames without having to worry
+/// about buffering or other framing logic.
+///
+/// See [module level] documentation for more detail.
+///
+/// [module level]: index.html
+</span><span class="attribute">#[derive(Debug, Clone)]
+</span><span class="kw">pub struct </span>LengthDelimitedCodec {
+    <span class="comment">// Configuration values
+    </span>builder: <a href="../../../src/tokio_util/codec/length_delimited.rs.html#390">Builder</a>,
 
-    <span class="comment">// Read state</span>
-    <span class="ident">state</span>: <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#434">DecodeState</a>,
+    <span class="comment">// Read state
+    </span>state: <a href="../../../src/tokio_util/codec/length_delimited.rs.html#434">DecodeState</a>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">enum</span> <span class="ident">DecodeState</span> {
-    <span class="ident">Head</span>,
-    <span class="ident">Data</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
+<span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">enum </span>DecodeState {
+    Head,
+    Data(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>),
 }
 
-<span class="comment">// ===== impl LengthDelimitedCodec ======</span>
+<span class="comment">// ===== impl LengthDelimitedCodec ======
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#425">LengthDelimitedCodec</a> {
-    <span class="doccomment">/// Creates a new `LengthDelimitedCodec` with the default configuration values.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">builder</span>: <span class="ident">Builder::new</span>(),
-            <span class="ident">state</span>: <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#435">DecodeState::Head</a>,
+</span><span class="kw">impl </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#425">LengthDelimitedCodec</a> {
+    <span class="doccomment">/// Creates a new `LengthDelimitedCodec` with the default configuration values.
+    </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            builder: Builder::new(),
+            state: <a href="../../../src/tokio_util/codec/length_delimited.rs.html#435">DecodeState::Head</a>,
         }
     }
 
-    <span class="doccomment">/// Creates a new length delimited codec builder with default configuration</span>
-    <span class="doccomment">/// values.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">builder</span>() -&gt; <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#390">Builder</a> {
-        <span class="ident">Builder::new</span>()
+    <span class="doccomment">/// Creates a new length delimited codec builder with default configuration
+    /// values.
+    </span><span class="kw">pub fn </span>builder() -&gt; <a href="../../../src/tokio_util/codec/length_delimited.rs.html#390">Builder</a> {
+        Builder::new()
     }
 
-    <span class="doccomment">/// Returns the current max frame setting</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is the largest size this codec will accept from the wire. Larger</span>
-    <span class="doccomment">/// frames will be rejected.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_frame_length</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#460">self</a>.<span class="ident">builder</span>.<span class="ident">max_frame_len</span>
+    <span class="doccomment">/// Returns the current max frame setting
+    ///
+    /// This is the largest size this codec will accept from the wire. Larger
+    /// frames will be rejected.
+    </span><span class="kw">pub fn </span>max_frame_length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#460">self</a>.builder.max_frame_len
     }
 
-    <span class="doccomment">/// Updates the max frame setting.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The change takes effect the next time a frame is decoded. In other</span>
-    <span class="doccomment">/// words, if a frame is currently in process of being decoded with a frame</span>
-    <span class="doccomment">/// size greater than `val` but less than the max frame length in effect</span>
-    <span class="doccomment">/// before calling this function, then the frame will be allowed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_max_frame_length</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#470">self</a>.<span class="ident">builder</span>.<a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#793">max_frame_length</a>(<a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#470">val</a>);
+    <span class="doccomment">/// Updates the max frame setting.
+    ///
+    /// The change takes effect the next time a frame is decoded. In other
+    /// words, if a frame is currently in process of being decoded with a frame
+    /// size greater than `val` but less than the max frame length in effect
+    /// before calling this function, then the frame will be allowed.
+    </span><span class="kw">pub fn </span>set_max_frame_length(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#470">self</a>.builder.<a href="../../../src/tokio_util/codec/length_delimited.rs.html#793">max_frame_length</a>(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#470">val</a>);
     }
 
-    <span class="kw">fn</span> <span class="ident">decode_head</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">src</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">head_len</span> <span class="op">=</span> <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#474">self</a>.<span class="ident">builder</span>.<a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#1016">num_head_bytes</a>();
-        <span class="kw">let</span> <span class="ident">field_len</span> <span class="op">=</span> <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#474">self</a>.<span class="ident">builder</span>.<span class="ident">length_field_len</span>;
+    <span class="kw">fn </span>decode_head(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: <span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;&gt; {
+        <span class="kw">let </span>head_len = <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#474">self</a>.builder.<a href="../../../src/tokio_util/codec/length_delimited.rs.html#1016">num_head_bytes</a>();
+        <span class="kw">let </span>field_len = <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#474">self</a>.builder.length_field_len;
 
-        <span class="kw">if</span> <span class="ident">src</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">head_len</span> {
-            <span class="comment">// Not enough data</span>
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+        <span class="kw">if </span>src.len() &lt; head_len {
+            <span class="comment">// Not enough data
+            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
 
-        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">src</span> <span class="op">=</span> <span class="ident">Cursor::new</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#474">src</a>);
+        <span class="kw">let </span>n = {
+            <span class="kw">let </span><span class="kw-2">mut </span>src = Cursor::new(<span class="kw-2">&amp;mut *</span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#474">src</a>);
 
-            <span class="comment">// Skip the required bytes</span>
-            <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#484">src</a>.<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#474">self</a>.<span class="ident">builder</span>.<span class="ident">length_field_offset</span>);
+            <span class="comment">// Skip the required bytes
+            </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#484">src</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#474">self</a>.builder.length_field_offset);
 
-            <span class="comment">// match endianness</span>
-            <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">length_field_is_big_endian</span> {
-                <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#484">src</a>.<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">get_uint</a>(<a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#476">field_len</a>)
-            } <span class="kw">else</span> {
-                <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#484">src</a>.<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">get_uint_le</a>(<a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#476">field_len</a>)
+            <span class="comment">// match endianness
+            </span><span class="kw">let </span>n = <span class="kw">if </span><span class="self">self</span>.builder.length_field_is_big_endian {
+                <a href="../../../src/tokio_util/codec/length_delimited.rs.html#484">src</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">get_uint</a>(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#476">field_len</a>)
+            } <span class="kw">else </span>{
+                <a href="../../../src/tokio_util/codec/length_delimited.rs.html#484">src</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">get_uint_le</a>(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#476">field_len</a>)
             };
 
-            <span class="kw">if</span> <span class="ident">n</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">max_frame_len</span> <span class="kw">as</span> <span class="ident">u64</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(
-                    <span class="ident">io::ErrorKind::InvalidData</span>,
-                    <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#412">LengthDelimitedCodecError</a> { <span class="ident">_priv</span>: () },
+            <span class="kw">if </span>n &gt; <span class="self">self</span>.builder.max_frame_len <span class="kw">as </span>u64 {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    <a href="../../../src/tokio_util/codec/length_delimited.rs.html#412">LengthDelimitedCodecError</a> { _priv: () },
                 ));
             }
 
-            <span class="comment">// The check above ensures there is no overflow</span>
-            <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#490">n</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+            <span class="comment">// The check above ensures there is no overflow
+            </span><span class="kw">let </span>n = <a href="../../../src/tokio_util/codec/length_delimited.rs.html#490">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
 
-            <span class="comment">// Adjust `n` with bounds checking</span>
-            <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">length_adjustment</span> <span class="op">&lt;</span> <span class="number">0</span> {
-                <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#504">n</a>.<span class="ident">checked_sub</span>(<span class="op">-</span><a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#474">self</a>.<span class="ident">builder</span>.<span class="ident">length_adjustment</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
-            } <span class="kw">else</span> {
-                <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#504">n</a>.<span class="ident">checked_add</span>(<a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#474">self</a>.<span class="ident">builder</span>.<span class="ident">length_adjustment</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+            <span class="comment">// Adjust `n` with bounds checking
+            </span><span class="kw">let </span>n = <span class="kw">if </span><span class="self">self</span>.builder.length_adjustment &lt; <span class="number">0 </span>{
+                <a href="../../../src/tokio_util/codec/length_delimited.rs.html#504">n</a>.checked_sub(-<a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#474">self</a>.builder.length_adjustment <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+            } <span class="kw">else </span>{
+                <a href="../../../src/tokio_util/codec/length_delimited.rs.html#504">n</a>.checked_add(<a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#474">self</a>.builder.length_adjustment <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
             };
 
-            <span class="comment">// Error handling</span>
-            <span class="kw">match</span> <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#507">n</a> {
-                <span class="prelude-val">Some</span>(<span class="ident">n</span>) =&gt; <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#515">n</a>,
-                <span class="prelude-val">None</span> =&gt; {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(
-                        <span class="ident">io::ErrorKind::InvalidInput</span>,
+            <span class="comment">// Error handling
+            </span><span class="kw">match </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#507">n</a> {
+                <span class="prelude-val">Some</span>(n) =&gt; <a href="../../../src/tokio_util/codec/length_delimited.rs.html#515">n</a>,
+                <span class="prelude-val">None </span>=&gt; {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(
+                        io::ErrorKind::InvalidInput,
                         <span class="string">&quot;provided length would overflow after adjustment&quot;</span>,
                     ));
                 }
             }
         };
 
-        <span class="kw">let</span> <span class="ident">num_skip</span> <span class="op">=</span> <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#474">self</a>.<span class="ident">builder</span>.<a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#1021">get_num_skip</a>();
+        <span class="kw">let </span>num_skip = <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#474">self</a>.builder.<a href="../../../src/tokio_util/codec/length_delimited.rs.html#1021">get_num_skip</a>();
 
-        <span class="kw">if</span> <span class="ident">num_skip</span> <span class="op">&gt;</span> <span class="number">0</span> {
-            <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#474">src</a>.<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#525">num_skip</a>);
+        <span class="kw">if </span>num_skip &gt; <span class="number">0 </span>{
+            <a href="../../../src/tokio_util/codec/length_delimited.rs.html#474">src</a>.<a href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#525">num_skip</a>);
         }
 
-        <span class="comment">// Ensure that the buffer has enough space to read the incoming</span>
-        <span class="comment">// payload</span>
-        <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#474">src</a>.<span class="ident">reserve</span>(<a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#483">n</a>);
+        <span class="comment">// Ensure that the buffer has enough space to read the incoming
+        // payload
+        </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#474">src</a>.reserve(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#483">n</a>);
 
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#483">n</a>))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#483">n</a>))
     }
 
-    <span class="kw">fn</span> <span class="ident">decode_data</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">src</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a><span class="op">&gt;</span> {
-        <span class="comment">// At this point, the buffer has already had the required capacity</span>
-        <span class="comment">// reserved. All there is to do is read.</span>
-        <span class="kw">if</span> <span class="ident">src</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">n</span> {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+    <span class="kw">fn </span>decode_data(<span class="kw-2">&amp;</span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, src: <span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>&gt; {
+        <span class="comment">// At this point, the buffer has already had the required capacity
+        // reserved. All there is to do is read.
+        </span><span class="kw">if </span>src.len() &lt; n {
+            <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#538">src</a>.<span class="ident">split_to</span>(<a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#538">n</a>))
+        <span class="prelude-val">Some</span>(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#538">src</a>.split_to(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#538">n</a>))
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio_util/codec/decoder.rs.html#35">Decoder</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#425">LengthDelimitedCodec</a> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
+<span class="kw">impl </span><a href="../../../src/tokio_util/codec/decoder.rs.html#35">Decoder</a> <span class="kw">for </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#425">LengthDelimitedCodec</a> {
+    <span class="kw">type </span>Item = <a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>;
+    <span class="kw">type </span>Error = <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
 
-    <span class="kw">fn</span> <span class="ident">decode</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">src</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#553">self</a>.<span class="ident">state</span> {
-            <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#435">DecodeState::Head</a> =&gt; <span class="kw">match</span> <span class="self">self</span>.<span class="ident">decode_head</span>(<span class="ident">src</span>)<span class="question-mark">?</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">n</span>) =&gt; {
-                    <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#553">self</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#436">DecodeState::Data</a>(<a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#556">n</a>);
-                    <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#556">n</a>
+    <span class="kw">fn </span>decode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: <span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;<a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>&gt;&gt; {
+        <span class="kw">let </span>n = <span class="kw">match </span><a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#553">self</a>.state {
+            <a href="../../../src/tokio_util/codec/length_delimited.rs.html#435">DecodeState::Head</a> =&gt; <span class="kw">match </span><span class="self">self</span>.decode_head(src)<span class="question-mark">? </span>{
+                <span class="prelude-val">Some</span>(n) =&gt; {
+                    <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#553">self</a>.state = <a href="../../../src/tokio_util/codec/length_delimited.rs.html#436">DecodeState::Data</a>(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#556">n</a>);
+                    <a href="../../../src/tokio_util/codec/length_delimited.rs.html#556">n</a>
                 }
-                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
             },
-            <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#436">DecodeState::Data</a>(<span class="ident">n</span>) =&gt; <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#562">n</a>,
+            <a href="../../../src/tokio_util/codec/length_delimited.rs.html#436">DecodeState::Data</a>(n) =&gt; <a href="../../../src/tokio_util/codec/length_delimited.rs.html#562">n</a>,
         };
 
-        <span class="kw">match</span> <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#553">self</a>.<a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#538">decode_data</a>(<a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#554">n</a>, <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#553">src</a>) {
-            <span class="prelude-val">Some</span>(<span class="ident">data</span>) =&gt; {
-                <span class="comment">// Update the decode state</span>
-                <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#553">self</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#435">DecodeState::Head</a>;
+        <span class="kw">match </span><a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#553">self</a>.<a href="../../../src/tokio_util/codec/length_delimited.rs.html#538">decode_data</a>(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#554">n</a>, <a href="../../../src/tokio_util/codec/length_delimited.rs.html#553">src</a>) {
+            <span class="prelude-val">Some</span>(data) =&gt; {
+                <span class="comment">// Update the decode state
+                </span><a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#553">self</a>.state = <a href="../../../src/tokio_util/codec/length_delimited.rs.html#435">DecodeState::Head</a>;
 
-                <span class="comment">// Make sure the buffer has enough space to read the next head</span>
-                <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#553">src</a>.<span class="ident">reserve</span>(<a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#553">self</a>.<span class="ident">builder</span>.<a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#1016">num_head_bytes</a>());
+                <span class="comment">// Make sure the buffer has enough space to read the next head
+                </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#553">src</a>.reserve(<a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#553">self</a>.builder.<a href="../../../src/tokio_util/codec/length_delimited.rs.html#1016">num_head_bytes</a>());
 
-                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#566">data</a>))
+                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#566">data</a>))
             }
-            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Encoder</span><span class="op">&lt;</span><a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#425">LengthDelimitedCodec</a> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
+<span class="kw">impl </span>Encoder&lt;<a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>&gt; <span class="kw">for </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#425">LengthDelimitedCodec</a> {
+    <span class="kw">type </span>Error = <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
 
-    <span class="kw">fn</span> <span class="ident">encode</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">data</span>: <a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>, <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#583">data</a>.<span class="ident">len</span>();
+    <span class="kw">fn </span>encode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: <a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>, dst: <span class="kw-2">&amp;mut </span><a href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt; {
+        <span class="kw">let </span>n = <a href="../../../src/tokio_util/codec/length_delimited.rs.html#583">data</a>.len();
 
-        <span class="kw">if</span> <span class="ident">n</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">max_frame_len</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(
-                <span class="ident">io::ErrorKind::InvalidInput</span>,
-                <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#412">LengthDelimitedCodecError</a> { <span class="ident">_priv</span>: () },
+        <span class="kw">if </span>n &gt; <span class="self">self</span>.builder.max_frame_len {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                <a href="../../../src/tokio_util/codec/length_delimited.rs.html#412">LengthDelimitedCodecError</a> { _priv: () },
             ));
         }
 
-        <span class="comment">// Adjust `n` with bounds checking</span>
-        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">length_adjustment</span> <span class="op">&lt;</span> <span class="number">0</span> {
-            <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#584">n</a>.<span class="ident">checked_add</span>(<span class="op">-</span><a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#583">self</a>.<span class="ident">builder</span>.<span class="ident">length_adjustment</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
-        } <span class="kw">else</span> {
-            <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#584">n</a>.<span class="ident">checked_sub</span>(<a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#583">self</a>.<span class="ident">builder</span>.<span class="ident">length_adjustment</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+        <span class="comment">// Adjust `n` with bounds checking
+        </span><span class="kw">let </span>n = <span class="kw">if </span><span class="self">self</span>.builder.length_adjustment &lt; <span class="number">0 </span>{
+            <a href="../../../src/tokio_util/codec/length_delimited.rs.html#584">n</a>.checked_add(-<a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#583">self</a>.builder.length_adjustment <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+        } <span class="kw">else </span>{
+            <a href="../../../src/tokio_util/codec/length_delimited.rs.html#584">n</a>.checked_sub(<a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#583">self</a>.builder.length_adjustment <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
         };
 
-        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">n</span>.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">io::Error::new</span>(
-                <span class="ident">io::ErrorKind::InvalidInput</span>,
+        <span class="kw">let </span>n = n.ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
                 <span class="string">&quot;provided length would overflow after adjustment&quot;</span>,
             )
         })<span class="question-mark">?</span>;
 
-        <span class="comment">// Reserve capacity in the destination buffer to fit the frame and</span>
-        <span class="comment">// length field (plus adjustment).</span>
-        <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#583">dst</a>.<span class="ident">reserve</span>(<a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#583">self</a>.<span class="ident">builder</span>.<span class="ident">length_field_len</span> <span class="op">+</span> <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#600">n</a>);
+        <span class="comment">// Reserve capacity in the destination buffer to fit the frame and
+        // length field (plus adjustment).
+        </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#583">dst</a>.reserve(<a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#583">self</a>.builder.length_field_len + <a href="../../../src/tokio_util/codec/length_delimited.rs.html#600">n</a>);
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">length_field_is_big_endian</span> {
-            <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#583">dst</a>.<a class="ident" href="../../../bytes/buf/buf_mut/trait.BufMut.html">put_uint</a>(<a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#600">n</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#583">self</a>.<span class="ident">builder</span>.<span class="ident">length_field_len</span>);
-        } <span class="kw">else</span> {
-            <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#583">dst</a>.<a class="ident" href="../../../bytes/buf/buf_mut/trait.BufMut.html">put_uint_le</a>(<a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#600">n</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#583">self</a>.<span class="ident">builder</span>.<span class="ident">length_field_len</span>);
+        <span class="kw">if </span><span class="self">self</span>.builder.length_field_is_big_endian {
+            <a href="../../../src/tokio_util/codec/length_delimited.rs.html#583">dst</a>.<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">put_uint</a>(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#600">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#583">self</a>.builder.length_field_len);
+        } <span class="kw">else </span>{
+            <a href="../../../src/tokio_util/codec/length_delimited.rs.html#583">dst</a>.<a href="../../../bytes/buf/buf_mut/trait.BufMut.html">put_uint_le</a>(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#600">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#583">self</a>.builder.length_field_len);
         }
 
-        <span class="comment">// Write the frame to the buffer</span>
-        <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#583">dst</a>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#583">data</a>[..]);
+        <span class="comment">// Write the frame to the buffer
+        </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#583">dst</a>.extend_from_slice(<span class="kw-2">&amp;</span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#583">data</a>[..]);
 
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#425">LengthDelimitedCodec</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#425">LengthDelimitedCodec</a> {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new()
     }
 }
 
-<span class="comment">// ===== impl Builder =====</span>
+<span class="comment">// ===== impl Builder =====
 
-<span class="kw">mod</span> <span class="ident">builder</span> {
-    <span class="doccomment">/// Types that can be used with `Builder::length_field_type`.</span>
-    <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">LengthFieldType</span> {}
+</span><span class="kw">mod </span>builder {
+    <span class="doccomment">/// Types that can be used with `Builder::length_field_type`.
+    </span><span class="kw">pub trait </span>LengthFieldType {}
 
-    <span class="kw">impl</span> <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#634">LengthFieldType</a> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {}
-    <span class="kw">impl</span> <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#634">LengthFieldType</a> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {}
-    <span class="kw">impl</span> <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#634">LengthFieldType</a> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {}
-    <span class="kw">impl</span> <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#634">LengthFieldType</a> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {}
+    <span class="kw">impl </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#634">LengthFieldType</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {}
+    <span class="kw">impl </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#634">LengthFieldType</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> {}
+    <span class="kw">impl </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#634">LengthFieldType</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {}
+    <span class="kw">impl </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#634">LengthFieldType</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {}
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
-        <span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;8&quot;</span>,
-        <span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;16&quot;</span>,
-        <span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;32&quot;</span>,
-        <span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;64&quot;</span>,
-    ))]</span>
-    <span class="kw">impl</span> <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#634">LengthFieldType</a> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {}
+    <span class="attribute">#[cfg(any(
+        target_pointer_width = <span class="string">&quot;8&quot;</span>,
+        target_pointer_width = <span class="string">&quot;16&quot;</span>,
+        target_pointer_width = <span class="string">&quot;32&quot;</span>,
+        target_pointer_width = <span class="string">&quot;64&quot;</span>,
+    ))]
+    </span><span class="kw">impl </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#634">LengthFieldType</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {}
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#390">Builder</a> {
-    <span class="doccomment">/// Creates a new length delimited codec builder with default configuration</span>
-    <span class="doccomment">/// values.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use tokio::io::AsyncRead;</span>
-    <span class="doccomment">/// use tokio_util::codec::LengthDelimitedCodec;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # fn bind_read&lt;T: AsyncRead&gt;(io: T) {</span>
-    <span class="doccomment">/// LengthDelimitedCodec::builder()</span>
-    <span class="doccomment">///     .length_field_offset(0)</span>
-    <span class="doccomment">///     .length_field_type::&lt;u16&gt;()</span>
-    <span class="doccomment">///     .length_adjustment(0)</span>
-    <span class="doccomment">///     .num_skip(0)</span>
-    <span class="doccomment">///     .new_read(io);</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// # pub fn main() {}</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#390">Builder</a> {
-        <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#390">Builder</a> {
-            <span class="comment">// Default max frame length of 8MB</span>
-            <span class="ident">max_frame_len</span>: <span class="number">8</span> <span class="op">*</span> <span class="number">1_024</span> <span class="op">*</span> <span class="number">1_024</span>,
+<span class="kw">impl </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#390">Builder</a> {
+    <span class="doccomment">/// Creates a new length delimited codec builder with default configuration
+    /// values.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use tokio::io::AsyncRead;
+    /// use tokio_util::codec::LengthDelimitedCodec;
+    ///
+    /// # fn bind_read&lt;T: AsyncRead&gt;(io: T) {
+    /// LengthDelimitedCodec::builder()
+    ///     .length_field_offset(0)
+    ///     .length_field_type::&lt;u16&gt;()
+    ///     .length_adjustment(0)
+    ///     .num_skip(0)
+    ///     .new_read(io);
+    /// # }
+    /// # pub fn main() {}
+    /// ```
+    </span><span class="kw">pub fn </span>new() -&gt; <a href="../../../src/tokio_util/codec/length_delimited.rs.html#390">Builder</a> {
+        <a href="../../../src/tokio_util/codec/length_delimited.rs.html#390">Builder</a> {
+            <span class="comment">// Default max frame length of 8MB
+            </span>max_frame_len: <span class="number">8 </span>* <span class="number">1_024 </span>* <span class="number">1_024</span>,
 
-            <span class="comment">// Default byte length of 4</span>
-            <span class="ident">length_field_len</span>: <span class="number">4</span>,
+            <span class="comment">// Default byte length of 4
+            </span>length_field_len: <span class="number">4</span>,
 
-            <span class="comment">// Default to the header field being at the start of the header.</span>
-            <span class="ident">length_field_offset</span>: <span class="number">0</span>,
+            <span class="comment">// Default to the header field being at the start of the header.
+            </span>length_field_offset: <span class="number">0</span>,
 
-            <span class="ident">length_adjustment</span>: <span class="number">0</span>,
+            length_adjustment: <span class="number">0</span>,
 
-            <span class="comment">// Total number of bytes to skip before reading the payload, if not set,</span>
-            <span class="comment">// `length_field_len + length_field_offset`</span>
-            <span class="ident">num_skip</span>: <span class="prelude-val">None</span>,
+            <span class="comment">// Total number of bytes to skip before reading the payload, if not set,
+            // `length_field_len + length_field_offset`
+            </span>num_skip: <span class="prelude-val">None</span>,
 
-            <span class="comment">// Default to reading the length field in network (big) endian.</span>
-            <span class="ident">length_field_is_big_endian</span>: <span class="bool-val">true</span>,
+            <span class="comment">// Default to reading the length field in network (big) endian.
+            </span>length_field_is_big_endian: <span class="bool-val">true</span>,
         }
     }
 
-    <span class="doccomment">/// Read the length field as a big endian integer</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is the default setting.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This configuration option applies to both encoding and decoding.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use tokio::io::AsyncRead;</span>
-    <span class="doccomment">/// use tokio_util::codec::LengthDelimitedCodec;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # fn bind_read&lt;T: AsyncRead&gt;(io: T) {</span>
-    <span class="doccomment">/// LengthDelimitedCodec::builder()</span>
-    <span class="doccomment">///     .big_endian()</span>
-    <span class="doccomment">///     .new_read(io);</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// # pub fn main() {}</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">big_endian</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#711">self</a>.<span class="ident">length_field_is_big_endian</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#711">self</a>
-    }
+    <span class="doccomment">/// Read the length field as a big endian integer
+    ///
+    /// This is the default setting.
+    ///
+    /// This configuration option applies to both encoding and decoding.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use tokio::io::AsyncRead;
+    /// use tokio_util::codec::LengthDelimitedCodec;
+    ///
+    /// # fn bind_read&lt;T: AsyncRead&gt;(io: T) {
+    /// LengthDelimitedCodec::builder()
+    ///     .big_endian()
+    ///     .new_read(io);
+    /// # }
+    /// # pub fn main() {}
+    /// ```
+    </span><span class="kw">pub fn </span>big_endian(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#711">self</a>.length_field_is_big_endian = <span class="bool-val">true</span>;
+        <span class="self"><a href="../../../src/tokio_util/codec/length_delimited.rs.html#711">self</a>
+    </span>}
 
-    <span class="doccomment">/// Read the length field as a little endian integer</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The default setting is big endian.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This configuration option applies to both encoding and decoding.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use tokio::io::AsyncRead;</span>
-    <span class="doccomment">/// use tokio_util::codec::LengthDelimitedCodec;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # fn bind_read&lt;T: AsyncRead&gt;(io: T) {</span>
-    <span class="doccomment">/// LengthDelimitedCodec::builder()</span>
-    <span class="doccomment">///     .little_endian()</span>
-    <span class="doccomment">///     .new_read(io);</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// # pub fn main() {}</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">little_endian</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#735">self</a>.<span class="ident">length_field_is_big_endian</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#735">self</a>
-    }
+    <span class="doccomment">/// Read the length field as a little endian integer
+    ///
+    /// The default setting is big endian.
+    ///
+    /// This configuration option applies to both encoding and decoding.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use tokio::io::AsyncRead;
+    /// use tokio_util::codec::LengthDelimitedCodec;
+    ///
+    /// # fn bind_read&lt;T: AsyncRead&gt;(io: T) {
+    /// LengthDelimitedCodec::builder()
+    ///     .little_endian()
+    ///     .new_read(io);
+    /// # }
+    /// # pub fn main() {}
+    /// ```
+    </span><span class="kw">pub fn </span>little_endian(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#735">self</a>.length_field_is_big_endian = <span class="bool-val">false</span>;
+        <span class="self"><a href="../../../src/tokio_util/codec/length_delimited.rs.html#735">self</a>
+    </span>}
 
-    <span class="doccomment">/// Read the length field as a native endian integer</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The default setting is big endian.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This configuration option applies to both encoding and decoding.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use tokio::io::AsyncRead;</span>
-    <span class="doccomment">/// use tokio_util::codec::LengthDelimitedCodec;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # fn bind_read&lt;T: AsyncRead&gt;(io: T) {</span>
-    <span class="doccomment">/// LengthDelimitedCodec::builder()</span>
-    <span class="doccomment">///     .native_endian()</span>
-    <span class="doccomment">///     .new_read(io);</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// # pub fn main() {}</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">native_endian</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <span class="kw">if</span> <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;big&quot;</span>) {
-            <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#759">self</a>.<a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#711">big_endian</a>()
-        } <span class="kw">else</span> {
-            <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#759">self</a>.<a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#735">little_endian</a>()
+    <span class="doccomment">/// Read the length field as a native endian integer
+    ///
+    /// The default setting is big endian.
+    ///
+    /// This configuration option applies to both encoding and decoding.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use tokio::io::AsyncRead;
+    /// use tokio_util::codec::LengthDelimitedCodec;
+    ///
+    /// # fn bind_read&lt;T: AsyncRead&gt;(io: T) {
+    /// LengthDelimitedCodec::builder()
+    ///     .native_endian()
+    ///     .new_read(io);
+    /// # }
+    /// # pub fn main() {}
+    /// ```
+    </span><span class="kw">pub fn </span>native_endian(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(target_endian = <span class="string">&quot;big&quot;</span>) {
+            <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#759">self</a>.<a href="../../../src/tokio_util/codec/length_delimited.rs.html#711">big_endian</a>()
+        } <span class="kw">else </span>{
+            <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#759">self</a>.<a href="../../../src/tokio_util/codec/length_delimited.rs.html#735">little_endian</a>()
         }
     }
 
-    <span class="doccomment">/// Sets the max frame length in bytes</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This configuration option applies to both encoding and decoding. The</span>
-    <span class="doccomment">/// default value is 8MB.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// When decoding, the length field read from the byte stream is checked</span>
-    <span class="doccomment">/// against this setting **before** any adjustments are applied. When</span>
-    <span class="doccomment">/// encoding, the length of the submitted payload is checked against this</span>
-    <span class="doccomment">/// setting.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// When frames exceed the max length, an `io::Error` with the custom value</span>
-    <span class="doccomment">/// of the `LengthDelimitedCodecError` type will be returned.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use tokio::io::AsyncRead;</span>
-    <span class="doccomment">/// use tokio_util::codec::LengthDelimitedCodec;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # fn bind_read&lt;T: AsyncRead&gt;(io: T) {</span>
-    <span class="doccomment">/// LengthDelimitedCodec::builder()</span>
-    <span class="doccomment">///     .max_frame_length(8 * 1024 * 1024)</span>
-    <span class="doccomment">///     .new_read(io);</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// # pub fn main() {}</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_frame_length</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#793">self</a>.<span class="ident">max_frame_len</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#793">val</a>;
-        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#793">self</a>
+    <span class="doccomment">/// Sets the max frame length in bytes
+    ///
+    /// This configuration option applies to both encoding and decoding. The
+    /// default value is 8MB.
+    ///
+    /// When decoding, the length field read from the byte stream is checked
+    /// against this setting **before** any adjustments are applied. When
+    /// encoding, the length of the submitted payload is checked against this
+    /// setting.
+    ///
+    /// When frames exceed the max length, an `io::Error` with the custom value
+    /// of the `LengthDelimitedCodecError` type will be returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use tokio::io::AsyncRead;
+    /// use tokio_util::codec::LengthDelimitedCodec;
+    ///
+    /// # fn bind_read&lt;T: AsyncRead&gt;(io: T) {
+    /// LengthDelimitedCodec::builder()
+    ///     .max_frame_length(8 * 1024 * 1024)
+    ///     .new_read(io);
+    /// # }
+    /// # pub fn main() {}
+    /// ```
+    </span><span class="kw">pub fn </span>max_frame_length(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#793">self</a>.max_frame_len = <a href="../../../src/tokio_util/codec/length_delimited.rs.html#793">val</a>;
+        <span class="self"><a href="../../../src/tokio_util/codec/length_delimited.rs.html#793">self</a>
+    </span>}
+
+    <span class="doccomment">/// Sets the unsigned integer type used to represent the length field.
+    ///
+    /// The default type is [`u32`]. The max type is [`u64`] (or [`usize`] on
+    /// 64-bit targets).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use tokio::io::AsyncRead;
+    /// use tokio_util::codec::LengthDelimitedCodec;
+    ///
+    /// # fn bind_read&lt;T: AsyncRead&gt;(io: T) {
+    /// LengthDelimitedCodec::builder()
+    ///     .length_field_type::&lt;u32&gt;()
+    ///     .new_read(io);
+    /// # }
+    /// # pub fn main() {}
+    /// ```
+    ///
+    /// Unlike [`Builder::length_field_length`], this does not fail at runtime
+    /// and instead produces a compile error:
+    ///
+    /// ```compile_fail
+    /// # use tokio::io::AsyncRead;
+    /// # use tokio_util::codec::LengthDelimitedCodec;
+    /// # fn bind_read&lt;T: AsyncRead&gt;(io: T) {
+    /// LengthDelimitedCodec::builder()
+    ///     .length_field_type::&lt;u128&gt;()
+    ///     .new_read(io);
+    /// # }
+    /// # pub fn main() {}
+    /// ```
+    </span><span class="kw">pub fn </span>length_field_type&lt;T: <a href="../../../src/tokio_util/codec/length_delimited.rs.html#634">builder::LengthFieldType</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#830">self</a>.<a href="../../../src/tokio_util/codec/length_delimited.rs.html#853">length_field_length</a>(mem::size_of::&lt;T&gt;())
     }
 
-    <span class="doccomment">/// Sets the unsigned integer type used to represent the length field.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The default type is [`u32`]. The max type is [`u64`] (or [`usize`] on</span>
-    <span class="doccomment">/// 64-bit targets).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use tokio::io::AsyncRead;</span>
-    <span class="doccomment">/// use tokio_util::codec::LengthDelimitedCodec;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # fn bind_read&lt;T: AsyncRead&gt;(io: T) {</span>
-    <span class="doccomment">/// LengthDelimitedCodec::builder()</span>
-    <span class="doccomment">///     .length_field_type::&lt;u32&gt;()</span>
-    <span class="doccomment">///     .new_read(io);</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// # pub fn main() {}</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Unlike [`Builder::length_field_length`], this does not fail at runtime</span>
-    <span class="doccomment">/// and instead produces a compile error:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```compile_fail</span>
-    <span class="doccomment">/// # use tokio::io::AsyncRead;</span>
-    <span class="doccomment">/// # use tokio_util::codec::LengthDelimitedCodec;</span>
-    <span class="doccomment">/// # fn bind_read&lt;T: AsyncRead&gt;(io: T) {</span>
-    <span class="doccomment">/// LengthDelimitedCodec::builder()</span>
-    <span class="doccomment">///     .length_field_type::&lt;u128&gt;()</span>
-    <span class="doccomment">///     .new_read(io);</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// # pub fn main() {}</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">length_field_type</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#634">builder::LengthFieldType</a><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#830">self</a>.<a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#853">length_field_length</a>(<span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>())
-    }
+    <span class="doccomment">/// Sets the number of bytes used to represent the length field
+    ///
+    /// The default value is `4`. The max value is `8`.
+    ///
+    /// This configuration option applies to both encoding and decoding.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use tokio::io::AsyncRead;
+    /// use tokio_util::codec::LengthDelimitedCodec;
+    ///
+    /// # fn bind_read&lt;T: AsyncRead&gt;(io: T) {
+    /// LengthDelimitedCodec::builder()
+    ///     .length_field_length(4)
+    ///     .new_read(io);
+    /// # }
+    /// # pub fn main() {}
+    /// ```
+    </span><span class="kw">pub fn </span>length_field_length(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(val &gt; <span class="number">0 </span>&amp;&amp; val &lt;= <span class="number">8</span>, <span class="string">&quot;invalid length field length&quot;</span>);
+        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#853">self</a>.length_field_len = <a href="../../../src/tokio_util/codec/length_delimited.rs.html#853">val</a>;
+        <span class="self"><a href="../../../src/tokio_util/codec/length_delimited.rs.html#853">self</a>
+    </span>}
 
-    <span class="doccomment">/// Sets the number of bytes used to represent the length field</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The default value is `4`. The max value is `8`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This configuration option applies to both encoding and decoding.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use tokio::io::AsyncRead;</span>
-    <span class="doccomment">/// use tokio_util::codec::LengthDelimitedCodec;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # fn bind_read&lt;T: AsyncRead&gt;(io: T) {</span>
-    <span class="doccomment">/// LengthDelimitedCodec::builder()</span>
-    <span class="doccomment">///     .length_field_length(4)</span>
-    <span class="doccomment">///     .new_read(io);</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// # pub fn main() {}</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">length_field_length</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">val</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">val</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">8</span>, <span class="string">&quot;invalid length field length&quot;</span>);
-        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#853">self</a>.<span class="ident">length_field_len</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#853">val</a>;
-        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#853">self</a>
-    }
+    <span class="doccomment">/// Sets the number of bytes in the header before the length field
+    ///
+    /// This configuration option only applies to decoding.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use tokio::io::AsyncRead;
+    /// use tokio_util::codec::LengthDelimitedCodec;
+    ///
+    /// # fn bind_read&lt;T: AsyncRead&gt;(io: T) {
+    /// LengthDelimitedCodec::builder()
+    ///     .length_field_offset(1)
+    ///     .new_read(io);
+    /// # }
+    /// # pub fn main() {}
+    /// ```
+    </span><span class="kw">pub fn </span>length_field_offset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#876">self</a>.length_field_offset = <a href="../../../src/tokio_util/codec/length_delimited.rs.html#876">val</a>;
+        <span class="self"><a href="../../../src/tokio_util/codec/length_delimited.rs.html#876">self</a>
+    </span>}
 
-    <span class="doccomment">/// Sets the number of bytes in the header before the length field</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This configuration option only applies to decoding.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use tokio::io::AsyncRead;</span>
-    <span class="doccomment">/// use tokio_util::codec::LengthDelimitedCodec;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # fn bind_read&lt;T: AsyncRead&gt;(io: T) {</span>
-    <span class="doccomment">/// LengthDelimitedCodec::builder()</span>
-    <span class="doccomment">///     .length_field_offset(1)</span>
-    <span class="doccomment">///     .new_read(io);</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// # pub fn main() {}</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">length_field_offset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#876">self</a>.<span class="ident">length_field_offset</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#876">val</a>;
-        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#876">self</a>
-    }
+    <span class="doccomment">/// Delta between the payload length specified in the header and the real
+    /// payload length
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use tokio::io::AsyncRead;
+    /// use tokio_util::codec::LengthDelimitedCodec;
+    ///
+    /// # fn bind_read&lt;T: AsyncRead&gt;(io: T) {
+    /// LengthDelimitedCodec::builder()
+    ///     .length_adjustment(-2)
+    ///     .new_read(io);
+    /// # }
+    /// # pub fn main() {}
+    /// ```
+    </span><span class="kw">pub fn </span>length_adjustment(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#897">self</a>.length_adjustment = <a href="../../../src/tokio_util/codec/length_delimited.rs.html#897">val</a>;
+        <span class="self"><a href="../../../src/tokio_util/codec/length_delimited.rs.html#897">self</a>
+    </span>}
 
-    <span class="doccomment">/// Delta between the payload length specified in the header and the real</span>
-    <span class="doccomment">/// payload length</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use tokio::io::AsyncRead;</span>
-    <span class="doccomment">/// use tokio_util::codec::LengthDelimitedCodec;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # fn bind_read&lt;T: AsyncRead&gt;(io: T) {</span>
-    <span class="doccomment">/// LengthDelimitedCodec::builder()</span>
-    <span class="doccomment">///     .length_adjustment(-2)</span>
-    <span class="doccomment">///     .new_read(io);</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// # pub fn main() {}</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">length_adjustment</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#897">self</a>.<span class="ident">length_adjustment</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#897">val</a>;
-        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#897">self</a>
-    }
+    <span class="doccomment">/// Sets the number of bytes to skip before reading the payload
+    ///
+    /// Default value is `length_field_len + length_field_offset`
+    ///
+    /// This configuration option only applies to decoding
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use tokio::io::AsyncRead;
+    /// use tokio_util::codec::LengthDelimitedCodec;
+    ///
+    /// # fn bind_read&lt;T: AsyncRead&gt;(io: T) {
+    /// LengthDelimitedCodec::builder()
+    ///     .num_skip(4)
+    ///     .new_read(io);
+    /// # }
+    /// # pub fn main() {}
+    /// ```
+    </span><span class="kw">pub fn </span>num_skip(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#921">self</a>.num_skip = <span class="prelude-val">Some</span>(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#921">val</a>);
+        <span class="self"><a href="../../../src/tokio_util/codec/length_delimited.rs.html#921">self</a>
+    </span>}
 
-    <span class="doccomment">/// Sets the number of bytes to skip before reading the payload</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Default value is `length_field_len + length_field_offset`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This configuration option only applies to decoding</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use tokio::io::AsyncRead;</span>
-    <span class="doccomment">/// use tokio_util::codec::LengthDelimitedCodec;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # fn bind_read&lt;T: AsyncRead&gt;(io: T) {</span>
-    <span class="doccomment">/// LengthDelimitedCodec::builder()</span>
-    <span class="doccomment">///     .num_skip(4)</span>
-    <span class="doccomment">///     .new_read(io);</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// # pub fn main() {}</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">num_skip</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#921">self</a>.<span class="ident">num_skip</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#921">val</a>);
-        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#921">self</a>
-    }
-
-    <span class="doccomment">/// Create a configured length delimited `LengthDelimitedCodec`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio_util::codec::LengthDelimitedCodec;</span>
-    <span class="doccomment">/// # pub fn main() {</span>
-    <span class="doccomment">/// LengthDelimitedCodec::builder()</span>
-    <span class="doccomment">///     .length_field_offset(0)</span>
-    <span class="doccomment">///     .length_field_type::&lt;u16&gt;()</span>
-    <span class="doccomment">///     .length_adjustment(0)</span>
-    <span class="doccomment">///     .num_skip(0)</span>
-    <span class="doccomment">///     .new_codec();</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_codec</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#425">LengthDelimitedCodec</a> {
-        <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#425">LengthDelimitedCodec</a> {
-            <span class="ident">builder</span>: <span class="kw-2">*</span><a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#941">self</a>,
-            <span class="ident">state</span>: <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#435">DecodeState::Head</a>,
+    <span class="doccomment">/// Create a configured length delimited `LengthDelimitedCodec`
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio_util::codec::LengthDelimitedCodec;
+    /// # pub fn main() {
+    /// LengthDelimitedCodec::builder()
+    ///     .length_field_offset(0)
+    ///     .length_field_type::&lt;u16&gt;()
+    ///     .length_adjustment(0)
+    ///     .num_skip(0)
+    ///     .new_codec();
+    /// # }
+    /// ```
+    </span><span class="kw">pub fn </span>new_codec(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../src/tokio_util/codec/length_delimited.rs.html#425">LengthDelimitedCodec</a> {
+        <a href="../../../src/tokio_util/codec/length_delimited.rs.html#425">LengthDelimitedCodec</a> {
+            builder: <span class="kw-2">*</span><a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#941">self</a>,
+            state: <a href="../../../src/tokio_util/codec/length_delimited.rs.html#435">DecodeState::Head</a>,
         }
     }
 
-    <span class="doccomment">/// Create a configured length delimited `FramedRead`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use tokio::io::AsyncRead;</span>
-    <span class="doccomment">/// use tokio_util::codec::LengthDelimitedCodec;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # fn bind_read&lt;T: AsyncRead&gt;(io: T) {</span>
-    <span class="doccomment">/// LengthDelimitedCodec::builder()</span>
-    <span class="doccomment">///     .length_field_offset(0)</span>
-    <span class="doccomment">///     .length_field_type::&lt;u16&gt;()</span>
-    <span class="doccomment">///     .length_adjustment(0)</span>
-    <span class="doccomment">///     .num_skip(0)</span>
-    <span class="doccomment">///     .new_read(io);</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// # pub fn main() {}</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_read</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">upstream</span>: <span class="ident">T</span>) -&gt; <span class="ident">FramedRead</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#425">LengthDelimitedCodec</a><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>,
+    <span class="doccomment">/// Create a configured length delimited `FramedRead`
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use tokio::io::AsyncRead;
+    /// use tokio_util::codec::LengthDelimitedCodec;
+    ///
+    /// # fn bind_read&lt;T: AsyncRead&gt;(io: T) {
+    /// LengthDelimitedCodec::builder()
+    ///     .length_field_offset(0)
+    ///     .length_field_type::&lt;u16&gt;()
+    ///     .length_adjustment(0)
+    ///     .num_skip(0)
+    ///     .new_read(io);
+    /// # }
+    /// # pub fn main() {}
+    /// ```
+    </span><span class="kw">pub fn </span>new_read&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, upstream: T) -&gt; FramedRead&lt;T, <a href="../../../src/tokio_util/codec/length_delimited.rs.html#425">LengthDelimitedCodec</a>&gt;
+    <span class="kw">where
+        </span>T: <a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>,
     {
-        <span class="ident">FramedRead::new</span>(<a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#966">upstream</a>, <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#966">self</a>.<a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#941">new_codec</a>())
+        FramedRead::new(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#966">upstream</a>, <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#966">self</a>.<a href="../../../src/tokio_util/codec/length_delimited.rs.html#941">new_codec</a>())
     }
 
-    <span class="doccomment">/// Create a configured length delimited `FramedWrite`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use tokio::io::AsyncWrite;</span>
-    <span class="doccomment">/// # use tokio_util::codec::LengthDelimitedCodec;</span>
-    <span class="doccomment">/// # fn write_frame&lt;T: AsyncWrite&gt;(io: T) {</span>
-    <span class="doccomment">/// LengthDelimitedCodec::builder()</span>
-    <span class="doccomment">///     .length_field_type::&lt;u16&gt;()</span>
-    <span class="doccomment">///     .new_write(io);</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// # pub fn main() {}</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_write</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">inner</span>: <span class="ident">T</span>) -&gt; <span class="ident">FramedWrite</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#425">LengthDelimitedCodec</a><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>,
+    <span class="doccomment">/// Create a configured length delimited `FramedWrite`
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use tokio::io::AsyncWrite;
+    /// # use tokio_util::codec::LengthDelimitedCodec;
+    /// # fn write_frame&lt;T: AsyncWrite&gt;(io: T) {
+    /// LengthDelimitedCodec::builder()
+    ///     .length_field_type::&lt;u16&gt;()
+    ///     .new_write(io);
+    /// # }
+    /// # pub fn main() {}
+    /// ```
+    </span><span class="kw">pub fn </span>new_write&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, inner: T) -&gt; FramedWrite&lt;T, <a href="../../../src/tokio_util/codec/length_delimited.rs.html#425">LengthDelimitedCodec</a>&gt;
+    <span class="kw">where
+        </span>T: <a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>,
     {
-        <span class="ident">FramedWrite::new</span>(<a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#987">inner</a>, <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#987">self</a>.<a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#941">new_codec</a>())
+        FramedWrite::new(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#987">inner</a>, <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#987">self</a>.<a href="../../../src/tokio_util/codec/length_delimited.rs.html#941">new_codec</a>())
     }
 
-    <span class="doccomment">/// Create a configured length delimited `Framed`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use tokio::io::{AsyncRead, AsyncWrite};</span>
-    <span class="doccomment">/// # use tokio_util::codec::LengthDelimitedCodec;</span>
-    <span class="doccomment">/// # fn write_frame&lt;T: AsyncRead + AsyncWrite&gt;(io: T) {</span>
-    <span class="doccomment">/// # let _ =</span>
-    <span class="doccomment">/// LengthDelimitedCodec::builder()</span>
-    <span class="doccomment">///     .length_field_type::&lt;u16&gt;()</span>
-    <span class="doccomment">///     .new_framed(io);</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// # pub fn main() {}</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_framed</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">inner</span>: <span class="ident">T</span>) -&gt; <span class="ident">Framed</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#425">LengthDelimitedCodec</a><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="op">+</span> <a class="ident" href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>,
+    <span class="doccomment">/// Create a configured length delimited `Framed`
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use tokio::io::{AsyncRead, AsyncWrite};
+    /// # use tokio_util::codec::LengthDelimitedCodec;
+    /// # fn write_frame&lt;T: AsyncRead + AsyncWrite&gt;(io: T) {
+    /// # let _ =
+    /// LengthDelimitedCodec::builder()
+    ///     .length_field_type::&lt;u16&gt;()
+    ///     .new_framed(io);
+    /// # }
+    /// # pub fn main() {}
+    /// ```
+    </span><span class="kw">pub fn </span>new_framed&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, inner: T) -&gt; Framed&lt;T, <a href="../../../src/tokio_util/codec/length_delimited.rs.html#425">LengthDelimitedCodec</a>&gt;
+    <span class="kw">where
+        </span>T: <a href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> + <a href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>,
     {
-        <span class="ident">Framed::new</span>(<a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#1009">inner</a>, <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#1009">self</a>.<a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#941">new_codec</a>())
+        Framed::new(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#1009">inner</a>, <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#1009">self</a>.<a href="../../../src/tokio_util/codec/length_delimited.rs.html#941">new_codec</a>())
     }
 
-    <span class="kw">fn</span> <span class="ident">num_head_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">let</span> <span class="ident">num</span> <span class="op">=</span> <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#1016">self</a>.<span class="ident">length_field_offset</span> <span class="op">+</span> <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#1016">self</a>.<span class="ident">length_field_len</span>;
-        <span class="ident">cmp::max</span>(<a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#1017">num</a>, <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#1016">self</a>.<span class="ident">num_skip</span>.<span class="ident">unwrap_or</span>(<span class="number">0</span>))
+    <span class="kw">fn </span>num_head_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <span class="kw">let </span>num = <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#1016">self</a>.length_field_offset + <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#1016">self</a>.length_field_len;
+        cmp::max(<a href="../../../src/tokio_util/codec/length_delimited.rs.html#1017">num</a>, <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#1016">self</a>.num_skip.unwrap_or(<span class="number">0</span>))
     }
 
-    <span class="kw">fn</span> <span class="ident">get_num_skip</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#1021">self</a>.<span class="ident">num_skip</span>
-            .<span class="ident">unwrap_or</span>(<a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#1021">self</a>.<span class="ident">length_field_offset</span> <span class="op">+</span> <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#1021">self</a>.<span class="ident">length_field_len</span>)
-    }
-}
-
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#390">Builder</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>()
+    <span class="kw">fn </span>get_num_skip(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#1021">self</a>.num_skip
+            .unwrap_or(<a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#1021">self</a>.length_field_offset + <a class="self" href="../../../src/tokio_util/codec/length_delimited.rs.html#1021">self</a>.length_field_len)
     }
 }
 
-<span class="comment">// ===== impl LengthDelimitedCodecError =====</span>
-
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#412">LengthDelimitedCodecError</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#1036">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;LengthDelimitedCodecError&quot;</span>).<span class="ident">finish</span>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#390">Builder</a> {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#412">LengthDelimitedCodecError</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#1042">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;frame size too big&quot;</span>)
+<span class="comment">// ===== impl LengthDelimitedCodecError =====
+
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#412">LengthDelimitedCodecError</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../src/tokio_util/codec/length_delimited.rs.html#1036">f</a>.debug_struct(<span class="string">&quot;LengthDelimitedCodecError&quot;</span>).finish()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">StdError</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio_util/codec/length_delimited.rs.html#412">LengthDelimitedCodecError</a> {}
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#412">LengthDelimitedCodecError</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../src/tokio_util/codec/length_delimited.rs.html#1042">f</a>.write_str(<span class="string">&quot;frame size too big&quot;</span>)
+    }
+}
+
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> <span class="kw">for </span><a href="../../../src/tokio_util/codec/length_delimited.rs.html#412">LengthDelimitedCodecError</a> {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

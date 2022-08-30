@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/task/spawn.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>spawn.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/task/spawn.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>spawn.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -149,156 +149,156 @@
 <span id="149">149</span>
 <span id="150">150</span>
 <span id="151">151</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../src/tokio/runtime/task/join.rs.html#145">task::JoinHandle</a>, <a class="ident" href="../../../src/tokio/util/error.rs.html#2">util::error::CONTEXT_MISSING_ERROR</a>};
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{<a href="../../../src/tokio/runtime/task/join.rs.html#145">task::JoinHandle</a>, <a href="../../../src/tokio/util/error.rs.html#2">util::error::CONTEXT_MISSING_ERROR</a>};
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
 
-<span class="macro">cfg_rt!</span> {
-    <span class="doccomment">/// Spawns a new asynchronous task, returning a</span>
-    <span class="doccomment">/// [`JoinHandle`](super::JoinHandle) for it.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Spawning a task enables the task to execute concurrently to other tasks. The</span>
-    <span class="doccomment">/// spawned task may execute on the current thread, or it may be sent to a</span>
-    <span class="doccomment">/// different thread to be executed. The specifics depend on the current</span>
-    <span class="doccomment">/// [`Runtime`](crate::runtime::Runtime) configuration.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// There is no guarantee that a spawned task will execute to completion.</span>
-    <span class="doccomment">/// When a runtime is shutdown, all outstanding tasks are dropped,</span>
-    <span class="doccomment">/// regardless of the lifecycle of that task.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function must be called from the context of a Tokio runtime. Tasks running on</span>
-    <span class="doccomment">/// the Tokio runtime are always inside its context, but you can also enter the context</span>
-    <span class="doccomment">/// using the [`Runtime::enter`](crate::runtime::Runtime::enter()) method.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// In this example, a server is started and `spawn` is used to start a new task</span>
-    <span class="doccomment">/// that processes each received connection.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use tokio::net::{TcpListener, TcpStream};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// use std::io;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// async fn process(socket: TcpStream) {</span>
-    <span class="doccomment">///     // ...</span>
-    <span class="doccomment">/// # drop(socket);</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-    <span class="doccomment">///     let listener = TcpListener::bind(&quot;127.0.0.1:8080&quot;).await?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     loop {</span>
-    <span class="doccomment">///         let (socket, _) = listener.accept().await?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///         tokio::spawn(async move {</span>
-    <span class="doccomment">///             // Process each socket concurrently.</span>
-    <span class="doccomment">///             process(socket).await</span>
-    <span class="doccomment">///         });</span>
-    <span class="doccomment">///     }</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if called from **outside** of the Tokio runtime.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Using `!Send` values from a task</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The task supplied to `spawn` must implement `Send`. However, it is</span>
-    <span class="doccomment">/// possible to **use** `!Send` values from the task as long as they only</span>
-    <span class="doccomment">/// exist between calls to `.await`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// For example, this will work:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use tokio::task;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// use std::rc::Rc;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// fn use_rc(rc: Rc&lt;()&gt;) {</span>
-    <span class="doccomment">///     // Do stuff w/ rc</span>
-    <span class="doccomment">/// # drop(rc);</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() {</span>
-    <span class="doccomment">///     tokio::spawn(async {</span>
-    <span class="doccomment">///         // Force the `Rc` to stay in a scope with no `.await`</span>
-    <span class="doccomment">///         {</span>
-    <span class="doccomment">///             let rc = Rc::new(());</span>
-    <span class="doccomment">///             use_rc(rc.clone());</span>
-    <span class="doccomment">///         }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///         task::yield_now().await;</span>
-    <span class="doccomment">///     }).await.unwrap();</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This will **not** work:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```compile_fail</span>
-    <span class="doccomment">/// use tokio::task;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// use std::rc::Rc;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// fn use_rc(rc: Rc&lt;()&gt;) {</span>
-    <span class="doccomment">///     // Do stuff w/ rc</span>
-    <span class="doccomment">/// # drop(rc);</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// #[tokio::main]</span>
-    <span class="doccomment">/// async fn main() {</span>
-    <span class="doccomment">///     tokio::spawn(async {</span>
-    <span class="doccomment">///         let rc = Rc::new(());</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///         task::yield_now().await;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///         use_rc(rc.clone());</span>
-    <span class="doccomment">///     }).await.unwrap();</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Holding on to a `!Send` value across calls to `.await` will result in</span>
-    <span class="doccomment">/// an unfriendly compile error message similar to:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```text</span>
-    <span class="doccomment">/// `[... some type ...]` cannot be sent between threads safely</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// or:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```text</span>
-    <span class="doccomment">/// error[E0391]: cycle detected when processing `main`</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spawn</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">future</span>: <span class="ident">T</span>) -&gt; <span class="ident">JoinHandle</span><span class="op">&lt;</span><span class="ident">T::Output</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-        <span class="ident">T::Output</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+<span class="macro">cfg_rt! </span>{
+    <span class="doccomment">/// Spawns a new asynchronous task, returning a
+    /// [`JoinHandle`](super::JoinHandle) for it.
+    ///
+    /// Spawning a task enables the task to execute concurrently to other tasks. The
+    /// spawned task may execute on the current thread, or it may be sent to a
+    /// different thread to be executed. The specifics depend on the current
+    /// [`Runtime`](crate::runtime::Runtime) configuration.
+    ///
+    /// There is no guarantee that a spawned task will execute to completion.
+    /// When a runtime is shutdown, all outstanding tasks are dropped,
+    /// regardless of the lifecycle of that task.
+    ///
+    /// This function must be called from the context of a Tokio runtime. Tasks running on
+    /// the Tokio runtime are always inside its context, but you can also enter the context
+    /// using the [`Runtime::enter`](crate::runtime::Runtime::enter()) method.
+    ///
+    /// # Examples
+    ///
+    /// In this example, a server is started and `spawn` is used to start a new task
+    /// that processes each received connection.
+    ///
+    /// ```no_run
+    /// use tokio::net::{TcpListener, TcpStream};
+    ///
+    /// use std::io;
+    ///
+    /// async fn process(socket: TcpStream) {
+    ///     // ...
+    /// # drop(socket);
+    /// }
+    ///
+    /// #[tokio::main]
+    /// async fn main() -&gt; io::Result&lt;()&gt; {
+    ///     let listener = TcpListener::bind(&quot;127.0.0.1:8080&quot;).await?;
+    ///
+    ///     loop {
+    ///         let (socket, _) = listener.accept().await?;
+    ///
+    ///         tokio::spawn(async move {
+    ///             // Process each socket concurrently.
+    ///             process(socket).await
+    ///         });
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if called from **outside** of the Tokio runtime.
+    ///
+    /// # Using `!Send` values from a task
+    ///
+    /// The task supplied to `spawn` must implement `Send`. However, it is
+    /// possible to **use** `!Send` values from the task as long as they only
+    /// exist between calls to `.await`.
+    ///
+    /// For example, this will work:
+    ///
+    /// ```
+    /// use tokio::task;
+    ///
+    /// use std::rc::Rc;
+    ///
+    /// fn use_rc(rc: Rc&lt;()&gt;) {
+    ///     // Do stuff w/ rc
+    /// # drop(rc);
+    /// }
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     tokio::spawn(async {
+    ///         // Force the `Rc` to stay in a scope with no `.await`
+    ///         {
+    ///             let rc = Rc::new(());
+    ///             use_rc(rc.clone());
+    ///         }
+    ///
+    ///         task::yield_now().await;
+    ///     }).await.unwrap();
+    /// }
+    /// ```
+    ///
+    /// This will **not** work:
+    ///
+    /// ```compile_fail
+    /// use tokio::task;
+    ///
+    /// use std::rc::Rc;
+    ///
+    /// fn use_rc(rc: Rc&lt;()&gt;) {
+    ///     // Do stuff w/ rc
+    /// # drop(rc);
+    /// }
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     tokio::spawn(async {
+    ///         let rc = Rc::new(());
+    ///
+    ///         task::yield_now().await;
+    ///
+    ///         use_rc(rc.clone());
+    ///     }).await.unwrap();
+    /// }
+    /// ```
+    ///
+    /// Holding on to a `!Send` value across calls to `.await` will result in
+    /// an unfriendly compile error message similar to:
+    ///
+    /// ```text
+    /// `[... some type ...]` cannot be sent between threads safely
+    /// ```
+    ///
+    /// or:
+    ///
+    /// ```text
+    /// error[E0391]: cycle detected when processing `main`
+    /// ```
+    </span><span class="attribute">#[track_caller]
+    </span><span class="kw">pub fn </span>spawn&lt;T&gt;(future: T) -&gt; JoinHandle&lt;T::Output&gt;
+    <span class="kw">where
+        </span>T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
+        T::Output: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
     {
-        <span class="comment">// preventing stack overflows on debug mode, by quickly sending the</span>
-        <span class="comment">// task to the heap.</span>
-        <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">debug_assertions</span>) <span class="op">&amp;&amp;</span> <span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="op">&gt;</span> <span class="number">2048</span> {
-            <a class="ident" href="../../../src/tokio/task/spawn.rs.html#140-143">spawn_inner</a>(<span class="ident">Box::pin</span>(<a class="ident" href="../../../src/tokio/task/spawn.rs.html#125">future</a>), <span class="prelude-val">None</span>)
-        } <span class="kw">else</span> {
-            <a class="ident" href="../../../src/tokio/task/spawn.rs.html#140-143">spawn_inner</a>(<a class="ident" href="../../../src/tokio/task/spawn.rs.html#125">future</a>, <span class="prelude-val">None</span>)
+        <span class="comment">// preventing stack overflows on debug mode, by quickly sending the
+        // task to the heap.
+        </span><span class="kw">if </span><span class="macro">cfg!</span>(debug_assertions) &amp;&amp; std::mem::size_of::&lt;T&gt;() &gt; <span class="number">2048 </span>{
+            <a href="../../../src/tokio/task/spawn.rs.html#140-143">spawn_inner</a>(Box::pin(<a href="../../../src/tokio/task/spawn.rs.html#125">future</a>), <span class="prelude-val">None</span>)
+        } <span class="kw">else </span>{
+            <a href="../../../src/tokio/task/spawn.rs.html#140-143">spawn_inner</a>(<a href="../../../src/tokio/task/spawn.rs.html#125">future</a>, <span class="prelude-val">None</span>)
         }
     }
 
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">spawn_inner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">future</span>: <span class="ident">T</span>, <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>) -&gt; <span class="ident">JoinHandle</span><span class="op">&lt;</span><span class="ident">T::Output</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-        <span class="ident">T::Output</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="attribute">#[track_caller]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>spawn_inner&lt;T&gt;(future: T, name: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) -&gt; JoinHandle&lt;T::Output&gt;
+    <span class="kw">where
+        </span>T: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
+        T::Output: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::runtime</span>::{<a class="ident" href="../../../src/tokio/runtime/mod.rs.html#183">task</a>, <a class="ident" href="../../../src/tokio/runtime/mod.rs.html#223">context</a>};
-        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">task::Id::next</span>();
-        <span class="kw">let</span> <span class="ident">spawn_handle</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/runtime/context.rs.html#73">context::spawn_handle</a>().<span class="ident">expect</span>(<a class="ident" href="../../../src/tokio/util/error.rs.html#2">CONTEXT_MISSING_ERROR</a>);
-        <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/util/trace.rs.html#95"><span class="kw">crate</span>::util::trace::task</a>(<a class="ident" href="../../../src/tokio/task/spawn.rs.html#140">future</a>, <span class="string">&quot;task&quot;</span>, <a class="ident" href="../../../src/tokio/task/spawn.rs.html#140">name</a>, <a class="ident" href="../../../src/tokio/task/spawn.rs.html#146">id</a>.<a class="ident" href="../../../src/tokio/runtime/task/mod.rs.html#519">as_u64</a>());
-        <a class="ident" href="../../../src/tokio/task/spawn.rs.html#147">spawn_handle</a>.<a class="ident" href="../../../src/tokio/runtime/spawner.rs.html#27-30">spawn</a>(<a class="ident" href="../../../src/tokio/task/spawn.rs.html#148">task</a>, <a class="ident" href="../../../src/tokio/task/spawn.rs.html#146">id</a>)
+        <span class="kw">use </span><span class="kw">crate</span>::runtime::{<a href="../../../src/tokio/runtime/mod.rs.html#183">task</a>, <a href="../../../src/tokio/runtime/mod.rs.html#223">context</a>};
+        <span class="kw">let </span>id = task::Id::next();
+        <span class="kw">let </span>spawn_handle = <a href="../../../src/tokio/runtime/context.rs.html#73">context::spawn_handle</a>().expect(<a href="../../../src/tokio/util/error.rs.html#2">CONTEXT_MISSING_ERROR</a>);
+        <span class="kw">let </span>task = <a href="../../../src/tokio/util/trace.rs.html#95"><span class="kw">crate</span>::util::trace::task</a>(<a href="../../../src/tokio/task/spawn.rs.html#140">future</a>, <span class="string">&quot;task&quot;</span>, <a href="../../../src/tokio/task/spawn.rs.html#140">name</a>, <a href="../../../src/tokio/task/spawn.rs.html#146">id</a>.<a href="../../../src/tokio/runtime/task/mod.rs.html#519">as_u64</a>());
+        <a href="../../../src/tokio/task/spawn.rs.html#147">spawn_handle</a>.<a href="../../../src/tokio/runtime/spawner.rs.html#27-30">spawn</a>(<a href="../../../src/tokio/task/spawn.rs.html#148">task</a>, <a href="../../../src/tokio/task/spawn.rs.html#146">id</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

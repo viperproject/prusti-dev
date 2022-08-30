@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/macho/load_command.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>load_command.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/macho/load_command.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>load_command.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../object/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -346,353 +346,353 @@
 <span id="346">346</span>
 <span id="347">347</span>
 <span id="348">348</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">core::marker::PhantomData</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>core::marker::PhantomData;
 
-<span class="kw">use</span> <a class="ident" href="../../../../src/object/endian.rs.html#13"><span class="kw">crate</span>::endian::Endian</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/object/lib.rs.html#110"><span class="kw">crate</span>::macho</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/object/pod.rs.html#21"><span class="kw">crate</span>::pod::Pod</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read::macho</span>::{<a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>, <a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#21">SymbolTable</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read</span>::{<a class="ident" href="../../../../src/object/read/util.rs.html#16">Bytes</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#79">ReadError</a>, <a class="ident" href="../../../../src/object/read/read_ref.rs.html#37">ReadRef</a>, <span class="prelude-ty">Result</span>, <a class="ident" href="../../../../src/object/read/util.rs.html#232">StringTable</a>};
+<span class="kw">use </span><a href="../../../../src/object/endian.rs.html#13"><span class="kw">crate</span>::endian::Endian</a>;
+<span class="kw">use </span><a href="../../../../src/object/lib.rs.html#110"><span class="kw">crate</span>::macho</a>;
+<span class="kw">use </span><a href="../../../../src/object/pod.rs.html#21"><span class="kw">crate</span>::pod::Pod</a>;
+<span class="kw">use </span><span class="kw">crate</span>::read::macho::{<a href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>, <a href="../../../../src/object/read/macho/symbol.rs.html#21">SymbolTable</a>};
+<span class="kw">use </span><span class="kw">crate</span>::read::{<a href="../../../../src/object/read/util.rs.html#16">Bytes</a>, <a href="../../../../src/object/read/mod.rs.html#79">ReadError</a>, <a href="../../../../src/object/read/read_ref.rs.html#37">ReadRef</a>, <span class="prelude-ty">Result</span>, <a href="../../../../src/object/read/util.rs.html#232">StringTable</a>};
 
-<span class="doccomment">/// An iterator over the load commands of a `MachHeader`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LoadCommandIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">E</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> {
-    <span class="ident">endian</span>: <span class="ident">E</span>,
-    <span class="ident">data</span>: <span class="ident">Bytes</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
-    <span class="ident">ncmds</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+<span class="doccomment">/// An iterator over the load commands of a `MachHeader`.
+</span><span class="attribute">#[derive(Debug, Default, Clone, Copy)]
+</span><span class="kw">pub struct </span>LoadCommandIterator&lt;<span class="lifetime">&#39;data</span>, E: <a href="../../../../src/object/endian.rs.html#13">Endian</a>&gt; {
+    endian: E,
+    data: Bytes&lt;<span class="lifetime">&#39;data</span>&gt;,
+    ncmds: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">E</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> <span class="ident">LoadCommandIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">endian</span>: <span class="ident">E</span>, <span class="ident">data</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">ncmds</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#11">LoadCommandIterator</a> {
-            <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#18">endian</a>,
-            <span class="ident">data</span>: <a class="ident" href="../../../../src/object/read/util.rs.html#16">Bytes</a>(<a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#18">data</a>),
-            <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#18">ncmds</a>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, E: <a href="../../../../src/object/endian.rs.html#13">Endian</a>&gt; LoadCommandIterator&lt;<span class="lifetime">&#39;data</span>, E&gt; {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(endian: E, data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], ncmds: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="self">Self </span>{
+        <a href="../../../../src/object/read/macho/load_command.rs.html#11">LoadCommandIterator</a> {
+            <a href="../../../../src/object/read/macho/load_command.rs.html#18">endian</a>,
+            data: <a href="../../../../src/object/read/util.rs.html#16">Bytes</a>(<a href="../../../../src/object/read/macho/load_command.rs.html#18">data</a>),
+            <a href="../../../../src/object/read/macho/load_command.rs.html#18">ncmds</a>,
         }
     }
 
-    <span class="doccomment">/// Return the next load command.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LoadCommandData</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">ncmds</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+    <span class="doccomment">/// Return the next load command.
+    </span><span class="kw">pub fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;LoadCommandData&lt;<span class="lifetime">&#39;data</span>, E&gt;&gt;&gt; {
+        <span class="kw">if </span><span class="self">self</span>.ncmds == <span class="number">0 </span>{
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
-        <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">data</span>
-            .<span class="ident">read_at</span>::<span class="op">&lt;</span><span class="ident">macho::LoadCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="number">0</span>)
-            .<span class="ident">read_error</span>(<span class="string">&quot;Invalid Mach-O load command header&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">cmd</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#31">header</a>.<span class="ident">cmd</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="self" href="../../../../src/object/read/macho/load_command.rs.html#27">self</a>.<span class="ident">endian</span>);
-        <span class="kw">let</span> <span class="ident">cmdsize</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#31">header</a>.<span class="ident">cmdsize</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="self" href="../../../../src/object/read/macho/load_command.rs.html#27">self</a>.<span class="ident">endian</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">data</span>
-            .<span class="ident">read_bytes</span>(<span class="ident">cmdsize</span>)
-            .<span class="ident">read_error</span>(<span class="string">&quot;Invalid Mach-O load command size&quot;</span>)<span class="question-mark">?</span>;
-        <a class="self" href="../../../../src/object/read/macho/load_command.rs.html#27">self</a>.<span class="ident">ncmds</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#52">LoadCommandData</a> {
-            <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#35">cmd</a>,
-            <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#37">data</a>,
-            <span class="ident">marker</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
+        <span class="kw">let </span>header = <span class="self">self
+            </span>.data
+            .read_at::&lt;macho::LoadCommand&lt;E&gt;&gt;(<span class="number">0</span>)
+            .read_error(<span class="string">&quot;Invalid Mach-O load command header&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>cmd = <a href="../../../../src/object/read/macho/load_command.rs.html#31">header</a>.cmd.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a class="self" href="../../../../src/object/read/macho/load_command.rs.html#27">self</a>.endian);
+        <span class="kw">let </span>cmdsize = <a href="../../../../src/object/read/macho/load_command.rs.html#31">header</a>.cmdsize.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a class="self" href="../../../../src/object/read/macho/load_command.rs.html#27">self</a>.endian) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+        <span class="kw">let </span>data = <span class="self">self
+            </span>.data
+            .read_bytes(cmdsize)
+            .read_error(<span class="string">&quot;Invalid Mach-O load command size&quot;</span>)<span class="question-mark">?</span>;
+        <a class="self" href="../../../../src/object/read/macho/load_command.rs.html#27">self</a>.ncmds -= <span class="number">1</span>;
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="../../../../src/object/read/macho/load_command.rs.html#52">LoadCommandData</a> {
+            <a href="../../../../src/object/read/macho/load_command.rs.html#35">cmd</a>,
+            <a href="../../../../src/object/read/macho/load_command.rs.html#37">data</a>,
+            marker: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
         }))
     }
 }
 
-<span class="doccomment">/// The data for a `LoadCommand`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LoadCommandData</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">E</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> {
-    <span class="ident">cmd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-    <span class="comment">// Includes the header.</span>
-    <span class="ident">data</span>: <span class="ident">Bytes</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
-    <span class="ident">marker</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
+<span class="doccomment">/// The data for a `LoadCommand`.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub struct </span>LoadCommandData&lt;<span class="lifetime">&#39;data</span>, E: <a href="../../../../src/object/endian.rs.html#13">Endian</a>&gt; {
+    cmd: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+    <span class="comment">// Includes the header.
+    </span>data: Bytes&lt;<span class="lifetime">&#39;data</span>&gt;,
+    marker: PhantomData&lt;E&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">E</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> <span class="ident">LoadCommandData</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Return the `cmd` field of the `LoadCommand`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is one of the `LC_` constants.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cmd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/macho/load_command.rs.html#63">self</a>.<span class="ident">cmd</span>
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, E: <a href="../../../../src/object/endian.rs.html#13">Endian</a>&gt; LoadCommandData&lt;<span class="lifetime">&#39;data</span>, E&gt; {
+    <span class="doccomment">/// Return the `cmd` field of the `LoadCommand`.
+    ///
+    /// This is one of the `LC_` constants.
+    </span><span class="kw">pub fn </span>cmd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/macho/load_command.rs.html#63">self</a>.cmd
     }
 
-    <span class="doccomment">/// Return the `cmdsize` field of the `LoadCommand`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cmdsize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../../../src/object/read/macho/load_command.rs.html#68">self</a>.<span class="ident">data</span>.<a class="ident" href="../../../../src/object/read/util.rs.html#27">len</a>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>
+    <span class="doccomment">/// Return the `cmdsize` field of the `LoadCommand`.
+    </span><span class="kw">pub fn </span>cmdsize(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        <a class="self" href="../../../../src/object/read/macho/load_command.rs.html#68">self</a>.data.<a href="../../../../src/object/read/util.rs.html#27">len</a>() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>
     }
 
-    <span class="doccomment">/// Parse the data as the given type.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">data</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../../src/object/pod.rs.html#21">Pod</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/object/read/macho/load_command.rs.html#74">self</a>.<span class="ident">data</span>
-            .<a class="ident" href="../../../../src/object/read/util.rs.html#107">read_at</a>(<span class="number">0</span>)
-            .<a class="ident" href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid Mach-O command size&quot;</span>)
+    <span class="doccomment">/// Parse the data as the given type.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>data&lt;T: <a href="../../../../src/object/pod.rs.html#21">Pod</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>T&gt; {
+        <a class="self" href="../../../../src/object/read/macho/load_command.rs.html#74">self</a>.data
+            .<a href="../../../../src/object/read/util.rs.html#107">read_at</a>(<span class="number">0</span>)
+            .<a href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid Mach-O command size&quot;</span>)
     }
 
-    <span class="doccomment">/// Parse a load command string value.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Strings used by load commands are specified by offsets that are</span>
-    <span class="doccomment">/// relative to the load command header.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident">E</span>, <span class="ident">s</span>: <span class="ident">macho::LcStr</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/object/read/macho/load_command.rs.html#84">self</a>.<span class="ident">data</span>
-            .<a class="ident" href="../../../../src/object/read/util.rs.html#164">read_string_at</a>(<a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#84">s</a>.<span class="ident">offset</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#84">endian</a>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
-            .<a class="ident" href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid load command string offset&quot;</span>)
+    <span class="doccomment">/// Parse a load command string value.
+    ///
+    /// Strings used by load commands are specified by offsets that are
+    /// relative to the load command header.
+    </span><span class="kw">pub fn </span>string(<span class="kw-2">&amp;</span><span class="self">self</span>, endian: E, s: macho::LcStr&lt;E&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+        <a class="self" href="../../../../src/object/read/macho/load_command.rs.html#84">self</a>.data
+            .<a href="../../../../src/object/read/util.rs.html#164">read_string_at</a>(<a href="../../../../src/object/read/macho/load_command.rs.html#84">s</a>.offset.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/load_command.rs.html#84">endian</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+            .<a href="../../../../src/object/read/mod.rs.html#80">read_error</a>(<span class="string">&quot;Invalid load command string offset&quot;</span>)
     }
 
-    <span class="doccomment">/// Parse the command data according to the `cmd` field.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">variant</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">LoadCommandVariant</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> <a class="self" href="../../../../src/object/read/macho/load_command.rs.html#91">self</a>.<span class="ident">cmd</span> {
-            <a class="ident" href="../../../../src/object/macho.rs.html#677">macho::LC_SEGMENT</a> =&gt; {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <a class="self" href="../../../../src/object/read/macho/load_command.rs.html#91">self</a>.<span class="ident">data</span>;
-                <span class="kw">let</span> <span class="ident">segment</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">read</span>().<span class="ident">read_error</span>(<span class="string">&quot;Invalid Mach-O command size&quot;</span>)<span class="question-mark">?</span>;
-                <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#248">LoadCommandVariant::Segment32</a>(<a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#95">segment</a>, <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#94">data</a>.<span class="number">0</span>)
+    <span class="doccomment">/// Parse the command data according to the `cmd` field.
+    </span><span class="kw">pub fn </span>variant(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;LoadCommandVariant&lt;<span class="lifetime">&#39;data</span>, E&gt;&gt; {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span><a class="self" href="../../../../src/object/read/macho/load_command.rs.html#91">self</a>.cmd {
+            <a href="../../../../src/object/macho.rs.html#677">macho::LC_SEGMENT</a> =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>data = <a class="self" href="../../../../src/object/read/macho/load_command.rs.html#91">self</a>.data;
+                <span class="kw">let </span>segment = data.read().read_error(<span class="string">&quot;Invalid Mach-O command size&quot;</span>)<span class="question-mark">?</span>;
+                <a href="../../../../src/object/read/macho/load_command.rs.html#248">LoadCommandVariant::Segment32</a>(<a href="../../../../src/object/read/macho/load_command.rs.html#95">segment</a>, <a href="../../../../src/object/read/macho/load_command.rs.html#94">data</a>.<span class="number">0</span>)
             }
-            <a class="ident" href="../../../../src/object/macho.rs.html#679">macho::LC_SYMTAB</a> =&gt; <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#250">LoadCommandVariant::Symtab</a>(<span class="self">self</span>.<span class="ident">data</span>()<span class="question-mark">?</span>),
-            <a class="ident" href="../../../../src/object/macho.rs.html#683">macho::LC_THREAD</a> <span class="op">|</span> <a class="ident" href="../../../../src/object/macho.rs.html#685">macho::LC_UNIXTHREAD</a> =&gt; {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <a class="self" href="../../../../src/object/read/macho/load_command.rs.html#91">self</a>.<span class="ident">data</span>;
-                <span class="kw">let</span> <span class="ident">thread</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">read</span>().<span class="ident">read_error</span>(<span class="string">&quot;Invalid Mach-O command size&quot;</span>)<span class="question-mark">?</span>;
-                <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#254">LoadCommandVariant::Thread</a>(<a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#101">thread</a>, <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#100">data</a>.<span class="number">0</span>)
+            <a href="../../../../src/object/macho.rs.html#679">macho::LC_SYMTAB</a> =&gt; <a href="../../../../src/object/read/macho/load_command.rs.html#250">LoadCommandVariant::Symtab</a>(<span class="self">self</span>.data()<span class="question-mark">?</span>),
+            <a href="../../../../src/object/macho.rs.html#683">macho::LC_THREAD</a> | <a href="../../../../src/object/macho.rs.html#685">macho::LC_UNIXTHREAD</a> =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>data = <a class="self" href="../../../../src/object/read/macho/load_command.rs.html#91">self</a>.data;
+                <span class="kw">let </span>thread = data.read().read_error(<span class="string">&quot;Invalid Mach-O command size&quot;</span>)<span class="question-mark">?</span>;
+                <a href="../../../../src/object/read/macho/load_command.rs.html#254">LoadCommandVariant::Thread</a>(<a href="../../../../src/object/read/macho/load_command.rs.html#101">thread</a>, <a href="../../../../src/object/read/macho/load_command.rs.html#100">data</a>.<span class="number">0</span>)
             }
-            <a class="ident" href="../../../../src/object/macho.rs.html#697">macho::LC_DYSYMTAB</a> =&gt; <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#263">LoadCommandVariant::Dysymtab</a>(<span class="self">self</span>.<span class="ident">data</span>()<span class="question-mark">?</span>),
-            <a class="ident" href="../../../../src/object/macho.rs.html#699">macho::LC_LOAD_DYLIB</a>
-            <span class="op">|</span> <a class="ident" href="../../../../src/object/macho.rs.html#724">macho::LC_LOAD_WEAK_DYLIB</a>
-            <span class="op">|</span> <a class="ident" href="../../../../src/object/macho.rs.html#738">macho::LC_REEXPORT_DYLIB</a>
-            <span class="op">|</span> <a class="ident" href="../../../../src/object/macho.rs.html#740">macho::LC_LAZY_LOAD_DYLIB</a>
-            <span class="op">|</span> <a class="ident" href="../../../../src/object/macho.rs.html#748">macho::LC_LOAD_UPWARD_DYLIB</a> =&gt; <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#266">LoadCommandVariant::Dylib</a>(<span class="self">self</span>.<span class="ident">data</span>()<span class="question-mark">?</span>),
-            <a class="ident" href="../../../../src/object/macho.rs.html#701">macho::LC_ID_DYLIB</a> =&gt; <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#268">LoadCommandVariant::IdDylib</a>(<span class="self">self</span>.<span class="ident">data</span>()<span class="question-mark">?</span>),
-            <a class="ident" href="../../../../src/object/macho.rs.html#703">macho::LC_LOAD_DYLINKER</a> =&gt; <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#270">LoadCommandVariant::LoadDylinker</a>(<span class="self">self</span>.<span class="ident">data</span>()<span class="question-mark">?</span>),
-            <a class="ident" href="../../../../src/object/macho.rs.html#705">macho::LC_ID_DYLINKER</a> =&gt; <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#272">LoadCommandVariant::IdDylinker</a>(<span class="self">self</span>.<span class="ident">data</span>()<span class="question-mark">?</span>),
-            <a class="ident" href="../../../../src/object/macho.rs.html#707">macho::LC_PREBOUND_DYLIB</a> =&gt; <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#274">LoadCommandVariant::PreboundDylib</a>(<span class="self">self</span>.<span class="ident">data</span>()<span class="question-mark">?</span>),
-            <a class="ident" href="../../../../src/object/macho.rs.html#709">macho::LC_ROUTINES</a> =&gt; <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#276">LoadCommandVariant::Routines32</a>(<span class="self">self</span>.<span class="ident">data</span>()<span class="question-mark">?</span>),
-            <a class="ident" href="../../../../src/object/macho.rs.html#711">macho::LC_SUB_FRAMEWORK</a> =&gt; <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#278">LoadCommandVariant::SubFramework</a>(<span class="self">self</span>.<span class="ident">data</span>()<span class="question-mark">?</span>),
-            <a class="ident" href="../../../../src/object/macho.rs.html#713">macho::LC_SUB_UMBRELLA</a> =&gt; <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#280">LoadCommandVariant::SubUmbrella</a>(<span class="self">self</span>.<span class="ident">data</span>()<span class="question-mark">?</span>),
-            <a class="ident" href="../../../../src/object/macho.rs.html#715">macho::LC_SUB_CLIENT</a> =&gt; <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#282">LoadCommandVariant::SubClient</a>(<span class="self">self</span>.<span class="ident">data</span>()<span class="question-mark">?</span>),
-            <a class="ident" href="../../../../src/object/macho.rs.html#717">macho::LC_SUB_LIBRARY</a> =&gt; <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#284">LoadCommandVariant::SubLibrary</a>(<span class="self">self</span>.<span class="ident">data</span>()<span class="question-mark">?</span>),
-            <a class="ident" href="../../../../src/object/macho.rs.html#719">macho::LC_TWOLEVEL_HINTS</a> =&gt; <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#286">LoadCommandVariant::TwolevelHints</a>(<span class="self">self</span>.<span class="ident">data</span>()<span class="question-mark">?</span>),
-            <a class="ident" href="../../../../src/object/macho.rs.html#721">macho::LC_PREBIND_CKSUM</a> =&gt; <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#288">LoadCommandVariant::PrebindCksum</a>(<span class="self">self</span>.<span class="ident">data</span>()<span class="question-mark">?</span>),
-            <a class="ident" href="../../../../src/object/macho.rs.html#726">macho::LC_SEGMENT_64</a> =&gt; {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <a class="self" href="../../../../src/object/read/macho/load_command.rs.html#91">self</a>.<span class="ident">data</span>;
-                <span class="kw">let</span> <span class="ident">segment</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">read</span>().<span class="ident">read_error</span>(<span class="string">&quot;Invalid Mach-O command size&quot;</span>)<span class="question-mark">?</span>;
-                <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#290">LoadCommandVariant::Segment64</a>(<a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#123">segment</a>, <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#122">data</a>.<span class="number">0</span>)
+            <a href="../../../../src/object/macho.rs.html#697">macho::LC_DYSYMTAB</a> =&gt; <a href="../../../../src/object/read/macho/load_command.rs.html#263">LoadCommandVariant::Dysymtab</a>(<span class="self">self</span>.data()<span class="question-mark">?</span>),
+            <a href="../../../../src/object/macho.rs.html#699">macho::LC_LOAD_DYLIB</a>
+            | <a href="../../../../src/object/macho.rs.html#724">macho::LC_LOAD_WEAK_DYLIB</a>
+            | <a href="../../../../src/object/macho.rs.html#738">macho::LC_REEXPORT_DYLIB</a>
+            | <a href="../../../../src/object/macho.rs.html#740">macho::LC_LAZY_LOAD_DYLIB</a>
+            | <a href="../../../../src/object/macho.rs.html#748">macho::LC_LOAD_UPWARD_DYLIB</a> =&gt; <a href="../../../../src/object/read/macho/load_command.rs.html#266">LoadCommandVariant::Dylib</a>(<span class="self">self</span>.data()<span class="question-mark">?</span>),
+            <a href="../../../../src/object/macho.rs.html#701">macho::LC_ID_DYLIB</a> =&gt; <a href="../../../../src/object/read/macho/load_command.rs.html#268">LoadCommandVariant::IdDylib</a>(<span class="self">self</span>.data()<span class="question-mark">?</span>),
+            <a href="../../../../src/object/macho.rs.html#703">macho::LC_LOAD_DYLINKER</a> =&gt; <a href="../../../../src/object/read/macho/load_command.rs.html#270">LoadCommandVariant::LoadDylinker</a>(<span class="self">self</span>.data()<span class="question-mark">?</span>),
+            <a href="../../../../src/object/macho.rs.html#705">macho::LC_ID_DYLINKER</a> =&gt; <a href="../../../../src/object/read/macho/load_command.rs.html#272">LoadCommandVariant::IdDylinker</a>(<span class="self">self</span>.data()<span class="question-mark">?</span>),
+            <a href="../../../../src/object/macho.rs.html#707">macho::LC_PREBOUND_DYLIB</a> =&gt; <a href="../../../../src/object/read/macho/load_command.rs.html#274">LoadCommandVariant::PreboundDylib</a>(<span class="self">self</span>.data()<span class="question-mark">?</span>),
+            <a href="../../../../src/object/macho.rs.html#709">macho::LC_ROUTINES</a> =&gt; <a href="../../../../src/object/read/macho/load_command.rs.html#276">LoadCommandVariant::Routines32</a>(<span class="self">self</span>.data()<span class="question-mark">?</span>),
+            <a href="../../../../src/object/macho.rs.html#711">macho::LC_SUB_FRAMEWORK</a> =&gt; <a href="../../../../src/object/read/macho/load_command.rs.html#278">LoadCommandVariant::SubFramework</a>(<span class="self">self</span>.data()<span class="question-mark">?</span>),
+            <a href="../../../../src/object/macho.rs.html#713">macho::LC_SUB_UMBRELLA</a> =&gt; <a href="../../../../src/object/read/macho/load_command.rs.html#280">LoadCommandVariant::SubUmbrella</a>(<span class="self">self</span>.data()<span class="question-mark">?</span>),
+            <a href="../../../../src/object/macho.rs.html#715">macho::LC_SUB_CLIENT</a> =&gt; <a href="../../../../src/object/read/macho/load_command.rs.html#282">LoadCommandVariant::SubClient</a>(<span class="self">self</span>.data()<span class="question-mark">?</span>),
+            <a href="../../../../src/object/macho.rs.html#717">macho::LC_SUB_LIBRARY</a> =&gt; <a href="../../../../src/object/read/macho/load_command.rs.html#284">LoadCommandVariant::SubLibrary</a>(<span class="self">self</span>.data()<span class="question-mark">?</span>),
+            <a href="../../../../src/object/macho.rs.html#719">macho::LC_TWOLEVEL_HINTS</a> =&gt; <a href="../../../../src/object/read/macho/load_command.rs.html#286">LoadCommandVariant::TwolevelHints</a>(<span class="self">self</span>.data()<span class="question-mark">?</span>),
+            <a href="../../../../src/object/macho.rs.html#721">macho::LC_PREBIND_CKSUM</a> =&gt; <a href="../../../../src/object/read/macho/load_command.rs.html#288">LoadCommandVariant::PrebindCksum</a>(<span class="self">self</span>.data()<span class="question-mark">?</span>),
+            <a href="../../../../src/object/macho.rs.html#726">macho::LC_SEGMENT_64</a> =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>data = <a class="self" href="../../../../src/object/read/macho/load_command.rs.html#91">self</a>.data;
+                <span class="kw">let </span>segment = data.read().read_error(<span class="string">&quot;Invalid Mach-O command size&quot;</span>)<span class="question-mark">?</span>;
+                <a href="../../../../src/object/read/macho/load_command.rs.html#290">LoadCommandVariant::Segment64</a>(<a href="../../../../src/object/read/macho/load_command.rs.html#123">segment</a>, <a href="../../../../src/object/read/macho/load_command.rs.html#122">data</a>.<span class="number">0</span>)
             }
-            <a class="ident" href="../../../../src/object/macho.rs.html#728">macho::LC_ROUTINES_64</a> =&gt; <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#292">LoadCommandVariant::Routines64</a>(<span class="self">self</span>.<span class="ident">data</span>()<span class="question-mark">?</span>),
-            <a class="ident" href="../../../../src/object/macho.rs.html#730">macho::LC_UUID</a> =&gt; <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#294">LoadCommandVariant::Uuid</a>(<span class="self">self</span>.<span class="ident">data</span>()<span class="question-mark">?</span>),
-            <a class="ident" href="../../../../src/object/macho.rs.html#732">macho::LC_RPATH</a> =&gt; <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#296">LoadCommandVariant::Rpath</a>(<span class="self">self</span>.<span class="ident">data</span>()<span class="question-mark">?</span>),
-            <a class="ident" href="../../../../src/object/macho.rs.html#734">macho::LC_CODE_SIGNATURE</a>
-            <span class="op">|</span> <a class="ident" href="../../../../src/object/macho.rs.html#736">macho::LC_SEGMENT_SPLIT_INFO</a>
-            <span class="op">|</span> <a class="ident" href="../../../../src/object/macho.rs.html#754">macho::LC_FUNCTION_STARTS</a>
-            <span class="op">|</span> <a class="ident" href="../../../../src/object/macho.rs.html#760">macho::LC_DATA_IN_CODE</a>
-            <span class="op">|</span> <a class="ident" href="../../../../src/object/macho.rs.html#764">macho::LC_DYLIB_CODE_SIGN_DRS</a>
-            <span class="op">|</span> <a class="ident" href="../../../../src/object/macho.rs.html#770">macho::LC_LINKER_OPTIMIZATION_HINT</a>
-            <span class="op">|</span> <a class="ident" href="../../../../src/object/macho.rs.html#780">macho::LC_DYLD_EXPORTS_TRIE</a>
-            <span class="op">|</span> <a class="ident" href="../../../../src/object/macho.rs.html#782">macho::LC_DYLD_CHAINED_FIXUPS</a> =&gt; <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#300">LoadCommandVariant::LinkeditData</a>(<span class="self">self</span>.<span class="ident">data</span>()<span class="question-mark">?</span>),
-            <a class="ident" href="../../../../src/object/macho.rs.html#742">macho::LC_ENCRYPTION_INFO</a> =&gt; <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#302">LoadCommandVariant::EncryptionInfo32</a>(<span class="self">self</span>.<span class="ident">data</span>()<span class="question-mark">?</span>),
-            <a class="ident" href="../../../../src/object/macho.rs.html#744">macho::LC_DYLD_INFO</a> <span class="op">|</span> <a class="ident" href="../../../../src/object/macho.rs.html#746">macho::LC_DYLD_INFO_ONLY</a> =&gt; {
-                <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#304">LoadCommandVariant::DyldInfo</a>(<span class="self">self</span>.<span class="ident">data</span>()<span class="question-mark">?</span>)
+            <a href="../../../../src/object/macho.rs.html#728">macho::LC_ROUTINES_64</a> =&gt; <a href="../../../../src/object/read/macho/load_command.rs.html#292">LoadCommandVariant::Routines64</a>(<span class="self">self</span>.data()<span class="question-mark">?</span>),
+            <a href="../../../../src/object/macho.rs.html#730">macho::LC_UUID</a> =&gt; <a href="../../../../src/object/read/macho/load_command.rs.html#294">LoadCommandVariant::Uuid</a>(<span class="self">self</span>.data()<span class="question-mark">?</span>),
+            <a href="../../../../src/object/macho.rs.html#732">macho::LC_RPATH</a> =&gt; <a href="../../../../src/object/read/macho/load_command.rs.html#296">LoadCommandVariant::Rpath</a>(<span class="self">self</span>.data()<span class="question-mark">?</span>),
+            <a href="../../../../src/object/macho.rs.html#734">macho::LC_CODE_SIGNATURE</a>
+            | <a href="../../../../src/object/macho.rs.html#736">macho::LC_SEGMENT_SPLIT_INFO</a>
+            | <a href="../../../../src/object/macho.rs.html#754">macho::LC_FUNCTION_STARTS</a>
+            | <a href="../../../../src/object/macho.rs.html#760">macho::LC_DATA_IN_CODE</a>
+            | <a href="../../../../src/object/macho.rs.html#764">macho::LC_DYLIB_CODE_SIGN_DRS</a>
+            | <a href="../../../../src/object/macho.rs.html#770">macho::LC_LINKER_OPTIMIZATION_HINT</a>
+            | <a href="../../../../src/object/macho.rs.html#780">macho::LC_DYLD_EXPORTS_TRIE</a>
+            | <a href="../../../../src/object/macho.rs.html#782">macho::LC_DYLD_CHAINED_FIXUPS</a> =&gt; <a href="../../../../src/object/read/macho/load_command.rs.html#300">LoadCommandVariant::LinkeditData</a>(<span class="self">self</span>.data()<span class="question-mark">?</span>),
+            <a href="../../../../src/object/macho.rs.html#742">macho::LC_ENCRYPTION_INFO</a> =&gt; <a href="../../../../src/object/read/macho/load_command.rs.html#302">LoadCommandVariant::EncryptionInfo32</a>(<span class="self">self</span>.data()<span class="question-mark">?</span>),
+            <a href="../../../../src/object/macho.rs.html#744">macho::LC_DYLD_INFO</a> | <a href="../../../../src/object/macho.rs.html#746">macho::LC_DYLD_INFO_ONLY</a> =&gt; {
+                <a href="../../../../src/object/read/macho/load_command.rs.html#304">LoadCommandVariant::DyldInfo</a>(<span class="self">self</span>.data()<span class="question-mark">?</span>)
             }
-            <a class="ident" href="../../../../src/object/macho.rs.html#750">macho::LC_VERSION_MIN_MACOSX</a>
-            <span class="op">|</span> <a class="ident" href="../../../../src/object/macho.rs.html#752">macho::LC_VERSION_MIN_IPHONEOS</a>
-            <span class="op">|</span> <a class="ident" href="../../../../src/object/macho.rs.html#772">macho::LC_VERSION_MIN_TVOS</a>
-            <span class="op">|</span> <a class="ident" href="../../../../src/object/macho.rs.html#774">macho::LC_VERSION_MIN_WATCHOS</a> =&gt; <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#307">LoadCommandVariant::VersionMin</a>(<span class="self">self</span>.<span class="ident">data</span>()<span class="question-mark">?</span>),
-            <a class="ident" href="../../../../src/object/macho.rs.html#756">macho::LC_DYLD_ENVIRONMENT</a> =&gt; <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#309">LoadCommandVariant::DyldEnvironment</a>(<span class="self">self</span>.<span class="ident">data</span>()<span class="question-mark">?</span>),
-            <a class="ident" href="../../../../src/object/macho.rs.html#758">macho::LC_MAIN</a> =&gt; <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#311">LoadCommandVariant::EntryPoint</a>(<span class="self">self</span>.<span class="ident">data</span>()<span class="question-mark">?</span>),
-            <a class="ident" href="../../../../src/object/macho.rs.html#762">macho::LC_SOURCE_VERSION</a> =&gt; <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#313">LoadCommandVariant::SourceVersion</a>(<span class="self">self</span>.<span class="ident">data</span>()<span class="question-mark">?</span>),
-            <a class="ident" href="../../../../src/object/macho.rs.html#766">macho::LC_ENCRYPTION_INFO_64</a> =&gt; <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#315">LoadCommandVariant::EncryptionInfo64</a>(<span class="self">self</span>.<span class="ident">data</span>()<span class="question-mark">?</span>),
-            <a class="ident" href="../../../../src/object/macho.rs.html#768">macho::LC_LINKER_OPTION</a> =&gt; <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#317">LoadCommandVariant::LinkerOption</a>(<span class="self">self</span>.<span class="ident">data</span>()<span class="question-mark">?</span>),
-            <a class="ident" href="../../../../src/object/macho.rs.html#776">macho::LC_NOTE</a> =&gt; <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#319">LoadCommandVariant::Note</a>(<span class="self">self</span>.<span class="ident">data</span>()<span class="question-mark">?</span>),
-            <a class="ident" href="../../../../src/object/macho.rs.html#778">macho::LC_BUILD_VERSION</a> =&gt; <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#321">LoadCommandVariant::BuildVersion</a>(<span class="self">self</span>.<span class="ident">data</span>()<span class="question-mark">?</span>),
-            <a class="ident" href="../../../../src/object/macho.rs.html#784">macho::LC_FILESET_ENTRY</a> =&gt; <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#323">LoadCommandVariant::FilesetEntry</a>(<span class="self">self</span>.<span class="ident">data</span>()<span class="question-mark">?</span>),
-            <span class="kw">_</span> =&gt; <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#325">LoadCommandVariant::Other</a>,
+            <a href="../../../../src/object/macho.rs.html#750">macho::LC_VERSION_MIN_MACOSX</a>
+            | <a href="../../../../src/object/macho.rs.html#752">macho::LC_VERSION_MIN_IPHONEOS</a>
+            | <a href="../../../../src/object/macho.rs.html#772">macho::LC_VERSION_MIN_TVOS</a>
+            | <a href="../../../../src/object/macho.rs.html#774">macho::LC_VERSION_MIN_WATCHOS</a> =&gt; <a href="../../../../src/object/read/macho/load_command.rs.html#307">LoadCommandVariant::VersionMin</a>(<span class="self">self</span>.data()<span class="question-mark">?</span>),
+            <a href="../../../../src/object/macho.rs.html#756">macho::LC_DYLD_ENVIRONMENT</a> =&gt; <a href="../../../../src/object/read/macho/load_command.rs.html#309">LoadCommandVariant::DyldEnvironment</a>(<span class="self">self</span>.data()<span class="question-mark">?</span>),
+            <a href="../../../../src/object/macho.rs.html#758">macho::LC_MAIN</a> =&gt; <a href="../../../../src/object/read/macho/load_command.rs.html#311">LoadCommandVariant::EntryPoint</a>(<span class="self">self</span>.data()<span class="question-mark">?</span>),
+            <a href="../../../../src/object/macho.rs.html#762">macho::LC_SOURCE_VERSION</a> =&gt; <a href="../../../../src/object/read/macho/load_command.rs.html#313">LoadCommandVariant::SourceVersion</a>(<span class="self">self</span>.data()<span class="question-mark">?</span>),
+            <a href="../../../../src/object/macho.rs.html#766">macho::LC_ENCRYPTION_INFO_64</a> =&gt; <a href="../../../../src/object/read/macho/load_command.rs.html#315">LoadCommandVariant::EncryptionInfo64</a>(<span class="self">self</span>.data()<span class="question-mark">?</span>),
+            <a href="../../../../src/object/macho.rs.html#768">macho::LC_LINKER_OPTION</a> =&gt; <a href="../../../../src/object/read/macho/load_command.rs.html#317">LoadCommandVariant::LinkerOption</a>(<span class="self">self</span>.data()<span class="question-mark">?</span>),
+            <a href="../../../../src/object/macho.rs.html#776">macho::LC_NOTE</a> =&gt; <a href="../../../../src/object/read/macho/load_command.rs.html#319">LoadCommandVariant::Note</a>(<span class="self">self</span>.data()<span class="question-mark">?</span>),
+            <a href="../../../../src/object/macho.rs.html#778">macho::LC_BUILD_VERSION</a> =&gt; <a href="../../../../src/object/read/macho/load_command.rs.html#321">LoadCommandVariant::BuildVersion</a>(<span class="self">self</span>.data()<span class="question-mark">?</span>),
+            <a href="../../../../src/object/macho.rs.html#784">macho::LC_FILESET_ENTRY</a> =&gt; <a href="../../../../src/object/read/macho/load_command.rs.html#323">LoadCommandVariant::FilesetEntry</a>(<span class="self">self</span>.data()<span class="question-mark">?</span>),
+            <span class="kw">_ </span>=&gt; <a href="../../../../src/object/read/macho/load_command.rs.html#325">LoadCommandVariant::Other</a>,
         })
     }
 
-    <span class="doccomment">/// Try to parse this command as a `SegmentCommand32`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns the segment command and the data containing the sections.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">segment_32</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::SegmentCommand32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>])<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">cmd</span> <span class="op">==</span> <span class="ident">macho::LC_SEGMENT</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <a class="self" href="../../../../src/object/read/macho/load_command.rs.html#160">self</a>.<span class="ident">data</span>;
-            <span class="kw">let</span> <span class="ident">segment</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">read</span>().<span class="ident">read_error</span>(<span class="string">&quot;Invalid Mach-O command size&quot;</span>)<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#163">segment</a>, <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#162">data</a>.<span class="number">0</span>)))
-        } <span class="kw">else</span> {
+    <span class="doccomment">/// Try to parse this command as a `SegmentCommand32`.
+    ///
+    /// Returns the segment command and the data containing the sections.
+    </span><span class="kw">pub fn </span>segment_32(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::SegmentCommand32&lt;E&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>])&gt;&gt; {
+        <span class="kw">if </span><span class="self">self</span>.cmd == macho::LC_SEGMENT {
+            <span class="kw">let </span><span class="kw-2">mut </span>data = <a class="self" href="../../../../src/object/read/macho/load_command.rs.html#160">self</a>.data;
+            <span class="kw">let </span>segment = data.read().read_error(<span class="string">&quot;Invalid Mach-O command size&quot;</span>)<span class="question-mark">?</span>;
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<a href="../../../../src/object/read/macho/load_command.rs.html#163">segment</a>, <a href="../../../../src/object/read/macho/load_command.rs.html#162">data</a>.<span class="number">0</span>)))
+        } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
         }
     }
 
-    <span class="doccomment">/// Try to parse this command as a `SymtabCommand`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns the segment command and the data containing the sections.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">symtab</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::SymtabCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">cmd</span> <span class="op">==</span> <span class="ident">macho::LC_SYMTAB</span> {
-            <span class="prelude-val">Some</span>(<a class="self" href="../../../../src/object/read/macho/load_command.rs.html#173">self</a>.<a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#74">data</a>()).<span class="ident">transpose</span>()
-        } <span class="kw">else</span> {
+    <span class="doccomment">/// Try to parse this command as a `SymtabCommand`.
+    ///
+    /// Returns the segment command and the data containing the sections.
+    </span><span class="kw">pub fn </span>symtab(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::SymtabCommand&lt;E&gt;&gt;&gt; {
+        <span class="kw">if </span><span class="self">self</span>.cmd == macho::LC_SYMTAB {
+            <span class="prelude-val">Some</span>(<a class="self" href="../../../../src/object/read/macho/load_command.rs.html#173">self</a>.<a href="../../../../src/object/read/macho/load_command.rs.html#74">data</a>()).transpose()
+        } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
         }
     }
 
-    <span class="doccomment">/// Try to parse this command as a `DysymtabCommand`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dysymtab</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::DysymtabCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">cmd</span> <span class="op">==</span> <span class="ident">macho::LC_DYSYMTAB</span> {
-            <span class="prelude-val">Some</span>(<a class="self" href="../../../../src/object/read/macho/load_command.rs.html#182">self</a>.<a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#74">data</a>()).<span class="ident">transpose</span>()
-        } <span class="kw">else</span> {
+    <span class="doccomment">/// Try to parse this command as a `DysymtabCommand`.
+    </span><span class="kw">pub fn </span>dysymtab(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::DysymtabCommand&lt;E&gt;&gt;&gt; {
+        <span class="kw">if </span><span class="self">self</span>.cmd == macho::LC_DYSYMTAB {
+            <span class="prelude-val">Some</span>(<a class="self" href="../../../../src/object/read/macho/load_command.rs.html#182">self</a>.<a href="../../../../src/object/read/macho/load_command.rs.html#74">data</a>()).transpose()
+        } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
         }
     }
 
-    <span class="doccomment">/// Try to parse this command as a `DylibCommand`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dylib</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::DylibCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">cmd</span> <span class="op">==</span> <span class="ident">macho::LC_LOAD_DYLIB</span>
-            <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">cmd</span> <span class="op">==</span> <span class="ident">macho::LC_LOAD_WEAK_DYLIB</span>
-            <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">cmd</span> <span class="op">==</span> <span class="ident">macho::LC_REEXPORT_DYLIB</span>
-            <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">cmd</span> <span class="op">==</span> <span class="ident">macho::LC_LAZY_LOAD_DYLIB</span>
-            <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">cmd</span> <span class="op">==</span> <span class="ident">macho::LC_LOAD_UPWARD_DYLIB</span>
+    <span class="doccomment">/// Try to parse this command as a `DylibCommand`.
+    </span><span class="kw">pub fn </span>dylib(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::DylibCommand&lt;E&gt;&gt;&gt; {
+        <span class="kw">if </span><span class="self">self</span>.cmd == macho::LC_LOAD_DYLIB
+            || <span class="self">self</span>.cmd == macho::LC_LOAD_WEAK_DYLIB
+            || <span class="self">self</span>.cmd == macho::LC_REEXPORT_DYLIB
+            || <span class="self">self</span>.cmd == macho::LC_LAZY_LOAD_DYLIB
+            || <span class="self">self</span>.cmd == macho::LC_LOAD_UPWARD_DYLIB
         {
-            <span class="prelude-val">Some</span>(<a class="self" href="../../../../src/object/read/macho/load_command.rs.html#191">self</a>.<a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#74">data</a>()).<span class="ident">transpose</span>()
-        } <span class="kw">else</span> {
+            <span class="prelude-val">Some</span>(<a class="self" href="../../../../src/object/read/macho/load_command.rs.html#191">self</a>.<a href="../../../../src/object/read/macho/load_command.rs.html#74">data</a>()).transpose()
+        } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
         }
     }
 
-    <span class="doccomment">/// Try to parse this command as a `UuidCommand`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">uuid</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::UuidCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">cmd</span> <span class="op">==</span> <span class="ident">macho::LC_UUID</span> {
-            <span class="prelude-val">Some</span>(<a class="self" href="../../../../src/object/read/macho/load_command.rs.html#205">self</a>.<a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#74">data</a>()).<span class="ident">transpose</span>()
-        } <span class="kw">else</span> {
+    <span class="doccomment">/// Try to parse this command as a `UuidCommand`.
+    </span><span class="kw">pub fn </span>uuid(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::UuidCommand&lt;E&gt;&gt;&gt; {
+        <span class="kw">if </span><span class="self">self</span>.cmd == macho::LC_UUID {
+            <span class="prelude-val">Some</span>(<a class="self" href="../../../../src/object/read/macho/load_command.rs.html#205">self</a>.<a href="../../../../src/object/read/macho/load_command.rs.html#74">data</a>()).transpose()
+        } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
         }
     }
 
-    <span class="doccomment">/// Try to parse this command as a `SegmentCommand64`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">segment_64</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::SegmentCommand64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>])<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">cmd</span> <span class="op">==</span> <span class="ident">macho::LC_SEGMENT_64</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <a class="self" href="../../../../src/object/read/macho/load_command.rs.html#214">self</a>.<span class="ident">data</span>;
-            <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">read</span>().<span class="ident">read_error</span>(<span class="string">&quot;Invalid Mach-O command size&quot;</span>)<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#217">command</a>, <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#216">data</a>.<span class="number">0</span>)))
-        } <span class="kw">else</span> {
+    <span class="doccomment">/// Try to parse this command as a `SegmentCommand64`.
+    </span><span class="kw">pub fn </span>segment_64(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::SegmentCommand64&lt;E&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>])&gt;&gt; {
+        <span class="kw">if </span><span class="self">self</span>.cmd == macho::LC_SEGMENT_64 {
+            <span class="kw">let </span><span class="kw-2">mut </span>data = <a class="self" href="../../../../src/object/read/macho/load_command.rs.html#214">self</a>.data;
+            <span class="kw">let </span>command = data.read().read_error(<span class="string">&quot;Invalid Mach-O command size&quot;</span>)<span class="question-mark">?</span>;
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<a href="../../../../src/object/read/macho/load_command.rs.html#217">command</a>, <a href="../../../../src/object/read/macho/load_command.rs.html#216">data</a>.<span class="number">0</span>)))
+        } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
         }
     }
 
-    <span class="doccomment">/// Try to parse this command as a `DyldInfoCommand`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dyld_info</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::DyldInfoCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">cmd</span> <span class="op">==</span> <span class="ident">macho::LC_DYLD_INFO</span> <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">cmd</span> <span class="op">==</span> <span class="ident">macho::LC_DYLD_INFO_ONLY</span> {
-            <span class="prelude-val">Some</span>(<a class="self" href="../../../../src/object/read/macho/load_command.rs.html#225">self</a>.<a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#74">data</a>()).<span class="ident">transpose</span>()
-        } <span class="kw">else</span> {
+    <span class="doccomment">/// Try to parse this command as a `DyldInfoCommand`.
+    </span><span class="kw">pub fn </span>dyld_info(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::DyldInfoCommand&lt;E&gt;&gt;&gt; {
+        <span class="kw">if </span><span class="self">self</span>.cmd == macho::LC_DYLD_INFO || <span class="self">self</span>.cmd == macho::LC_DYLD_INFO_ONLY {
+            <span class="prelude-val">Some</span>(<a class="self" href="../../../../src/object/read/macho/load_command.rs.html#225">self</a>.<a href="../../../../src/object/read/macho/load_command.rs.html#74">data</a>()).transpose()
+        } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
         }
     }
 
-    <span class="doccomment">/// Try to parse this command as an `EntryPointCommand`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">entry_point</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::EntryPointCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">cmd</span> <span class="op">==</span> <span class="ident">macho::LC_MAIN</span> {
-            <span class="prelude-val">Some</span>(<a class="self" href="../../../../src/object/read/macho/load_command.rs.html#234">self</a>.<a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#74">data</a>()).<span class="ident">transpose</span>()
-        } <span class="kw">else</span> {
+    <span class="doccomment">/// Try to parse this command as an `EntryPointCommand`.
+    </span><span class="kw">pub fn </span>entry_point(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::EntryPointCommand&lt;E&gt;&gt;&gt; {
+        <span class="kw">if </span><span class="self">self</span>.cmd == macho::LC_MAIN {
+            <span class="prelude-val">Some</span>(<a class="self" href="../../../../src/object/read/macho/load_command.rs.html#234">self</a>.<a href="../../../../src/object/read/macho/load_command.rs.html#74">data</a>()).transpose()
+        } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
         }
     }
 }
 
-<span class="doccomment">/// A `LoadCommand` that has been interpreted according to its `cmd` field.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">LoadCommandVariant</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">E</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> {
-    <span class="doccomment">/// `LC_SEGMENT`</span>
-    <span class="ident">Segment32</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::SegmentCommand32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]),
-    <span class="doccomment">/// `LC_SYMTAB`</span>
-    <span class="ident">Symtab</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::SymtabCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>),
-    <span class="comment">// obsolete: `LC_SYMSEG`</span>
-    <span class="comment">//Symseg(&amp;&#39;data macho::SymsegCommand&lt;E&gt;),</span>
-    <span class="doccomment">/// `LC_THREAD` or `LC_UNIXTHREAD`</span>
-    <span class="ident">Thread</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::ThreadCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]),
-    <span class="comment">// obsolete: `LC_IDFVMLIB` or `LC_LOADFVMLIB`</span>
-    <span class="comment">//Fvmlib(&amp;&#39;data macho::FvmlibCommand&lt;E&gt;),</span>
-    <span class="comment">// obsolete: `LC_IDENT`</span>
-    <span class="comment">//Ident(&amp;&#39;data macho::IdentCommand&lt;E&gt;),</span>
-    <span class="comment">// internal: `LC_FVMFILE`</span>
-    <span class="comment">//Fvmfile(&amp;&#39;data macho::FvmfileCommand&lt;E&gt;),</span>
-    <span class="comment">// internal: `LC_PREPAGE`</span>
-    <span class="doccomment">/// `LC_DYSYMTAB`</span>
-    <span class="ident">Dysymtab</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::DysymtabCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// `LC_LOAD_DYLIB`, `LC_LOAD_WEAK_DYLIB`, `LC_REEXPORT_DYLIB`,</span>
-    <span class="doccomment">/// `LC_LAZY_LOAD_DYLIB`, or `LC_LOAD_UPWARD_DYLIB`</span>
-    <span class="ident">Dylib</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::DylibCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// `LC_ID_DYLIB`</span>
-    <span class="ident">IdDylib</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::DylibCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// `LC_LOAD_DYLINKER`</span>
-    <span class="ident">LoadDylinker</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::DylinkerCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// `LC_ID_DYLINKER`</span>
-    <span class="ident">IdDylinker</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::DylinkerCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// `LC_PREBOUND_DYLIB`</span>
-    <span class="ident">PreboundDylib</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::PreboundDylibCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// `LC_ROUTINES`</span>
-    <span class="ident">Routines32</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::RoutinesCommand32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// `LC_SUB_FRAMEWORK`</span>
-    <span class="ident">SubFramework</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::SubFrameworkCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// `LC_SUB_UMBRELLA`</span>
-    <span class="ident">SubUmbrella</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::SubUmbrellaCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// `LC_SUB_CLIENT`</span>
-    <span class="ident">SubClient</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::SubClientCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// `LC_SUB_LIBRARY`</span>
-    <span class="ident">SubLibrary</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::SubLibraryCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// `LC_TWOLEVEL_HINTS`</span>
-    <span class="ident">TwolevelHints</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::TwolevelHintsCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// `LC_PREBIND_CKSUM`</span>
-    <span class="ident">PrebindCksum</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::PrebindCksumCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// `LC_SEGMENT_64`</span>
-    <span class="ident">Segment64</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::SegmentCommand64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]),
-    <span class="doccomment">/// `LC_ROUTINES_64`</span>
-    <span class="ident">Routines64</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::RoutinesCommand64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// `LC_UUID`</span>
-    <span class="ident">Uuid</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::UuidCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// `LC_RPATH`</span>
-    <span class="ident">Rpath</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::RpathCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// `LC_CODE_SIGNATURE`, `LC_SEGMENT_SPLIT_INFO`, `LC_FUNCTION_STARTS`,</span>
-    <span class="doccomment">/// `LC_DATA_IN_CODE`, `LC_DYLIB_CODE_SIGN_DRS`, `LC_LINKER_OPTIMIZATION_HINT`,</span>
-    <span class="doccomment">/// `LC_DYLD_EXPORTS_TRIE`, or `LC_DYLD_CHAINED_FIXUPS`.</span>
-    <span class="ident">LinkeditData</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::LinkeditDataCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// `LC_ENCRYPTION_INFO`</span>
-    <span class="ident">EncryptionInfo32</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::EncryptionInfoCommand32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// `LC_DYLD_INFO` or `LC_DYLD_INFO_ONLY`</span>
-    <span class="ident">DyldInfo</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::DyldInfoCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// `LC_VERSION_MIN_MACOSX`, `LC_VERSION_MIN_IPHONEOS`, `LC_VERSION_MIN_WATCHOS`,</span>
-    <span class="doccomment">/// or `LC_VERSION_MIN_TVOS`</span>
-    <span class="ident">VersionMin</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::VersionMinCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// `LC_DYLD_ENVIRONMENT`</span>
-    <span class="ident">DyldEnvironment</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::DylinkerCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// `LC_MAIN`</span>
-    <span class="ident">EntryPoint</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::EntryPointCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// `LC_SOURCE_VERSION`</span>
-    <span class="ident">SourceVersion</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::SourceVersionCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// `LC_ENCRYPTION_INFO_64`</span>
-    <span class="ident">EncryptionInfo64</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::EncryptionInfoCommand64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// `LC_LINKER_OPTION`</span>
-    <span class="ident">LinkerOption</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::LinkerOptionCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// `LC_NOTE`</span>
-    <span class="ident">Note</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::NoteCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// `LC_BUILD_VERSION`</span>
-    <span class="ident">BuildVersion</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::BuildVersionCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// `LC_FILESET_ENTRY`</span>
-    <span class="ident">FilesetEntry</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">macho::FilesetEntryCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// An unrecognized or obsolete load command.</span>
-    <span class="ident">Other</span>,
+<span class="doccomment">/// A `LoadCommand` that has been interpreted according to its `cmd` field.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+#[non_exhaustive]
+</span><span class="kw">pub enum </span>LoadCommandVariant&lt;<span class="lifetime">&#39;data</span>, E: <a href="../../../../src/object/endian.rs.html#13">Endian</a>&gt; {
+    <span class="doccomment">/// `LC_SEGMENT`
+    </span>Segment32(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::SegmentCommand32&lt;E&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]),
+    <span class="doccomment">/// `LC_SYMTAB`
+    </span>Symtab(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::SymtabCommand&lt;E&gt;),
+    <span class="comment">// obsolete: `LC_SYMSEG`
+    //Symseg(&amp;&#39;data macho::SymsegCommand&lt;E&gt;),
+    </span><span class="doccomment">/// `LC_THREAD` or `LC_UNIXTHREAD`
+    </span>Thread(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::ThreadCommand&lt;E&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]),
+    <span class="comment">// obsolete: `LC_IDFVMLIB` or `LC_LOADFVMLIB`
+    //Fvmlib(&amp;&#39;data macho::FvmlibCommand&lt;E&gt;),
+    // obsolete: `LC_IDENT`
+    //Ident(&amp;&#39;data macho::IdentCommand&lt;E&gt;),
+    // internal: `LC_FVMFILE`
+    //Fvmfile(&amp;&#39;data macho::FvmfileCommand&lt;E&gt;),
+    // internal: `LC_PREPAGE`
+    </span><span class="doccomment">/// `LC_DYSYMTAB`
+    </span>Dysymtab(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::DysymtabCommand&lt;E&gt;),
+    <span class="doccomment">/// `LC_LOAD_DYLIB`, `LC_LOAD_WEAK_DYLIB`, `LC_REEXPORT_DYLIB`,
+    /// `LC_LAZY_LOAD_DYLIB`, or `LC_LOAD_UPWARD_DYLIB`
+    </span>Dylib(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::DylibCommand&lt;E&gt;),
+    <span class="doccomment">/// `LC_ID_DYLIB`
+    </span>IdDylib(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::DylibCommand&lt;E&gt;),
+    <span class="doccomment">/// `LC_LOAD_DYLINKER`
+    </span>LoadDylinker(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::DylinkerCommand&lt;E&gt;),
+    <span class="doccomment">/// `LC_ID_DYLINKER`
+    </span>IdDylinker(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::DylinkerCommand&lt;E&gt;),
+    <span class="doccomment">/// `LC_PREBOUND_DYLIB`
+    </span>PreboundDylib(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::PreboundDylibCommand&lt;E&gt;),
+    <span class="doccomment">/// `LC_ROUTINES`
+    </span>Routines32(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::RoutinesCommand32&lt;E&gt;),
+    <span class="doccomment">/// `LC_SUB_FRAMEWORK`
+    </span>SubFramework(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::SubFrameworkCommand&lt;E&gt;),
+    <span class="doccomment">/// `LC_SUB_UMBRELLA`
+    </span>SubUmbrella(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::SubUmbrellaCommand&lt;E&gt;),
+    <span class="doccomment">/// `LC_SUB_CLIENT`
+    </span>SubClient(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::SubClientCommand&lt;E&gt;),
+    <span class="doccomment">/// `LC_SUB_LIBRARY`
+    </span>SubLibrary(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::SubLibraryCommand&lt;E&gt;),
+    <span class="doccomment">/// `LC_TWOLEVEL_HINTS`
+    </span>TwolevelHints(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::TwolevelHintsCommand&lt;E&gt;),
+    <span class="doccomment">/// `LC_PREBIND_CKSUM`
+    </span>PrebindCksum(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::PrebindCksumCommand&lt;E&gt;),
+    <span class="doccomment">/// `LC_SEGMENT_64`
+    </span>Segment64(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::SegmentCommand64&lt;E&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]),
+    <span class="doccomment">/// `LC_ROUTINES_64`
+    </span>Routines64(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::RoutinesCommand64&lt;E&gt;),
+    <span class="doccomment">/// `LC_UUID`
+    </span>Uuid(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::UuidCommand&lt;E&gt;),
+    <span class="doccomment">/// `LC_RPATH`
+    </span>Rpath(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::RpathCommand&lt;E&gt;),
+    <span class="doccomment">/// `LC_CODE_SIGNATURE`, `LC_SEGMENT_SPLIT_INFO`, `LC_FUNCTION_STARTS`,
+    /// `LC_DATA_IN_CODE`, `LC_DYLIB_CODE_SIGN_DRS`, `LC_LINKER_OPTIMIZATION_HINT`,
+    /// `LC_DYLD_EXPORTS_TRIE`, or `LC_DYLD_CHAINED_FIXUPS`.
+    </span>LinkeditData(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::LinkeditDataCommand&lt;E&gt;),
+    <span class="doccomment">/// `LC_ENCRYPTION_INFO`
+    </span>EncryptionInfo32(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::EncryptionInfoCommand32&lt;E&gt;),
+    <span class="doccomment">/// `LC_DYLD_INFO` or `LC_DYLD_INFO_ONLY`
+    </span>DyldInfo(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::DyldInfoCommand&lt;E&gt;),
+    <span class="doccomment">/// `LC_VERSION_MIN_MACOSX`, `LC_VERSION_MIN_IPHONEOS`, `LC_VERSION_MIN_WATCHOS`,
+    /// or `LC_VERSION_MIN_TVOS`
+    </span>VersionMin(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::VersionMinCommand&lt;E&gt;),
+    <span class="doccomment">/// `LC_DYLD_ENVIRONMENT`
+    </span>DyldEnvironment(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::DylinkerCommand&lt;E&gt;),
+    <span class="doccomment">/// `LC_MAIN`
+    </span>EntryPoint(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::EntryPointCommand&lt;E&gt;),
+    <span class="doccomment">/// `LC_SOURCE_VERSION`
+    </span>SourceVersion(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::SourceVersionCommand&lt;E&gt;),
+    <span class="doccomment">/// `LC_ENCRYPTION_INFO_64`
+    </span>EncryptionInfo64(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::EncryptionInfoCommand64&lt;E&gt;),
+    <span class="doccomment">/// `LC_LINKER_OPTION`
+    </span>LinkerOption(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::LinkerOptionCommand&lt;E&gt;),
+    <span class="doccomment">/// `LC_NOTE`
+    </span>Note(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::NoteCommand&lt;E&gt;),
+    <span class="doccomment">/// `LC_BUILD_VERSION`
+    </span>BuildVersion(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::BuildVersionCommand&lt;E&gt;),
+    <span class="doccomment">/// `LC_FILESET_ENTRY`
+    </span>FilesetEntry(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>macho::FilesetEntryCommand&lt;E&gt;),
+    <span class="doccomment">/// An unrecognized or obsolete load command.
+    </span>Other,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> <span class="ident">macho::SymtabCommand</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Return the symbol table that this command references.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">symbols</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span>: <span class="ident">MachHeader</span><span class="op">&lt;</span><span class="ident">Endian</span> <span class="op">=</span> <span class="ident">E</span><span class="op">&gt;</span>, <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span>(
+<span class="kw">impl</span>&lt;E: <a href="../../../../src/object/endian.rs.html#13">Endian</a>&gt; macho::SymtabCommand&lt;E&gt; {
+    <span class="doccomment">/// Return the symbol table that this command references.
+    </span><span class="kw">pub fn </span>symbols&lt;<span class="lifetime">&#39;data</span>, Mach: MachHeader&lt;Endian = E&gt;, R: ReadRef&lt;<span class="lifetime">&#39;data</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">endian</span>: <span class="ident">E</span>,
-        <span class="ident">data</span>: <span class="ident">R</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SymbolTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">symbols</span> <span class="op">=</span> <span class="ident">data</span>
-            .<span class="ident">read_slice_at</span>(
-                <span class="self">self</span>.<span class="ident">symoff</span>.<span class="ident">get</span>(<span class="ident">endian</span>).<span class="ident">into</span>(),
-                <span class="self">self</span>.<span class="ident">nsyms</span>.<span class="ident">get</span>(<span class="ident">endian</span>) <span class="kw">as</span> <span class="ident">usize</span>,
+        endian: E,
+        data: R,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;SymbolTable&lt;<span class="lifetime">&#39;data</span>, Mach, R&gt;&gt; {
+        <span class="kw">let </span>symbols = data
+            .read_slice_at(
+                <span class="self">self</span>.symoff.get(endian).into(),
+                <span class="self">self</span>.nsyms.get(endian) <span class="kw">as </span>usize,
             )
-            .<span class="ident">read_error</span>(<span class="string">&quot;Invalid Mach-O symbol table offset or size&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">str_start</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> <span class="op">=</span> <a class="self" href="../../../../src/object/read/macho/load_command.rs.html#331">self</a>.<span class="ident">stroff</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#332">endian</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <span class="kw">let</span> <span class="ident">str_end</span> <span class="op">=</span> <span class="ident">str_start</span>
-            .<span class="ident">checked_add</span>(<span class="self">self</span>.<span class="ident">strsize</span>.<span class="ident">get</span>(<span class="ident">endian</span>).<span class="ident">into</span>())
-            .<span class="ident">read_error</span>(<span class="string">&quot;Invalid Mach-O string table length&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">strings</span> <span class="op">=</span> <span class="ident">StringTable::new</span>(<a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#333">data</a>, <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#341">str_start</a>, <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#342">str_end</a>);
-        <span class="prelude-val">Ok</span>(<span class="ident">SymbolTable::new</span>(<a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#335">symbols</a>, <a class="ident" href="../../../../src/object/read/macho/load_command.rs.html#345">strings</a>))
+            .read_error(<span class="string">&quot;Invalid Mach-O symbol table offset or size&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>str_start: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> = <a class="self" href="../../../../src/object/read/macho/load_command.rs.html#331">self</a>.stroff.<a href="../../../../src/object/endian.rs.html#621">get</a>(<a href="../../../../src/object/read/macho/load_command.rs.html#332">endian</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="kw">let </span>str_end = str_start
+            .checked_add(<span class="self">self</span>.strsize.get(endian).into())
+            .read_error(<span class="string">&quot;Invalid Mach-O string table length&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>strings = StringTable::new(<a href="../../../../src/object/read/macho/load_command.rs.html#333">data</a>, <a href="../../../../src/object/read/macho/load_command.rs.html#341">str_start</a>, <a href="../../../../src/object/read/macho/load_command.rs.html#342">str_end</a>);
+        <span class="prelude-val">Ok</span>(SymbolTable::new(<a href="../../../../src/object/read/macho/load_command.rs.html#335">symbols</a>, <a href="../../../../src/object/read/macho/load_command.rs.html#345">strings</a>))
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

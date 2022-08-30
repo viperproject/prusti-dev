@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/digest-0.10.3/src/digest.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>digest.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../digest/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../digest/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/digest-0.10.3/src/digest.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>digest.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../digest/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../digest/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../digest/index.html">
                         <img src="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -236,241 +236,241 @@
 <span id="234">234</span>
 <span id="235">235</span>
 <span id="236">236</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../src/digest/lib.rs.html#91">FixedOutput</a>, <a class="ident" href="../../src/digest/lib.rs.html#105">FixedOutputReset</a>, <a class="ident" href="../../src/digest/lib.rs.html#290">InvalidBufferSize</a>, <a class="ident" href="../../digest/trait.Reset.html">Reset</a>, <a class="ident" href="../../src/digest/lib.rs.html#75">Update</a>};
-<span class="kw">use</span> <span class="ident">crypto_common</span>::{<a class="ident" href="../../typenum/marker_traits/trait.Unsigned.html">typenum::Unsigned</a>, <a class="ident" href="../../digest/type.Output.html">Output</a>, <a class="ident" href="../../digest/trait.OutputSizeUser.html">OutputSizeUser</a>};
+</pre><pre class="rust"><code><span class="kw">use super</span>::{<a href="../../src/digest/lib.rs.html#91">FixedOutput</a>, <a href="../../src/digest/lib.rs.html#105">FixedOutputReset</a>, <a href="../../src/digest/lib.rs.html#290">InvalidBufferSize</a>, <a href="../../digest/trait.Reset.html">Reset</a>, <a href="../../src/digest/lib.rs.html#75">Update</a>};
+<span class="kw">use </span>crypto_common::{<a href="../../typenum/marker_traits/trait.Unsigned.html">typenum::Unsigned</a>, <a href="../../digest/type.Output.html">Output</a>, <a href="../../digest/trait.OutputSizeUser.html">OutputSizeUser</a>};
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html">alloc::boxed::Box</a>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html">alloc::boxed::Box</a>;
 
-<span class="doccomment">/// Marker trait for cryptographic hash functions.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">HashMarker</span> {}
+<span class="doccomment">/// Marker trait for cryptographic hash functions.
+</span><span class="kw">pub trait </span>HashMarker {}
 
-<span class="doccomment">/// Convinience wrapper trait covering functionality of cryptographic hash</span>
-<span class="doccomment">/// functions with fixed output size.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This trait wraps [`Update`], [`FixedOutput`], [`Default`], and</span>
-<span class="doccomment">/// [`HashMarker`] traits and provides additional convenience methods.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Digest</span>: <a class="ident" href="../../digest/trait.OutputSizeUser.html">OutputSizeUser</a> {
-    <span class="doccomment">/// Create new hasher instance.</span>
-    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span>;
+<span class="doccomment">/// Convinience wrapper trait covering functionality of cryptographic hash
+/// functions with fixed output size.
+///
+/// This trait wraps [`Update`], [`FixedOutput`], [`Default`], and
+/// [`HashMarker`] traits and provides additional convenience methods.
+</span><span class="kw">pub trait </span>Digest: <a href="../../digest/trait.OutputSizeUser.html">OutputSizeUser</a> {
+    <span class="doccomment">/// Create new hasher instance.
+    </span><span class="kw">fn </span>new() -&gt; <span class="self">Self</span>;
 
-    <span class="doccomment">/// Create new hasher instance which has processed the provided data.</span>
-    <span class="kw">fn</span> <span class="ident">new_with_prefix</span>(<span class="ident">data</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>) -&gt; <span class="self">Self</span>;
+    <span class="doccomment">/// Create new hasher instance which has processed the provided data.
+    </span><span class="kw">fn </span>new_with_prefix(data: <span class="kw">impl </span>AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;) -&gt; <span class="self">Self</span>;
 
-    <span class="doccomment">/// Process data, updating the internal state.</span>
-    <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">data</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>);
+    <span class="doccomment">/// Process data, updating the internal state.
+    </span><span class="kw">fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: <span class="kw">impl </span>AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;);
 
-    <span class="doccomment">/// Process input data in a chained manner.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">fn</span> <span class="ident">chain_update</span>(<span class="self">self</span>, <span class="ident">data</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>) -&gt; <span class="self">Self</span>;
+    <span class="doccomment">/// Process input data in a chained manner.
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">fn </span>chain_update(<span class="self">self</span>, data: <span class="kw">impl </span>AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;) -&gt; <span class="self">Self</span>;
 
-    <span class="doccomment">/// Retrieve result and consume hasher instance.</span>
-    <span class="kw">fn</span> <span class="ident">finalize</span>(<span class="self">self</span>) -&gt; <span class="ident">Output</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="doccomment">/// Retrieve result and consume hasher instance.
+    </span><span class="kw">fn </span>finalize(<span class="self">self</span>) -&gt; Output&lt;<span class="self">Self</span>&gt;;
 
-    <span class="doccomment">/// Write result into provided array and consume the hasher instance.</span>
-    <span class="kw">fn</span> <span class="ident">finalize_into</span>(<span class="self">self</span>, <span class="ident">out</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Output</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>);
+    <span class="doccomment">/// Write result into provided array and consume the hasher instance.
+    </span><span class="kw">fn </span>finalize_into(<span class="self">self</span>, out: <span class="kw-2">&amp;mut </span>Output&lt;<span class="self">Self</span>&gt;);
 
-    <span class="doccomment">/// Retrieve result and reset hasher instance.</span>
-    <span class="kw">fn</span> <span class="ident">finalize_reset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">Output</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="self">Self</span>: <a class="ident" href="../../src/digest/lib.rs.html#105">FixedOutputReset</a>;
+    <span class="doccomment">/// Retrieve result and reset hasher instance.
+    </span><span class="kw">fn </span>finalize_reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Output&lt;<span class="self">Self</span>&gt;
+    <span class="kw">where
+        </span><span class="self">Self</span>: <a href="../../src/digest/lib.rs.html#105">FixedOutputReset</a>;
 
-    <span class="doccomment">/// Write result into provided array and reset the hasher instance.</span>
-    <span class="kw">fn</span> <span class="ident">finalize_into_reset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">out</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Output</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>)
-    <span class="kw">where</span>
-        <span class="self">Self</span>: <a class="ident" href="../../src/digest/lib.rs.html#105">FixedOutputReset</a>;
+    <span class="doccomment">/// Write result into provided array and reset the hasher instance.
+    </span><span class="kw">fn </span>finalize_into_reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, out: <span class="kw-2">&amp;mut </span>Output&lt;<span class="self">Self</span>&gt;)
+    <span class="kw">where
+        </span><span class="self">Self</span>: <a href="../../src/digest/lib.rs.html#105">FixedOutputReset</a>;
 
-    <span class="doccomment">/// Reset hasher instance to its initial state.</span>
-    <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>)
-    <span class="kw">where</span>
-        <span class="self">Self</span>: <a class="ident" href="../../digest/trait.Reset.html">Reset</a>;
+    <span class="doccomment">/// Reset hasher instance to its initial state.
+    </span><span class="kw">fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>)
+    <span class="kw">where
+        </span><span class="self">Self</span>: <a href="../../digest/trait.Reset.html">Reset</a>;
 
-    <span class="doccomment">/// Get output size of the hasher</span>
-    <span class="kw">fn</span> <span class="ident">output_size</span>() -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+    <span class="doccomment">/// Get output size of the hasher
+    </span><span class="kw">fn </span>output_size() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
 
-    <span class="doccomment">/// Compute hash of `data`.</span>
-    <span class="kw">fn</span> <span class="ident">digest</span>(<span class="ident">data</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>) -&gt; <span class="ident">Output</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="doccomment">/// Compute hash of `data`.
+    </span><span class="kw">fn </span>digest(data: <span class="kw">impl </span>AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;) -&gt; Output&lt;<span class="self">Self</span>&gt;;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">D</span>: <a class="ident" href="../../src/digest/lib.rs.html#91">FixedOutput</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="op">+</span> <a class="ident" href="../../src/digest/lib.rs.html#75">Update</a> <span class="op">+</span> <a class="ident" href="../../src/digest/digest.rs.html#8">HashMarker</a><span class="op">&gt;</span> <a class="ident" href="../../src/digest/digest.rs.html#15">Digest</a> <span class="kw">for</span> <span class="ident">D</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::default</span>()
+<span class="kw">impl</span>&lt;D: <a href="../../src/digest/lib.rs.html#91">FixedOutput</a> + <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> + <a href="../../src/digest/lib.rs.html#75">Update</a> + <a href="../../src/digest/digest.rs.html#8">HashMarker</a>&gt; <a href="../../src/digest/digest.rs.html#15">Digest</a> <span class="kw">for </span>D {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::default()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">new_with_prefix</span>(<span class="ident">data</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>new_with_prefix(data: <span class="kw">impl </span>AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">h</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::default</span>();
-        <a class="ident" href="../../src/digest/digest.rs.html#68">h</a>.<a class="ident" href="../../src/digest/lib.rs.html#77">update</a>(<a class="ident" href="../../src/digest/digest.rs.html#64">data</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>());
-        <a class="ident" href="../../src/digest/digest.rs.html#68">h</a>
+        <span class="kw">let </span><span class="kw-2">mut </span>h = <span class="self">Self</span>::default();
+        <a href="../../src/digest/digest.rs.html#68">h</a>.<a href="../../src/digest/lib.rs.html#77">update</a>(<a href="../../src/digest/digest.rs.html#64">data</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>());
+        <a href="../../src/digest/digest.rs.html#68">h</a>
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">data</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>) {
-        <a class="ident" href="../../src/digest/lib.rs.html#77">Update::update</a>(<a class="self" href="../../src/digest/digest.rs.html#74">self</a>, <a class="ident" href="../../src/digest/digest.rs.html#74">data</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>());
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: <span class="kw">impl </span>AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;) {
+        <a href="../../src/digest/lib.rs.html#77">Update::update</a>(<a class="self" href="../../src/digest/digest.rs.html#74">self</a>, <a href="../../src/digest/digest.rs.html#74">data</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>());
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">chain_update</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">data</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/digest/lib.rs.html#77">Update::update</a>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../src/digest/digest.rs.html#79">self</a>, <a class="ident" href="../../src/digest/digest.rs.html#79">data</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>());
-        <a class="self" href="../../src/digest/digest.rs.html#79">self</a>
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>chain_update(<span class="kw-2">mut </span><span class="self">self</span>, data: <span class="kw">impl </span>AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;) -&gt; <span class="self">Self </span>{
+        <a href="../../src/digest/lib.rs.html#77">Update::update</a>(<span class="kw-2">&amp;mut </span><a class="self" href="../../src/digest/digest.rs.html#79">self</a>, <a href="../../src/digest/digest.rs.html#79">data</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>());
+        <span class="self"><a href="../../src/digest/digest.rs.html#79">self</a>
+    </span>}
+
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>finalize(<span class="self">self</span>) -&gt; Output&lt;<span class="self">Self</span>&gt; {
+        <a href="../../src/digest/lib.rs.html#97">FixedOutput::finalize_fixed</a>(<a class="self" href="../../src/digest/digest.rs.html#85">self</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">finalize</span>(<span class="self">self</span>) -&gt; <span class="ident">Output</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/digest/lib.rs.html#97">FixedOutput::finalize_fixed</a>(<a class="self" href="../../src/digest/digest.rs.html#85">self</a>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>finalize_into(<span class="self">self</span>, out: <span class="kw-2">&amp;mut </span>Output&lt;<span class="self">Self</span>&gt;) {
+        <a href="../../src/digest/lib.rs.html#93">FixedOutput::finalize_into</a>(<a class="self" href="../../src/digest/digest.rs.html#90">self</a>, <a href="../../src/digest/digest.rs.html#90">out</a>);
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">finalize_into</span>(<span class="self">self</span>, <span class="ident">out</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Output</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) {
-        <a class="ident" href="../../src/digest/lib.rs.html#93">FixedOutput::finalize_into</a>(<a class="self" href="../../src/digest/digest.rs.html#90">self</a>, <a class="ident" href="../../src/digest/digest.rs.html#90">out</a>);
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">finalize_reset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">Output</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="self">Self</span>: <a class="ident" href="../../src/digest/lib.rs.html#105">FixedOutputReset</a>,
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>finalize_reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Output&lt;<span class="self">Self</span>&gt;
+    <span class="kw">where
+        </span><span class="self">Self</span>: <a href="../../src/digest/lib.rs.html#105">FixedOutputReset</a>,
     {
-        <a class="ident" href="../../src/digest/lib.rs.html#111">FixedOutputReset::finalize_fixed_reset</a>(<a class="self" href="../../src/digest/digest.rs.html#95">self</a>)
+        <a href="../../src/digest/lib.rs.html#111">FixedOutputReset::finalize_fixed_reset</a>(<a class="self" href="../../src/digest/digest.rs.html#95">self</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">finalize_into_reset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">out</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Output</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>)
-    <span class="kw">where</span>
-        <span class="self">Self</span>: <a class="ident" href="../../src/digest/lib.rs.html#105">FixedOutputReset</a>,
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>finalize_into_reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, out: <span class="kw-2">&amp;mut </span>Output&lt;<span class="self">Self</span>&gt;)
+    <span class="kw">where
+        </span><span class="self">Self</span>: <a href="../../src/digest/lib.rs.html#105">FixedOutputReset</a>,
     {
-        <a class="ident" href="../../src/digest/lib.rs.html#107">FixedOutputReset::finalize_into_reset</a>(<a class="self" href="../../src/digest/digest.rs.html#103">self</a>, <a class="ident" href="../../src/digest/digest.rs.html#103">out</a>);
+        <a href="../../src/digest/lib.rs.html#107">FixedOutputReset::finalize_into_reset</a>(<a class="self" href="../../src/digest/digest.rs.html#103">self</a>, <a href="../../src/digest/digest.rs.html#103">out</a>);
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>)
-    <span class="kw">where</span>
-        <span class="self">Self</span>: <a class="ident" href="../../digest/trait.Reset.html">Reset</a>,
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>)
+    <span class="kw">where
+        </span><span class="self">Self</span>: <a href="../../digest/trait.Reset.html">Reset</a>,
     {
-        <a class="ident" href="../../digest/trait.Reset.html">Reset::reset</a>(<a class="self" href="../../src/digest/digest.rs.html#111">self</a>)
+        <a href="../../digest/trait.Reset.html">Reset::reset</a>(<a class="self" href="../../src/digest/digest.rs.html#111">self</a>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">output_size</span>() -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="ident"><span class="self">Self</span>::OutputSize::to_usize</span>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>output_size() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <span class="self">Self</span>::OutputSize::to_usize()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">digest</span>(<span class="ident">data</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>) -&gt; <span class="ident">Output</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hasher</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::default</span>();
-        <a class="ident" href="../../src/digest/digest.rs.html#125">hasher</a>.<a class="ident" href="../../src/digest/lib.rs.html#77">update</a>(<a class="ident" href="../../src/digest/digest.rs.html#124">data</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>());
-        <a class="ident" href="../../src/digest/digest.rs.html#125">hasher</a>.<a class="ident" href="../../src/digest/digest.rs.html#30">finalize</a>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>digest(data: <span class="kw">impl </span>AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;) -&gt; Output&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>hasher = <span class="self">Self</span>::default();
+        <a href="../../src/digest/digest.rs.html#125">hasher</a>.<a href="../../src/digest/lib.rs.html#77">update</a>(<a href="../../src/digest/digest.rs.html#124">data</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>());
+        <a href="../../src/digest/digest.rs.html#125">hasher</a>.<a href="../../src/digest/digest.rs.html#30">finalize</a>()
     }
 }
 
-<span class="doccomment">/// Modification of the [`Digest`] trait suitable for trait objects.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">DynDigest</span> {
-    <span class="doccomment">/// Digest input data.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method can be called repeatedly for use with streaming messages.</span>
-    <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]);
+<span class="doccomment">/// Modification of the [`Digest`] trait suitable for trait objects.
+</span><span class="kw">pub trait </span>DynDigest {
+    <span class="doccomment">/// Digest input data.
+    ///
+    /// This method can be called repeatedly for use with streaming messages.
+    </span><span class="kw">fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]);
 
-    <span class="doccomment">/// Retrieve result and reset hasher instance</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)))]</span>
-    <span class="kw">fn</span> <span class="ident">finalize_reset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; <span class="self">self</span>.<span class="ident">output_size</span>()];
-        <a class="self" href="../../src/digest/digest.rs.html#141">self</a>.<a class="ident" href="../../src/digest/digest.rs.html#165">finalize_into_reset</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/digest/digest.rs.html#142">result</a>).<span class="ident">unwrap</span>();
-        <a class="ident" href="../../src/digest/digest.rs.html#142">result</a>.<span class="ident">into_boxed_slice</span>()
+    <span class="doccomment">/// Retrieve result and reset hasher instance
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;alloc&quot;</span>)))]
+    </span><span class="kw">fn </span>finalize_reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Box&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>result = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; <span class="self">self</span>.output_size()];
+        <a class="self" href="../../src/digest/digest.rs.html#141">self</a>.<a href="../../src/digest/digest.rs.html#165">finalize_into_reset</a>(<span class="kw-2">&amp;mut </span><a href="../../src/digest/digest.rs.html#142">result</a>).unwrap();
+        <a href="../../src/digest/digest.rs.html#142">result</a>.into_boxed_slice()
     }
 
-    <span class="doccomment">/// Retrieve result and consume boxed hasher instance</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)))]</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::boxed_local</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">finalize</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; <span class="self">self</span>.<span class="ident">output_size</span>()];
-        <a class="self" href="../../src/digest/digest.rs.html#151">self</a>.<a class="ident" href="../../src/digest/digest.rs.html#165">finalize_into_reset</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/digest/digest.rs.html#152">result</a>).<span class="ident">unwrap</span>();
-        <a class="ident" href="../../src/digest/digest.rs.html#152">result</a>.<span class="ident">into_boxed_slice</span>()
+    <span class="doccomment">/// Retrieve result and consume boxed hasher instance
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;alloc&quot;</span>)))]
+    #[allow(clippy::boxed_local)]
+    </span><span class="kw">fn </span>finalize(<span class="kw-2">mut </span><span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;) -&gt; Box&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>result = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; <span class="self">self</span>.output_size()];
+        <a class="self" href="../../src/digest/digest.rs.html#151">self</a>.<a href="../../src/digest/digest.rs.html#165">finalize_into_reset</a>(<span class="kw-2">&amp;mut </span><a href="../../src/digest/digest.rs.html#152">result</a>).unwrap();
+        <a href="../../src/digest/digest.rs.html#152">result</a>.into_boxed_slice()
     }
 
-    <span class="doccomment">/// Write result into provided array and consume the hasher instance.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns error if buffer length is not equal to `output_size`.</span>
-    <span class="kw">fn</span> <span class="ident">finalize_into</span>(<span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/digest/lib.rs.html#290">InvalidBufferSize</a><span class="op">&gt;</span>;
+    <span class="doccomment">/// Write result into provided array and consume the hasher instance.
+    ///
+    /// Returns error if buffer length is not equal to `output_size`.
+    </span><span class="kw">fn </span>finalize_into(<span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/digest/lib.rs.html#290">InvalidBufferSize</a>&gt;;
 
-    <span class="doccomment">/// Write result into provided array and reset the hasher instance.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns error if buffer length is not equal to `output_size`.</span>
-    <span class="kw">fn</span> <span class="ident">finalize_into_reset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">out</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/digest/lib.rs.html#290">InvalidBufferSize</a><span class="op">&gt;</span>;
+    <span class="doccomment">/// Write result into provided array and reset the hasher instance.
+    ///
+    /// Returns error if buffer length is not equal to `output_size`.
+    </span><span class="kw">fn </span>finalize_into_reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, out: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/digest/lib.rs.html#290">InvalidBufferSize</a>&gt;;
 
-    <span class="doccomment">/// Reset hasher instance to its initial state.</span>
-    <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>);
+    <span class="doccomment">/// Reset hasher instance to its initial state.
+    </span><span class="kw">fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>);
 
-    <span class="doccomment">/// Get output size of the hasher</span>
-    <span class="kw">fn</span> <span class="ident">output_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+    <span class="doccomment">/// Get output size of the hasher
+    </span><span class="kw">fn </span>output_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
 
-    <span class="doccomment">/// Clone hasher state into a boxed trait object</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)))]</span>
-    <span class="kw">fn</span> <span class="ident">box_clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="../../src/digest/digest.rs.html#132">DynDigest</a><span class="op">&gt;</span>;
+    <span class="doccomment">/// Clone hasher state into a boxed trait object
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;alloc&quot;</span>)))]
+    </span><span class="kw">fn </span>box_clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span><a href="../../src/digest/digest.rs.html#132">DynDigest</a>&gt;;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">D</span>: <a class="ident" href="../../src/digest/lib.rs.html#75">Update</a> <span class="op">+</span> <a class="ident" href="../../src/digest/lib.rs.html#105">FixedOutputReset</a> <span class="op">+</span> <a class="ident" href="../../digest/trait.Reset.html">Reset</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <a class="ident" href="../../src/digest/digest.rs.html#132">DynDigest</a> <span class="kw">for</span> <span class="ident">D</span> {
-    <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
-        <a class="ident" href="../../src/digest/lib.rs.html#77">Update::update</a>(<a class="self" href="../../src/digest/digest.rs.html#180">self</a>, <a class="ident" href="../../src/digest/digest.rs.html#180">data</a>);
+<span class="kw">impl</span>&lt;D: <a href="../../src/digest/lib.rs.html#75">Update</a> + <a href="../../src/digest/lib.rs.html#105">FixedOutputReset</a> + <a href="../../digest/trait.Reset.html">Reset</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <span class="lifetime">&#39;static</span>&gt; <a href="../../src/digest/digest.rs.html#132">DynDigest</a> <span class="kw">for </span>D {
+    <span class="kw">fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
+        <a href="../../src/digest/lib.rs.html#77">Update::update</a>(<a class="self" href="../../src/digest/digest.rs.html#180">self</a>, <a href="../../src/digest/digest.rs.html#180">data</a>);
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">finalize_reset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> {
-        <a class="ident" href="../../src/digest/lib.rs.html#111">FixedOutputReset::finalize_fixed_reset</a>(<a class="self" href="../../src/digest/digest.rs.html#185">self</a>)
-            .<span class="ident">to_vec</span>()
-            .<span class="ident">into_boxed_slice</span>()
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+    </span><span class="kw">fn </span>finalize_reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Box&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+        <a href="../../src/digest/lib.rs.html#111">FixedOutputReset::finalize_fixed_reset</a>(<a class="self" href="../../src/digest/digest.rs.html#185">self</a>)
+            .to_vec()
+            .into_boxed_slice()
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">finalize</span>(<span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> {
-        <a class="ident" href="../../src/digest/lib.rs.html#97">FixedOutput::finalize_fixed</a>(<span class="kw-2">*</span><a class="self" href="../../src/digest/digest.rs.html#192">self</a>)
-            .<span class="ident">to_vec</span>()
-            .<span class="ident">into_boxed_slice</span>()
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+    </span><span class="kw">fn </span>finalize(<span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;) -&gt; Box&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; {
+        <a href="../../src/digest/lib.rs.html#97">FixedOutput::finalize_fixed</a>(<span class="kw-2">*</span><a class="self" href="../../src/digest/digest.rs.html#192">self</a>)
+            .to_vec()
+            .into_boxed_slice()
     }
 
-    <span class="kw">fn</span> <span class="ident">finalize_into</span>(<span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/digest/lib.rs.html#290">InvalidBufferSize</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="self">self</span>.<span class="ident">output_size</span>() {
-            <a class="ident" href="../../src/digest/lib.rs.html#93">FixedOutput::finalize_into</a>(<a class="self" href="../../src/digest/digest.rs.html#198">self</a>, <span class="ident">Output</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="ident">::from_mut_slice</span>(<a class="ident" href="../../src/digest/digest.rs.html#198">buf</a>));
+    <span class="kw">fn </span>finalize_into(<span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/digest/lib.rs.html#290">InvalidBufferSize</a>&gt; {
+        <span class="kw">if </span>buf.len() == <span class="self">self</span>.output_size() {
+            <a href="../../src/digest/lib.rs.html#93">FixedOutput::finalize_into</a>(<a class="self" href="../../src/digest/digest.rs.html#198">self</a>, Output::&lt;<span class="self">Self</span>&gt;::from_mut_slice(<a href="../../src/digest/digest.rs.html#198">buf</a>));
             <span class="prelude-val">Ok</span>(())
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../src/digest/lib.rs.html#290">InvalidBufferSize</a>)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(<a href="../../src/digest/lib.rs.html#290">InvalidBufferSize</a>)
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">finalize_into_reset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/digest/lib.rs.html#290">InvalidBufferSize</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="self">self</span>.<span class="ident">output_size</span>() {
-            <a class="ident" href="../../src/digest/lib.rs.html#107">FixedOutputReset::finalize_into_reset</a>(<a class="self" href="../../src/digest/digest.rs.html#207">self</a>, <span class="ident">Output</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="ident">::from_mut_slice</span>(<a class="ident" href="../../src/digest/digest.rs.html#207">buf</a>));
+    <span class="kw">fn </span>finalize_into_reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../src/digest/lib.rs.html#290">InvalidBufferSize</a>&gt; {
+        <span class="kw">if </span>buf.len() == <span class="self">self</span>.output_size() {
+            <a href="../../src/digest/lib.rs.html#107">FixedOutputReset::finalize_into_reset</a>(<a class="self" href="../../src/digest/digest.rs.html#207">self</a>, Output::&lt;<span class="self">Self</span>&gt;::from_mut_slice(<a href="../../src/digest/digest.rs.html#207">buf</a>));
             <span class="prelude-val">Ok</span>(())
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../src/digest/lib.rs.html#290">InvalidBufferSize</a>)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(<a href="../../src/digest/lib.rs.html#290">InvalidBufferSize</a>)
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="ident" href="../../digest/trait.Reset.html">Reset::reset</a>(<a class="self" href="../../src/digest/digest.rs.html#216">self</a>);
+    <span class="kw">fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a href="../../digest/trait.Reset.html">Reset::reset</a>(<a class="self" href="../../src/digest/digest.rs.html#216">self</a>);
     }
 
-    <span class="kw">fn</span> <span class="ident">output_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">OutputSizeUser</span><span class="op">&gt;</span><span class="ident">::OutputSize::to_usize</span>()
+    <span class="kw">fn </span>output_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        &lt;<span class="self">Self </span><span class="kw">as </span>OutputSizeUser&gt;::OutputSize::to_usize()
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">box_clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="../../src/digest/digest.rs.html#132">DynDigest</a><span class="op">&gt;</span> {
-        <span class="ident">Box::new</span>(<a class="self" href="../../src/digest/digest.rs.html#225">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+    </span><span class="kw">fn </span>box_clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span><a href="../../src/digest/digest.rs.html#132">DynDigest</a>&gt; {
+        Box::new(<a class="self" href="../../src/digest/digest.rs.html#225">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)))]</span>
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="../../src/digest/digest.rs.html#132">DynDigest</a><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <a class="self" href="../../src/digest/digest.rs.html#233">self</a>.<a class="ident" href="../../src/digest/digest.rs.html#176">box_clone</a>()
+<span class="attribute">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;alloc&quot;</span>)))]
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for </span>Box&lt;<span class="kw">dyn </span><a href="../../src/digest/digest.rs.html#132">DynDigest</a>&gt; {
+    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <a class="self" href="../../src/digest/digest.rs.html#233">self</a>.<a href="../../src/digest/digest.rs.html#176">box_clone</a>()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="digest" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="digest" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

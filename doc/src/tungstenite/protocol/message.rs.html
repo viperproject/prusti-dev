@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tungstenite-0.14.0/src/protocol/message.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>message.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tungstenite/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tungstenite-0.14.0/src/protocol/message.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>message.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tungstenite/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -354,361 +354,361 @@
 <span id="354">354</span>
 <span id="355">355</span>
 <span id="356">356</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">convert</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">AsRef</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html">From</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into</a>},
-    <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>,
-    <a class="ident" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html">result::Result</a> <span class="kw">as</span> <span class="ident">StdResult</span>,
-    <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/str/index.html">str</a>,
+</pre><pre class="rust"><code><span class="kw">use </span>std::{
+    convert::{<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">AsRef</a>, <a href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html">From</a>, <a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into</a>},
+    <a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>,
+    <a href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html">result::Result</a> <span class="kw">as </span>StdResult,
+    <a href="https://doc.rust-lang.org/nightly/alloc/str/index.html">str</a>,
 };
 
-<span class="kw">use</span> <a class="ident" href="../../../src/tungstenite/protocol/frame/frame.rs.html#20"><span class="kw">super</span>::frame::CloseFrame</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<a class="ident" href="../../../src/tungstenite/error.rs.html#125">CapacityError</a>, <a class="ident" href="../../../src/tungstenite/error.rs.html#14">Error</a>, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span><a href="../../../src/tungstenite/protocol/frame/frame.rs.html#20"><span class="kw">super</span>::frame::CloseFrame</a>;
+<span class="kw">use </span><span class="kw">crate</span>::error::{<a href="../../../src/tungstenite/error.rs.html#125">CapacityError</a>, <a href="../../../src/tungstenite/error.rs.html#14">Error</a>, <span class="prelude-ty">Result</span>};
 
-<span class="kw">mod</span> <span class="ident">string_collect</span> {
-    <span class="kw">use</span> <a class="ident" href="../../../utf8/enum.DecodeError.html">utf8::DecodeError</a>;
+<span class="kw">mod </span>string_collect {
+    <span class="kw">use </span><a href="../../../utf8/enum.DecodeError.html">utf8::DecodeError</a>;
 
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<a class="ident" href="../../../src/tungstenite/error.rs.html#14">Error</a>, <span class="prelude-ty">Result</span>};
+    <span class="kw">use </span><span class="kw">crate</span>::error::{<a href="../../../src/tungstenite/error.rs.html#14">Error</a>, <span class="prelude-ty">Result</span>};
 
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StringCollector</span> {
-        <span class="ident">data</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-        <span class="ident">incomplete</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../utf8/struct.Incomplete.html">utf8::Incomplete</a><span class="op">&gt;</span>,
+    <span class="attribute">#[derive(Debug)]
+    </span><span class="kw">pub struct </span>StringCollector {
+        data: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+        incomplete: <span class="prelude-ty">Option</span>&lt;<a href="../../../utf8/struct.Incomplete.html">utf8::Incomplete</a>&gt;,
     }
 
-    <span class="kw">impl</span> <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#17">StringCollector</a> {
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-            <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#17">StringCollector</a> { <span class="ident">data</span>: <span class="ident">String::new</span>(), <span class="ident">incomplete</span>: <span class="prelude-val">None</span> }
+    <span class="kw">impl </span><a href="../../../src/tungstenite/protocol/message.rs.html#17">StringCollector</a> {
+        <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+            <a href="../../../src/tungstenite/protocol/message.rs.html#17">StringCollector</a> { data: String::new(), incomplete: <span class="prelude-val">None </span>}
         }
 
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-            <a class="self" href="../../../src/tungstenite/protocol/message.rs.html#27">self</a>.<span class="ident">data</span>
-                .<span class="ident">len</span>()
-                .<span class="ident">saturating_add</span>(<a class="self" href="../../../src/tungstenite/protocol/message.rs.html#27">self</a>.<span class="ident">incomplete</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#30">i</a>.<span class="ident">buffer_len</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>).<span class="ident">unwrap_or</span>(<span class="number">0</span>))
+        <span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+            <a class="self" href="../../../src/tungstenite/protocol/message.rs.html#27">self</a>.data
+                .len()
+                .saturating_add(<a class="self" href="../../../src/tungstenite/protocol/message.rs.html#27">self</a>.incomplete.map(|i| <a href="../../../src/tungstenite/protocol/message.rs.html#30">i</a>.buffer_len <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>).unwrap_or(<span class="number">0</span>))
         }
 
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extend</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">tail</span>: <span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] <span class="op">=</span> <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#33">tail</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
+        <span class="kw">pub fn </span>extend&lt;T: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, tail: T) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+            <span class="kw">let </span><span class="kw-2">mut </span>input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] = <a href="../../../src/tungstenite/protocol/message.rs.html#33">tail</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
 
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">incomplete</span>) <span class="op">=</span> <a class="self" href="../../../src/tungstenite/protocol/message.rs.html#33">self</a>.<span class="ident">incomplete</span>.<span class="ident">take</span>() {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">result</span>, <span class="ident">rest</span>)) <span class="op">=</span> <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#36">incomplete</a>.<span class="ident">try_complete</span>(<a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#34">input</a>) {
-                    <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#34">input</a> <span class="op">=</span> <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#37">rest</a>;
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">text</span>) <span class="op">=</span> <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#37">result</a> {
-                        <a class="self" href="../../../src/tungstenite/protocol/message.rs.html#33">self</a>.<span class="ident">data</span>.<span class="ident">push_str</span>(<a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#39">text</a>);
-                    } <span class="kw">else</span> {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#60">Error::Utf8</a>);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>incomplete) = <a class="self" href="../../../src/tungstenite/protocol/message.rs.html#33">self</a>.incomplete.take() {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>((result, rest)) = <a href="../../../src/tungstenite/protocol/message.rs.html#36">incomplete</a>.try_complete(<a href="../../../src/tungstenite/protocol/message.rs.html#34">input</a>) {
+                    <a href="../../../src/tungstenite/protocol/message.rs.html#34">input</a> = <a href="../../../src/tungstenite/protocol/message.rs.html#37">rest</a>;
+                    <span class="kw">if let </span><span class="prelude-val">Ok</span>(text) = <a href="../../../src/tungstenite/protocol/message.rs.html#37">result</a> {
+                        <a class="self" href="../../../src/tungstenite/protocol/message.rs.html#33">self</a>.data.push_str(<a href="../../../src/tungstenite/protocol/message.rs.html#39">text</a>);
+                    } <span class="kw">else </span>{
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tungstenite/error.rs.html#60">Error::Utf8</a>);
                     }
-                } <span class="kw">else</span> {
-                    <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#34">input</a> <span class="op">=</span> <span class="kw-2">&amp;</span>[];
-                    <a class="self" href="../../../src/tungstenite/protocol/message.rs.html#33">self</a>.<span class="ident">incomplete</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#36">incomplete</a>);
+                } <span class="kw">else </span>{
+                    <a href="../../../src/tungstenite/protocol/message.rs.html#34">input</a> = <span class="kw-2">&amp;</span>[];
+                    <a class="self" href="../../../src/tungstenite/protocol/message.rs.html#33">self</a>.incomplete = <span class="prelude-val">Some</span>(<a href="../../../src/tungstenite/protocol/message.rs.html#36">incomplete</a>);
                 }
             }
 
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">input</span>.<span class="ident">is_empty</span>() {
-                <span class="kw">match</span> <span class="ident">utf8::decode</span>(<a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#34">input</a>) {
-                    <span class="prelude-val">Ok</span>(<span class="ident">text</span>) =&gt; {
-                        <a class="self" href="../../../src/tungstenite/protocol/message.rs.html#33">self</a>.<span class="ident">data</span>.<span class="ident">push_str</span>(<a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#52">text</a>);
+            <span class="kw">if </span>!input.is_empty() {
+                <span class="kw">match </span>utf8::decode(<a href="../../../src/tungstenite/protocol/message.rs.html#34">input</a>) {
+                    <span class="prelude-val">Ok</span>(text) =&gt; {
+                        <a class="self" href="../../../src/tungstenite/protocol/message.rs.html#33">self</a>.data.push_str(<a href="../../../src/tungstenite/protocol/message.rs.html#52">text</a>);
                         <span class="prelude-val">Ok</span>(())
                     }
-                    <span class="prelude-val">Err</span>(<a class="ident" href="../../../utf8/enum.DecodeError.html">DecodeError::Incomplete</a> { <span class="ident">valid_prefix</span>, <span class="ident">incomplete_suffix</span> }) =&gt; {
-                        <a class="self" href="../../../src/tungstenite/protocol/message.rs.html#33">self</a>.<span class="ident">data</span>.<span class="ident">push_str</span>(<a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#56">valid_prefix</a>);
-                        <a class="self" href="../../../src/tungstenite/protocol/message.rs.html#33">self</a>.<span class="ident">incomplete</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#56">incomplete_suffix</a>);
+                    <span class="prelude-val">Err</span>(<a href="../../../utf8/enum.DecodeError.html">DecodeError::Incomplete</a> { valid_prefix, incomplete_suffix }) =&gt; {
+                        <a class="self" href="../../../src/tungstenite/protocol/message.rs.html#33">self</a>.data.push_str(<a href="../../../src/tungstenite/protocol/message.rs.html#56">valid_prefix</a>);
+                        <a class="self" href="../../../src/tungstenite/protocol/message.rs.html#33">self</a>.incomplete = <span class="prelude-val">Some</span>(<a href="../../../src/tungstenite/protocol/message.rs.html#56">incomplete_suffix</a>);
                         <span class="prelude-val">Ok</span>(())
                     }
-                    <span class="prelude-val">Err</span>(<a class="ident" href="../../../utf8/enum.DecodeError.html">DecodeError::Invalid</a> { <span class="ident">valid_prefix</span>, .. }) =&gt; {
-                        <a class="self" href="../../../src/tungstenite/protocol/message.rs.html#33">self</a>.<span class="ident">data</span>.<span class="ident">push_str</span>(<a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#61">valid_prefix</a>);
-                        <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#60">Error::Utf8</a>)
+                    <span class="prelude-val">Err</span>(<a href="../../../utf8/enum.DecodeError.html">DecodeError::Invalid</a> { valid_prefix, .. }) =&gt; {
+                        <a class="self" href="../../../src/tungstenite/protocol/message.rs.html#33">self</a>.data.push_str(<a href="../../../src/tungstenite/protocol/message.rs.html#61">valid_prefix</a>);
+                        <span class="prelude-val">Err</span>(<a href="../../../src/tungstenite/error.rs.html#60">Error::Utf8</a>)
                     }
                 }
-            } <span class="kw">else</span> {
+            } <span class="kw">else </span>{
                 <span class="prelude-val">Ok</span>(())
             }
         }
 
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_string</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">incomplete</span>.<span class="ident">is_some</span>() {
-                <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#60">Error::Utf8</a>)
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/tungstenite/protocol/message.rs.html#71">self</a>.<span class="ident">data</span>)
+        <span class="kw">pub fn </span>into_string(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
+            <span class="kw">if </span><span class="self">self</span>.incomplete.is_some() {
+                <span class="prelude-val">Err</span>(<a href="../../../src/tungstenite/error.rs.html#60">Error::Utf8</a>)
+            } <span class="kw">else </span>{
+                <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/tungstenite/protocol/message.rs.html#71">self</a>.data)
             }
         }
     }
 }
 
-<span class="kw">use</span> <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#17"><span class="self">self</span>::string_collect::StringCollector</a>;
+<span class="kw">use </span><a href="../../../src/tungstenite/protocol/message.rs.html#17"><span class="self">self</span>::string_collect::StringCollector</a>;
 
-<span class="doccomment">/// A struct representing the incomplete message.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IncompleteMessage</span> {
-    <span class="ident">collector</span>: <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#90">IncompleteMessageCollector</a>,
+<span class="doccomment">/// A struct representing the incomplete message.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>IncompleteMessage {
+    collector: <a href="../../../src/tungstenite/protocol/message.rs.html#90">IncompleteMessageCollector</a>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">enum</span> <span class="ident">IncompleteMessageCollector</span> {
-    <span class="ident">Text</span>(<a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#17">StringCollector</a>),
-    <span class="ident">Binary</span>(<span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>),
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">enum </span>IncompleteMessageCollector {
+    Text(<a href="../../../src/tungstenite/protocol/message.rs.html#17">StringCollector</a>),
+    Binary(Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;),
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#85">IncompleteMessage</a> {
-    <span class="doccomment">/// Create new.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">message_type</span>: <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#153">IncompleteMessageType</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#85">IncompleteMessage</a> {
-            <span class="ident">collector</span>: <span class="kw">match</span> <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#97">message_type</a> {
-                <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#155">IncompleteMessageType::Binary</a> =&gt; <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#92">IncompleteMessageCollector::Binary</a>(<span class="ident">Vec::new</span>()),
-                <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#154">IncompleteMessageType::Text</a> =&gt; {
-                    <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#91">IncompleteMessageCollector::Text</a>(<span class="ident">StringCollector::new</span>())
+<span class="kw">impl </span><a href="../../../src/tungstenite/protocol/message.rs.html#85">IncompleteMessage</a> {
+    <span class="doccomment">/// Create new.
+    </span><span class="kw">pub fn </span>new(message_type: <a href="../../../src/tungstenite/protocol/message.rs.html#153">IncompleteMessageType</a>) -&gt; <span class="self">Self </span>{
+        <a href="../../../src/tungstenite/protocol/message.rs.html#85">IncompleteMessage</a> {
+            collector: <span class="kw">match </span><a href="../../../src/tungstenite/protocol/message.rs.html#97">message_type</a> {
+                <a href="../../../src/tungstenite/protocol/message.rs.html#155">IncompleteMessageType::Binary</a> =&gt; <a href="../../../src/tungstenite/protocol/message.rs.html#92">IncompleteMessageCollector::Binary</a>(Vec::new()),
+                <a href="../../../src/tungstenite/protocol/message.rs.html#154">IncompleteMessageType::Text</a> =&gt; {
+                    <a href="../../../src/tungstenite/protocol/message.rs.html#91">IncompleteMessageCollector::Text</a>(StringCollector::new())
                 }
             },
         }
     }
 
-    <span class="doccomment">/// Get the current filled size of the buffer.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">match</span> <a class="self" href="../../../src/tungstenite/protocol/message.rs.html#109">self</a>.<span class="ident">collector</span> {
-            <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#91">IncompleteMessageCollector::Text</a>(<span class="kw-2">ref</span> <span class="ident">t</span>) =&gt; <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#111">t</a>.<a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#27">len</a>(),
-            <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#92">IncompleteMessageCollector::Binary</a>(<span class="kw-2">ref</span> <span class="ident">b</span>) =&gt; <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#112">b</a>.<span class="ident">len</span>(),
+    <span class="doccomment">/// Get the current filled size of the buffer.
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <span class="kw">match </span><a class="self" href="../../../src/tungstenite/protocol/message.rs.html#109">self</a>.collector {
+            <a href="../../../src/tungstenite/protocol/message.rs.html#91">IncompleteMessageCollector::Text</a>(<span class="kw-2">ref </span>t) =&gt; <a href="../../../src/tungstenite/protocol/message.rs.html#111">t</a>.<a href="../../../src/tungstenite/protocol/message.rs.html#27">len</a>(),
+            <a href="../../../src/tungstenite/protocol/message.rs.html#92">IncompleteMessageCollector::Binary</a>(<span class="kw-2">ref </span>b) =&gt; <a href="../../../src/tungstenite/protocol/message.rs.html#112">b</a>.len(),
         }
     }
 
-    <span class="doccomment">/// Add more data to an existing message.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extend</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">tail</span>: <span class="ident">T</span>, <span class="ident">size_limit</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="comment">// Always have a max size. This ensures an error in case of concatenating two buffers</span>
-        <span class="comment">// of more than `usize::max_value()` bytes in total.</span>
-        <span class="kw">let</span> <span class="ident">max_size</span> <span class="op">=</span> <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#117">size_limit</a>.<span class="ident">unwrap_or_else</span>(<span class="ident">usize::max_value</span>);
-        <span class="kw">let</span> <span class="ident">my_size</span> <span class="op">=</span> <a class="self" href="../../../src/tungstenite/protocol/message.rs.html#117">self</a>.<a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#109">len</a>();
-        <span class="kw">let</span> <span class="ident">portion_size</span> <span class="op">=</span> <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#117">tail</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<span class="ident">len</span>();
-        <span class="comment">// Be careful about integer overflows here.</span>
-        <span class="kw">if</span> <span class="ident">my_size</span> <span class="op">&gt;</span> <span class="ident">max_size</span> <span class="op">|</span><span class="op">|</span> <span class="ident">portion_size</span> <span class="op">&gt;</span> <span class="ident">max_size</span> <span class="op">-</span> <span class="ident">my_size</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tungstenite/error.rs.html#51">Error::Capacity</a>(<a class="ident" href="../../../src/tungstenite/error.rs.html#132">CapacityError::MessageTooLong</a> {
-                <span class="ident">size</span>: <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#121">my_size</a> <span class="op">+</span> <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#122">portion_size</a>,
-                <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#120">max_size</a>,
+    <span class="doccomment">/// Add more data to an existing message.
+    </span><span class="kw">pub fn </span>extend&lt;T: AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, tail: T, size_limit: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="comment">// Always have a max size. This ensures an error in case of concatenating two buffers
+        // of more than `usize::max_value()` bytes in total.
+        </span><span class="kw">let </span>max_size = <a href="../../../src/tungstenite/protocol/message.rs.html#117">size_limit</a>.unwrap_or_else(usize::max_value);
+        <span class="kw">let </span>my_size = <a class="self" href="../../../src/tungstenite/protocol/message.rs.html#117">self</a>.<a href="../../../src/tungstenite/protocol/message.rs.html#109">len</a>();
+        <span class="kw">let </span>portion_size = <a href="../../../src/tungstenite/protocol/message.rs.html#117">tail</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().len();
+        <span class="comment">// Be careful about integer overflows here.
+        </span><span class="kw">if </span>my_size &gt; max_size || portion_size &gt; max_size - my_size {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/tungstenite/error.rs.html#51">Error::Capacity</a>(<a href="../../../src/tungstenite/error.rs.html#132">CapacityError::MessageTooLong</a> {
+                size: <a href="../../../src/tungstenite/protocol/message.rs.html#121">my_size</a> + <a href="../../../src/tungstenite/protocol/message.rs.html#122">portion_size</a>,
+                <a href="../../../src/tungstenite/protocol/message.rs.html#120">max_size</a>,
             }));
         }
 
-        <span class="kw">match</span> <a class="self" href="../../../src/tungstenite/protocol/message.rs.html#117">self</a>.<span class="ident">collector</span> {
-            <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#92">IncompleteMessageCollector::Binary</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">v</span>) =&gt; {
-                <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#132">v</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#117">tail</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>());
+        <span class="kw">match </span><a class="self" href="../../../src/tungstenite/protocol/message.rs.html#117">self</a>.collector {
+            <a href="../../../src/tungstenite/protocol/message.rs.html#92">IncompleteMessageCollector::Binary</a>(<span class="kw-2">ref mut </span>v) =&gt; {
+                <a href="../../../src/tungstenite/protocol/message.rs.html#132">v</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../src/tungstenite/protocol/message.rs.html#117">tail</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>());
                 <span class="prelude-val">Ok</span>(())
             }
-            <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#91">IncompleteMessageCollector::Text</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">t</span>) =&gt; <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#136">t</a>.<a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#33">extend</a>(<a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#117">tail</a>),
+            <a href="../../../src/tungstenite/protocol/message.rs.html#91">IncompleteMessageCollector::Text</a>(<span class="kw-2">ref mut </span>t) =&gt; <a href="../../../src/tungstenite/protocol/message.rs.html#136">t</a>.<a href="../../../src/tungstenite/protocol/message.rs.html#33">extend</a>(<a href="../../../src/tungstenite/protocol/message.rs.html#117">tail</a>),
         }
     }
 
-    <span class="doccomment">/// Convert an incomplete message into a complete one.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">complete</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#160">Message</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../src/tungstenite/protocol/message.rs.html#141">self</a>.<span class="ident">collector</span> {
-            <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#92">IncompleteMessageCollector::Binary</a>(<span class="ident">v</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#164">Message::Binary</a>(<a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#143">v</a>)),
-            <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#91">IncompleteMessageCollector::Text</a>(<span class="ident">t</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="ident">t</span>.<span class="ident">into_string</span>()<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#162">Message::Text</a>(<a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#145">text</a>))
+    <span class="doccomment">/// Convert an incomplete message into a complete one.
+    </span><span class="kw">pub fn </span>complete(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/tungstenite/protocol/message.rs.html#160">Message</a>&gt; {
+        <span class="kw">match </span><a class="self" href="../../../src/tungstenite/protocol/message.rs.html#141">self</a>.collector {
+            <a href="../../../src/tungstenite/protocol/message.rs.html#92">IncompleteMessageCollector::Binary</a>(v) =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/tungstenite/protocol/message.rs.html#164">Message::Binary</a>(<a href="../../../src/tungstenite/protocol/message.rs.html#143">v</a>)),
+            <a href="../../../src/tungstenite/protocol/message.rs.html#91">IncompleteMessageCollector::Text</a>(t) =&gt; {
+                <span class="kw">let </span>text = t.into_string()<span class="question-mark">?</span>;
+                <span class="prelude-val">Ok</span>(<a href="../../../src/tungstenite/protocol/message.rs.html#162">Message::Text</a>(<a href="../../../src/tungstenite/protocol/message.rs.html#145">text</a>))
             }
         }
     }
 }
 
-<span class="doccomment">/// The type of incomplete message.</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">IncompleteMessageType</span> {
-    <span class="ident">Text</span>,
-    <span class="ident">Binary</span>,
+<span class="doccomment">/// The type of incomplete message.
+</span><span class="kw">pub enum </span>IncompleteMessageType {
+    Text,
+    Binary,
 }
 
-<span class="doccomment">/// An enum representing the various forms of a WebSocket message.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Message</span> {
-    <span class="doccomment">/// A text WebSocket message</span>
-    <span class="ident">Text</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>),
-    <span class="doccomment">/// A binary WebSocket message</span>
-    <span class="ident">Binary</span>(<span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>),
-    <span class="doccomment">/// A ping message with the specified payload</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The payload here must have a length less than 125 bytes</span>
-    <span class="ident">Ping</span>(<span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>),
-    <span class="doccomment">/// A pong message with the specified payload</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The payload here must have a length less than 125 bytes</span>
-    <span class="ident">Pong</span>(<span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>),
-    <span class="doccomment">/// A close message with the optional close frame.</span>
-    <span class="ident">Close</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CloseFrame</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>),
+<span class="doccomment">/// An enum representing the various forms of a WebSocket message.
+</span><span class="attribute">#[derive(Debug, Eq, PartialEq, Clone)]
+</span><span class="kw">pub enum </span>Message {
+    <span class="doccomment">/// A text WebSocket message
+    </span>Text(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>),
+    <span class="doccomment">/// A binary WebSocket message
+    </span>Binary(Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;),
+    <span class="doccomment">/// A ping message with the specified payload
+    ///
+    /// The payload here must have a length less than 125 bytes
+    </span>Ping(Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;),
+    <span class="doccomment">/// A pong message with the specified payload
+    ///
+    /// The payload here must have a length less than 125 bytes
+    </span>Pong(Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;),
+    <span class="doccomment">/// A close message with the optional close frame.
+    </span>Close(<span class="prelude-ty">Option</span>&lt;CloseFrame&lt;<span class="lifetime">&#39;static</span>&gt;&gt;),
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#160">Message</a> {
-    <span class="doccomment">/// Create a new text WebSocket message from a stringable.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">text</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">string</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#160">Message</a>
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
+<span class="kw">impl </span><a href="../../../src/tungstenite/protocol/message.rs.html#160">Message</a> {
+    <span class="doccomment">/// Create a new text WebSocket message from a stringable.
+    </span><span class="kw">pub fn </span>text&lt;S&gt;(string: S) -&gt; <a href="../../../src/tungstenite/protocol/message.rs.html#160">Message</a>
+    <span class="kw">where
+        </span>S: Into&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
     {
-        <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#162">Message::Text</a>(<a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#179">string</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+        <a href="../../../src/tungstenite/protocol/message.rs.html#162">Message::Text</a>(<a href="../../../src/tungstenite/protocol/message.rs.html#179">string</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
     }
 
-    <span class="doccomment">/// Create a new binary WebSocket message by converting to Vec&lt;u8&gt;.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">binary</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="ident">bin</span>: <span class="ident">B</span>) -&gt; <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#160">Message</a>
-    <span class="kw">where</span>
-        <span class="ident">B</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Create a new binary WebSocket message by converting to Vec&lt;u8&gt;.
+    </span><span class="kw">pub fn </span>binary&lt;B&gt;(bin: B) -&gt; <a href="../../../src/tungstenite/protocol/message.rs.html#160">Message</a>
+    <span class="kw">where
+        </span>B: Into&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;,
     {
-        <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#164">Message::Binary</a>(<a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#187">bin</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+        <a href="../../../src/tungstenite/protocol/message.rs.html#164">Message::Binary</a>(<a href="../../../src/tungstenite/protocol/message.rs.html#187">bin</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
     }
 
-    <span class="doccomment">/// Indicates whether a message is a text message.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_text</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="kw-2">*</span><span class="self">self</span>, <span class="ident">Message::Text</span>(<span class="kw">_</span>))
+    <span class="doccomment">/// Indicates whether a message is a text message.
+    </span><span class="kw">pub fn </span>is_text(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="kw-2">*</span><span class="self">self</span>, Message::Text(<span class="kw">_</span>))
     }
 
-    <span class="doccomment">/// Indicates whether a message is a binary message.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_binary</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="kw-2">*</span><span class="self">self</span>, <span class="ident">Message::Binary</span>(<span class="kw">_</span>))
+    <span class="doccomment">/// Indicates whether a message is a binary message.
+    </span><span class="kw">pub fn </span>is_binary(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="kw-2">*</span><span class="self">self</span>, Message::Binary(<span class="kw">_</span>))
     }
 
-    <span class="doccomment">/// Indicates whether a message is a ping message.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_ping</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="kw-2">*</span><span class="self">self</span>, <span class="ident">Message::Ping</span>(<span class="kw">_</span>))
+    <span class="doccomment">/// Indicates whether a message is a ping message.
+    </span><span class="kw">pub fn </span>is_ping(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="kw-2">*</span><span class="self">self</span>, Message::Ping(<span class="kw">_</span>))
     }
 
-    <span class="doccomment">/// Indicates whether a message is a pong message.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_pong</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="kw-2">*</span><span class="self">self</span>, <span class="ident">Message::Pong</span>(<span class="kw">_</span>))
+    <span class="doccomment">/// Indicates whether a message is a pong message.
+    </span><span class="kw">pub fn </span>is_pong(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="kw-2">*</span><span class="self">self</span>, Message::Pong(<span class="kw">_</span>))
     }
 
-    <span class="doccomment">/// Indicates whether a message ia s close message.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_close</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="kw-2">*</span><span class="self">self</span>, <span class="ident">Message::Close</span>(<span class="kw">_</span>))
+    <span class="doccomment">/// Indicates whether a message ia s close message.
+    </span><span class="kw">pub fn </span>is_close(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="kw-2">*</span><span class="self">self</span>, Message::Close(<span class="kw">_</span>))
     }
 
-    <span class="doccomment">/// Get the length of the WebSocket message.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../src/tungstenite/protocol/message.rs.html#220">self</a> {
-            <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#162">Message::Text</a>(<span class="kw-2">ref</span> <span class="ident">string</span>) =&gt; <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#222">string</a>.<span class="ident">len</span>(),
-            <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#164">Message::Binary</a>(<span class="kw-2">ref</span> <span class="ident">data</span>) <span class="op">|</span> <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#168">Message::Ping</a>(<span class="kw-2">ref</span> <span class="ident">data</span>) <span class="op">|</span> <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#172">Message::Pong</a>(<span class="kw-2">ref</span> <span class="ident">data</span>) =&gt; {
-                <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#223">data</a>.<span class="ident">len</span>()
+    <span class="doccomment">/// Get the length of the WebSocket message.
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/tungstenite/protocol/message.rs.html#220">self</a> </span>{
+            <a href="../../../src/tungstenite/protocol/message.rs.html#162">Message::Text</a>(<span class="kw-2">ref </span>string) =&gt; <a href="../../../src/tungstenite/protocol/message.rs.html#222">string</a>.len(),
+            <a href="../../../src/tungstenite/protocol/message.rs.html#164">Message::Binary</a>(<span class="kw-2">ref </span>data) | <a href="../../../src/tungstenite/protocol/message.rs.html#168">Message::Ping</a>(<span class="kw-2">ref </span>data) | <a href="../../../src/tungstenite/protocol/message.rs.html#172">Message::Pong</a>(<span class="kw-2">ref </span>data) =&gt; {
+                <a href="../../../src/tungstenite/protocol/message.rs.html#223">data</a>.len()
             }
-            <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#174">Message::Close</a>(<span class="kw-2">ref</span> <span class="ident">data</span>) =&gt; <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#226">data</a>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">d</span><span class="op">|</span> <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#226">d</a>.<span class="ident">reason</span>.<span class="ident">len</span>()).<span class="ident">unwrap_or</span>(<span class="number">0</span>),
+            <a href="../../../src/tungstenite/protocol/message.rs.html#174">Message::Close</a>(<span class="kw-2">ref </span>data) =&gt; <a href="../../../src/tungstenite/protocol/message.rs.html#226">data</a>.as_ref().map(|d| <a href="../../../src/tungstenite/protocol/message.rs.html#226">d</a>.reason.len()).unwrap_or(<span class="number">0</span>),
         }
     }
 
-    <span class="doccomment">/// Returns true if the WebSocket message has no content.</span>
-    <span class="doccomment">/// For example, if the other side of the connection sent an empty string.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/tungstenite/protocol/message.rs.html#232">self</a>.<a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#220">len</a>() <span class="op">==</span> <span class="number">0</span>
-    }
+    <span class="doccomment">/// Returns true if the WebSocket message has no content.
+    /// For example, if the other side of the connection sent an empty string.
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/tungstenite/protocol/message.rs.html#232">self</a>.<a href="../../../src/tungstenite/protocol/message.rs.html#220">len</a>() == <span class="number">0
+    </span>}
 
-    <span class="doccomment">/// Consume the WebSocket and return it as binary data.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_data</span>(<span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../src/tungstenite/protocol/message.rs.html#237">self</a> {
-            <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#162">Message::Text</a>(<span class="ident">string</span>) =&gt; <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#239">string</a>.<span class="ident">into_bytes</span>(),
-            <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#164">Message::Binary</a>(<span class="ident">data</span>) <span class="op">|</span> <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#168">Message::Ping</a>(<span class="ident">data</span>) <span class="op">|</span> <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#172">Message::Pong</a>(<span class="ident">data</span>) =&gt; <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#240">data</a>,
-            <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#174">Message::Close</a>(<span class="prelude-val">None</span>) =&gt; <span class="ident">Vec::new</span>(),
-            <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#174">Message::Close</a>(<span class="prelude-val">Some</span>(<span class="ident">frame</span>)) =&gt; <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#242">frame</a>.<span class="ident">reason</span>.<span class="ident">into_owned</span>().<span class="ident">into_bytes</span>(),
+    <span class="doccomment">/// Consume the WebSocket and return it as binary data.
+    </span><span class="kw">pub fn </span>into_data(<span class="self">self</span>) -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
+        <span class="kw">match </span><span class="self"><a href="../../../src/tungstenite/protocol/message.rs.html#237">self</a> </span>{
+            <a href="../../../src/tungstenite/protocol/message.rs.html#162">Message::Text</a>(string) =&gt; <a href="../../../src/tungstenite/protocol/message.rs.html#239">string</a>.into_bytes(),
+            <a href="../../../src/tungstenite/protocol/message.rs.html#164">Message::Binary</a>(data) | <a href="../../../src/tungstenite/protocol/message.rs.html#168">Message::Ping</a>(data) | <a href="../../../src/tungstenite/protocol/message.rs.html#172">Message::Pong</a>(data) =&gt; <a href="../../../src/tungstenite/protocol/message.rs.html#240">data</a>,
+            <a href="../../../src/tungstenite/protocol/message.rs.html#174">Message::Close</a>(<span class="prelude-val">None</span>) =&gt; Vec::new(),
+            <a href="../../../src/tungstenite/protocol/message.rs.html#174">Message::Close</a>(<span class="prelude-val">Some</span>(frame)) =&gt; <a href="../../../src/tungstenite/protocol/message.rs.html#242">frame</a>.reason.into_owned().into_bytes(),
         }
     }
 
-    <span class="doccomment">/// Attempt to consume the WebSocket message and convert it to a String.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_text</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../src/tungstenite/protocol/message.rs.html#247">self</a> {
-            <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#162">Message::Text</a>(<span class="ident">string</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#249">string</a>),
-            <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#164">Message::Binary</a>(<span class="ident">data</span>) <span class="op">|</span> <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#168">Message::Ping</a>(<span class="ident">data</span>) <span class="op">|</span> <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#172">Message::Pong</a>(<span class="ident">data</span>) =&gt; {
-                <span class="prelude-val">Ok</span>(<span class="ident">String::from_utf8</span>(<span class="ident">data</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">err</span>.<span class="ident">utf8_error</span>())<span class="question-mark">?</span>)
+    <span class="doccomment">/// Attempt to consume the WebSocket message and convert it to a String.
+    </span><span class="kw">pub fn </span>into_text(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
+        <span class="kw">match </span><span class="self"><a href="../../../src/tungstenite/protocol/message.rs.html#247">self</a> </span>{
+            <a href="../../../src/tungstenite/protocol/message.rs.html#162">Message::Text</a>(string) =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/tungstenite/protocol/message.rs.html#249">string</a>),
+            <a href="../../../src/tungstenite/protocol/message.rs.html#164">Message::Binary</a>(data) | <a href="../../../src/tungstenite/protocol/message.rs.html#168">Message::Ping</a>(data) | <a href="../../../src/tungstenite/protocol/message.rs.html#172">Message::Pong</a>(data) =&gt; {
+                <span class="prelude-val">Ok</span>(String::from_utf8(data).map_err(|err| err.utf8_error())<span class="question-mark">?</span>)
             }
-            <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#174">Message::Close</a>(<span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">String::new</span>()),
-            <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#174">Message::Close</a>(<span class="prelude-val">Some</span>(<span class="ident">frame</span>)) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#254">frame</a>.<span class="ident">reason</span>.<span class="ident">into_owned</span>()),
+            <a href="../../../src/tungstenite/protocol/message.rs.html#174">Message::Close</a>(<span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Ok</span>(String::new()),
+            <a href="../../../src/tungstenite/protocol/message.rs.html#174">Message::Close</a>(<span class="prelude-val">Some</span>(frame)) =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/tungstenite/protocol/message.rs.html#254">frame</a>.reason.into_owned()),
         }
     }
 
-    <span class="doccomment">/// Attempt to get a &amp;str from the WebSocket message,</span>
-    <span class="doccomment">/// this will try to convert binary data to utf8.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_text</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../src/tungstenite/protocol/message.rs.html#260">self</a> {
-            <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#162">Message::Text</a>(<span class="kw-2">ref</span> <span class="ident">string</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#262">string</a>),
-            <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#164">Message::Binary</a>(<span class="kw-2">ref</span> <span class="ident">data</span>) <span class="op">|</span> <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#168">Message::Ping</a>(<span class="kw-2">ref</span> <span class="ident">data</span>) <span class="op">|</span> <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#172">Message::Pong</a>(<span class="kw-2">ref</span> <span class="ident">data</span>) =&gt; {
-                <span class="prelude-val">Ok</span>(<span class="ident">str::from_utf8</span>(<span class="ident">data</span>)<span class="question-mark">?</span>)
+    <span class="doccomment">/// Attempt to get a &amp;str from the WebSocket message,
+    /// this will try to convert binary data to utf8.
+    </span><span class="kw">pub fn </span>to_text(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="../../../src/tungstenite/protocol/message.rs.html#260">self</a> </span>{
+            <a href="../../../src/tungstenite/protocol/message.rs.html#162">Message::Text</a>(<span class="kw-2">ref </span>string) =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/tungstenite/protocol/message.rs.html#262">string</a>),
+            <a href="../../../src/tungstenite/protocol/message.rs.html#164">Message::Binary</a>(<span class="kw-2">ref </span>data) | <a href="../../../src/tungstenite/protocol/message.rs.html#168">Message::Ping</a>(<span class="kw-2">ref </span>data) | <a href="../../../src/tungstenite/protocol/message.rs.html#172">Message::Pong</a>(<span class="kw-2">ref </span>data) =&gt; {
+                <span class="prelude-val">Ok</span>(str::from_utf8(data)<span class="question-mark">?</span>)
             }
-            <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#174">Message::Close</a>(<span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="string">&quot;&quot;</span>),
-            <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#174">Message::Close</a>(<span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">frame</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#267">frame</a>.<span class="ident">reason</span>),
+            <a href="../../../src/tungstenite/protocol/message.rs.html#174">Message::Close</a>(<span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="string">&quot;&quot;</span>),
+            <a href="../../../src/tungstenite/protocol/message.rs.html#174">Message::Close</a>(<span class="prelude-val">Some</span>(<span class="kw-2">ref </span>frame)) =&gt; <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><a href="../../../src/tungstenite/protocol/message.rs.html#267">frame</a>.reason),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#160">Message</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">string</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#160">Message</a> {
-        <span class="ident">Message::text</span>(<a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#273">string</a>)
+<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; <span class="kw">for </span><a href="../../../src/tungstenite/protocol/message.rs.html#160">Message</a> {
+    <span class="kw">fn </span>from(string: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <a href="../../../src/tungstenite/protocol/message.rs.html#160">Message</a> {
+        Message::text(<a href="../../../src/tungstenite/protocol/message.rs.html#273">string</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;s</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;s</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#160">Message</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#160">Message</a> {
-        <span class="ident">Message::text</span>(<a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#279">string</a>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; <span class="kw">for </span><a href="../../../src/tungstenite/protocol/message.rs.html#160">Message</a> {
+    <span class="kw">fn </span>from(string: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="../../../src/tungstenite/protocol/message.rs.html#160">Message</a> {
+        Message::text(<a href="../../../src/tungstenite/protocol/message.rs.html#279">string</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#160">Message</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#160">Message</a> {
-        <span class="ident">Message::binary</span>(<a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#285">data</a>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;b</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; <span class="kw">for </span><a href="../../../src/tungstenite/protocol/message.rs.html#160">Message</a> {
+    <span class="kw">fn </span>from(data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <a href="../../../src/tungstenite/protocol/message.rs.html#160">Message</a> {
+        Message::binary(<a href="../../../src/tungstenite/protocol/message.rs.html#285">data</a>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#160">Message</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#160">Message</a> {
-        <span class="ident">Message::binary</span>(<a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#291">data</a>)
+<span class="kw">impl </span>From&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt; <span class="kw">for </span><a href="../../../src/tungstenite/protocol/message.rs.html#160">Message</a> {
+    <span class="kw">fn </span>from(data: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;) -&gt; <a href="../../../src/tungstenite/protocol/message.rs.html#160">Message</a> {
+        Message::binary(<a href="../../../src/tungstenite/protocol/message.rs.html#291">data</a>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#160">Message</a> {
-    <span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/tungstenite/protocol/message.rs.html#297">self</a>.<a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#237">into_data</a>()
+<span class="kw">impl </span>Into&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt; <span class="kw">for </span><a href="../../../src/tungstenite/protocol/message.rs.html#160">Message</a> {
+    <span class="kw">fn </span>into(<span class="self">self</span>) -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
+        <a class="self" href="../../../src/tungstenite/protocol/message.rs.html#297">self</a>.<a href="../../../src/tungstenite/protocol/message.rs.html#237">into_data</a>()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#160">Message</a> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <span class="ident">StdResult</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Error.html">fmt::Error</a><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">string</span>) <span class="op">=</span> <a class="self" href="../../../src/tungstenite/protocol/message.rs.html#303">self</a>.<a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#260">to_text</a>() {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#303">f</a>, <span class="string">&quot;{}&quot;</span>, <span class="ident">string</span>)
-        } <span class="kw">else</span> {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../src/tungstenite/protocol/message.rs.html#303">f</a>, <span class="string">&quot;Binary Data&lt;length={}&gt;&quot;</span>, <span class="self">self</span>.<span class="ident">len</span>())
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="../../../src/tungstenite/protocol/message.rs.html#160">Message</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; StdResult&lt;(), <a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Error.html">fmt::Error</a>&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(string) = <a class="self" href="../../../src/tungstenite/protocol/message.rs.html#303">self</a>.<a href="../../../src/tungstenite/protocol/message.rs.html#260">to_text</a>() {
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/tungstenite/protocol/message.rs.html#303">f</a>, <span class="string">&quot;{}&quot;</span>, string)
+        } <span class="kw">else </span>{
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../src/tungstenite/protocol/message.rs.html#303">f</a>, <span class="string">&quot;Binary Data&lt;length={}&gt;&quot;</span>, <span class="self">self</span>.len())
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">display</span>() {
-        <span class="kw">let</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">Message::text</span>(<span class="string">&quot;test&quot;</span>.<span class="ident">to_owned</span>());
-        <span class="macro">assert_eq!</span>(<span class="ident">t</span>.<span class="ident">to_string</span>(), <span class="string">&quot;test&quot;</span>.<span class="ident">to_owned</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>display() {
+        <span class="kw">let </span>t = Message::text(<span class="string">&quot;test&quot;</span>.to_owned());
+        <span class="macro">assert_eq!</span>(t.to_string(), <span class="string">&quot;test&quot;</span>.to_owned());
 
-        <span class="kw">let</span> <span class="ident">bin</span> <span class="op">=</span> <span class="ident">Message::binary</span>(<span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">241</span>]);
-        <span class="macro">assert_eq!</span>(<span class="ident">bin</span>.<span class="ident">to_string</span>(), <span class="string">&quot;Binary Data&lt;length=5&gt;&quot;</span>.<span class="ident">to_owned</span>());
+        <span class="kw">let </span>bin = Message::binary(<span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">241</span>]);
+        <span class="macro">assert_eq!</span>(bin.to_string(), <span class="string">&quot;Binary Data&lt;length=5&gt;&quot;</span>.to_owned());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">binary_convert</span>() {
-        <span class="kw">let</span> <span class="ident">bin</span> <span class="op">=</span> [<span class="number">6u8</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">10</span>, <span class="number">241</span>];
-        <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Message::from</span>(<span class="kw-2">&amp;</span><span class="ident">bin</span>[..]);
-        <span class="macro">assert!</span>(<span class="ident">msg</span>.<span class="ident">is_binary</span>());
-        <span class="macro">assert!</span>(<span class="ident">msg</span>.<span class="ident">into_text</span>().<span class="ident">is_err</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>binary_convert() {
+        <span class="kw">let </span>bin = [<span class="number">6u8</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">10</span>, <span class="number">241</span>];
+        <span class="kw">let </span>msg = Message::from(<span class="kw-2">&amp;</span>bin[..]);
+        <span class="macro">assert!</span>(msg.is_binary());
+        <span class="macro">assert!</span>(msg.into_text().is_err());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">binary_convert_vec</span>() {
-        <span class="kw">let</span> <span class="ident">bin</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">6u8</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">10</span>, <span class="number">241</span>];
-        <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Message::from</span>(<span class="ident">bin</span>);
-        <span class="macro">assert!</span>(<span class="ident">msg</span>.<span class="ident">is_binary</span>());
-        <span class="macro">assert!</span>(<span class="ident">msg</span>.<span class="ident">into_text</span>().<span class="ident">is_err</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>binary_convert_vec() {
+        <span class="kw">let </span>bin = <span class="macro">vec!</span>[<span class="number">6u8</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">10</span>, <span class="number">241</span>];
+        <span class="kw">let </span>msg = Message::from(bin);
+        <span class="macro">assert!</span>(msg.is_binary());
+        <span class="macro">assert!</span>(msg.into_text().is_err());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">binary_convert_into_vec</span>() {
-        <span class="kw">let</span> <span class="ident">bin</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">6u8</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">10</span>, <span class="number">241</span>];
-        <span class="kw">let</span> <span class="ident">bin_copy</span> <span class="op">=</span> <span class="ident">bin</span>.<span class="ident">clone</span>();
-        <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Message::from</span>(<span class="ident">bin</span>);
-        <span class="kw">let</span> <span class="ident">serialized</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">msg</span>.<span class="ident">into</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">bin_copy</span>, <span class="ident">serialized</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>binary_convert_into_vec() {
+        <span class="kw">let </span>bin = <span class="macro">vec!</span>[<span class="number">6u8</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">10</span>, <span class="number">241</span>];
+        <span class="kw">let </span>bin_copy = bin.clone();
+        <span class="kw">let </span>msg = Message::from(bin);
+        <span class="kw">let </span>serialized: Vec&lt;u8&gt; = msg.into();
+        <span class="macro">assert_eq!</span>(bin_copy, serialized);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">text_convert</span>() {
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="string">&quot;kiwotsukete&quot;</span>;
-        <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Message::from</span>(<span class="ident">s</span>);
-        <span class="macro">assert!</span>(<span class="ident">msg</span>.<span class="ident">is_text</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>text_convert() {
+        <span class="kw">let </span>s = <span class="string">&quot;kiwotsukete&quot;</span>;
+        <span class="kw">let </span>msg = Message::from(s);
+        <span class="macro">assert!</span>(msg.is_text());
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tungstenite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tungstenite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

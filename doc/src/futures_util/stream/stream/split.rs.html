@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.21/src/stream/stream/split.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>split.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../futures_util/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.24/src/stream/stream/split.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>split.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../futures_util/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -142,149 +142,149 @@
 <span id="142">142</span>
 <span id="143">143</span>
 <span id="144">144</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../futures_util/macro.ready.html">futures_core::ready</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">futures_core::stream::Stream</a>;
-<span class="kw">use</span> <span class="ident">futures_core::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../futures_util/sink/trait.Sink.html">futures_sink::Sink</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
+<span class="kw">use </span><a href="../../../../futures_util/macro.ready.html">futures_core::ready</a>;
+<span class="kw">use </span><a href="../../../../futures_util/stream/trait.Stream.html">futures_core::stream::Stream</a>;
+<span class="kw">use </span>futures_core::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
+<span class="kw">use </span><a href="../../../../futures_util/sink/trait.Sink.html">futures_sink::Sink</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../../src/futures_util/lock/bilock.rs.html#38"><span class="kw">crate</span>::lock::BiLock</a>;
+<span class="kw">use </span><a href="../../../../src/futures_util/lock/bilock.rs.html#38"><span class="kw">crate</span>::lock::BiLock</a>;
 
-<span class="doccomment">/// A `Stream` part of the split pair</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;sink&quot;</span>)))]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SplitStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">BiLock</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>);
+<span class="doccomment">/// A `Stream` part of the split pair
+</span><span class="attribute">#[derive(Debug)]
+#[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;sink&quot;</span>)))]
+</span><span class="kw">pub struct </span>SplitStream&lt;S&gt;(BiLock&lt;S&gt;);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="kw">for</span> <span class="ident">SplitStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {}
+<span class="kw">impl</span>&lt;S&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="kw">for </span>SplitStream&lt;S&gt; {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span> <span class="ident">SplitStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Attempts to put the two &quot;halves&quot; of a split `Stream + Sink` back</span>
-    <span class="doccomment">/// together. Succeeds only if the `SplitStream&lt;S&gt;` and `SplitSink&lt;S&gt;` are</span>
-    <span class="doccomment">/// a matching pair originating from the same call to `StreamExt::split`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reunite</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="ident">SplitSink</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">Item</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">ReuniteError</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">Item</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <span class="ident">Sink</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;S: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>&gt; SplitStream&lt;S&gt; {
+    <span class="doccomment">/// Attempts to put the two &quot;halves&quot; of a split `Stream + Sink` back
+    /// together. Succeeds only if the `SplitStream&lt;S&gt;` and `SplitSink&lt;S&gt;` are
+    /// a matching pair originating from the same call to `StreamExt::split`.
+    </span><span class="kw">pub fn </span>reunite&lt;Item&gt;(<span class="self">self</span>, other: SplitSink&lt;S, Item&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;S, ReuniteError&lt;S, Item&gt;&gt;
+    <span class="kw">where
+        </span>S: Sink&lt;Item&gt;,
     {
-        <a class="ident" href="../../../../src/futures_util/stream/stream/split.rs.html#22">other</a>.<a class="ident" href="../../../../src/futures_util/stream/stream/split.rs.html#58">reunite</a>(<a class="self" href="../../../../src/futures_util/stream/stream/split.rs.html#22">self</a>)
+        <a href="../../../../src/futures_util/stream/stream/split.rs.html#22">other</a>.<a href="../../../../src/futures_util/stream/stream/split.rs.html#58">reunite</a>(<a class="self" href="../../../../src/futures_util/stream/stream/split.rs.html#22">self</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a><span class="op">&gt;</span> <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for</span> <span class="ident">SplitStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">S::Item</span>;
+<span class="kw">impl</span>&lt;S: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>&gt; <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="kw">for </span>SplitStream&lt;S&gt; {
+    <span class="kw">type </span>Item = S::Item;
 
-    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">S::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="macro" href="../../../../futures_util/macro.ready.html">ready!</a>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">poll_lock</span>(<span class="ident">cx</span>)).<a class="ident" href="../../../../src/futures_util/lock/bilock.rs.html#242">as_pin_mut</a>().<a class="ident" href="../../../../futures_util/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../../../src/futures_util/stream/stream/split.rs.html#33">cx</a>)
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;S::Item&gt;&gt; {
+        <a class="macro" href="../../../../futures_util/macro.ready.html">ready!</a>(<span class="self">self</span>.<span class="number">0</span>.poll_lock(cx)).<a href="../../../../src/futures_util/lock/bilock.rs.html#245">as_pin_mut</a>().<a href="../../../../futures_util/stream/trait.Stream.html">poll_next</a>(<a href="../../../../src/futures_util/stream/stream/split.rs.html#33">cx</a>)
     }
 }
 
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">bad_style</span>)]</span>
-<span class="kw">fn</span> <span class="ident">SplitSink</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Sink</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&gt;</span>, <span class="ident">Item</span><span class="op">&gt;</span>(<span class="ident">lock</span>: <span class="ident">BiLock</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) -&gt; <span class="ident">SplitSink</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">Item</span><span class="op">&gt;</span> {
-    <a class="ident" href="../../../../src/futures_util/stream/stream/split.rs.html#47">SplitSink</a> { <a class="ident" href="../../../../src/futures_util/stream/stream/split.rs.html#39">lock</a>, <span class="ident">slot</span>: <span class="prelude-val">None</span> }
+<span class="attribute">#[allow(non_snake_case)]
+</span><span class="kw">fn </span>SplitSink&lt;S: Sink&lt;Item&gt;, Item&gt;(lock: BiLock&lt;S&gt;) -&gt; SplitSink&lt;S, Item&gt; {
+    <a href="../../../../src/futures_util/stream/stream/split.rs.html#47">SplitSink</a> { <a href="../../../../src/futures_util/stream/stream/split.rs.html#39">lock</a>, slot: <span class="prelude-val">None </span>}
 }
 
-<span class="doccomment">/// A `Sink` part of the split pair</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;sinks do nothing unless polled&quot;</span>]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;sink&quot;</span>)))]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SplitSink</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">Item</span><span class="op">&gt;</span> {
-    <span class="ident">lock</span>: <span class="ident">BiLock</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
-    <span class="ident">slot</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A `Sink` part of the split pair
+</span><span class="attribute">#[derive(Debug)]
+#[must_use = <span class="string">&quot;sinks do nothing unless polled&quot;</span>]
+#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;sink&quot;</span>)))]
+</span><span class="kw">pub struct </span>SplitSink&lt;S, Item&gt; {
+    lock: BiLock&lt;S&gt;,
+    slot: <span class="prelude-ty">Option</span>&lt;Item&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">Item</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="kw">for</span> <span class="ident">SplitSink</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">Item</span><span class="op">&gt;</span> {}
+<span class="kw">impl</span>&lt;S, Item&gt; <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a> <span class="kw">for </span>SplitSink&lt;S, Item&gt; {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Sink</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>, <span class="ident">Item</span><span class="op">&gt;</span> <span class="ident">SplitSink</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">Item</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Attempts to put the two &quot;halves&quot; of a split `Stream + Sink` back</span>
-    <span class="doccomment">/// together. Succeeds only if the `SplitStream&lt;S&gt;` and `SplitSink&lt;S&gt;` are</span>
-    <span class="doccomment">/// a matching pair originating from the same call to `StreamExt::split`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reunite</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="ident">SplitStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">ReuniteError</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/futures_util/stream/stream/split.rs.html#58">self</a>.<span class="ident">lock</span>.<a class="ident" href="../../../../src/futures_util/lock/bilock.rs.html#151-153">reunite</a>(<a class="ident" href="../../../../src/futures_util/stream/stream/split.rs.html#58">other</a>.<span class="number">0</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <a class="ident" href="../../../../src/futures_util/stream/stream/split.rs.html#129">ReuniteError</a>(<a class="ident" href="../../../../src/futures_util/stream/stream/split.rs.html#39">SplitSink</a>(<a class="ident" href="../../../../src/futures_util/stream/stream/split.rs.html#59">err</a>.<span class="number">0</span>), <a class="ident" href="../../../../src/futures_util/stream/stream/split.rs.html#14">SplitStream</a>(<a class="ident" href="../../../../src/futures_util/stream/stream/split.rs.html#59">err</a>.<span class="number">1</span>)))
+<span class="kw">impl</span>&lt;S: Sink&lt;Item&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>, Item&gt; SplitSink&lt;S, Item&gt; {
+    <span class="doccomment">/// Attempts to put the two &quot;halves&quot; of a split `Stream + Sink` back
+    /// together. Succeeds only if the `SplitStream&lt;S&gt;` and `SplitSink&lt;S&gt;` are
+    /// a matching pair originating from the same call to `StreamExt::split`.
+    </span><span class="kw">pub fn </span>reunite(<span class="self">self</span>, other: SplitStream&lt;S&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;S, ReuniteError&lt;S, Item&gt;&gt; {
+        <a class="self" href="../../../../src/futures_util/stream/stream/split.rs.html#58">self</a>.lock.<a href="../../../../src/futures_util/lock/bilock.rs.html#151-153">reunite</a>(<a href="../../../../src/futures_util/stream/stream/split.rs.html#58">other</a>.<span class="number">0</span>).map_err(|err| <a href="../../../../src/futures_util/stream/stream/split.rs.html#129">ReuniteError</a>(<a href="../../../../src/futures_util/stream/stream/split.rs.html#39">SplitSink</a>(<a href="../../../../src/futures_util/stream/stream/split.rs.html#59">err</a>.<span class="number">0</span>), <a href="../../../../src/futures_util/stream/stream/split.rs.html#14">SplitStream</a>(<a href="../../../../src/futures_util/stream/stream/split.rs.html#59">err</a>.<span class="number">1</span>)))
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Sink</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&gt;</span>, <span class="ident">Item</span><span class="op">&gt;</span> <span class="ident">SplitSink</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">Item</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">poll_flush_slot</span>(
-        <span class="kw-2">mut</span> <span class="ident">inner</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">S</span><span class="op">&gt;</span>,
-        <span class="ident">slot</span>: <span class="kw-2">&amp;mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">S::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">slot</span>.<span class="ident">is_some</span>() {
-            <span class="macro">ready!</span>(<span class="ident">inner</span>.<span class="ident">as_mut</span>().<span class="ident">poll_ready</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
-            <span class="ident">Poll::Ready</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/split.rs.html#65">inner</a>.<a class="ident" href="../../../../futures_util/sink/trait.Sink.html">start_send</a>(<a class="ident" href="../../../../src/futures_util/stream/stream/split.rs.html#66">slot</a>.<span class="ident">take</span>().<span class="ident">unwrap</span>()))
-        } <span class="kw">else</span> {
-            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
+<span class="kw">impl</span>&lt;S: Sink&lt;Item&gt;, Item&gt; SplitSink&lt;S, Item&gt; {
+    <span class="kw">fn </span>poll_flush_slot(
+        <span class="kw-2">mut </span>inner: Pin&lt;<span class="kw-2">&amp;mut </span>S&gt;,
+        slot: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;Item&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), S::Error&gt;&gt; {
+        <span class="kw">if </span>slot.is_some() {
+            <span class="macro">ready!</span>(inner.as_mut().poll_ready(cx))<span class="question-mark">?</span>;
+            Poll::Ready(<a href="../../../../src/futures_util/stream/stream/split.rs.html#65">inner</a>.<a href="../../../../futures_util/sink/trait.Sink.html">start_send</a>(<a href="../../../../src/futures_util/stream/stream/split.rs.html#66">slot</a>.take().unwrap()))
+        } <span class="kw">else </span>{
+            Poll::Ready(<span class="prelude-val">Ok</span>(()))
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_lock_and_flush_slot</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">S::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="self" href="../../../../src/futures_util/stream/stream/split.rs.html#78">self</a>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <a class="macro" href="../../../../futures_util/macro.ready.html">ready!</a>(<span class="ident">this</span>.<span class="ident">lock</span>.<span class="ident">poll_lock</span>(<span class="ident">cx</span>));
-        <span class="ident"><span class="self">Self</span>::poll_flush_slot</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/split.rs.html#82">inner</a>.<a class="ident" href="../../../../src/futures_util/lock/bilock.rs.html#242">as_pin_mut</a>(), <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/futures_util/stream/stream/split.rs.html#81">this</a>.<span class="ident">slot</span>, <a class="ident" href="../../../../src/futures_util/stream/stream/split.rs.html#79">cx</a>)
+    <span class="kw">fn </span>poll_lock_and_flush_slot(
+        <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), S::Error&gt;&gt; {
+        <span class="kw">let </span>this = <span class="kw-2">&amp;mut *</span><a class="self" href="../../../../src/futures_util/stream/stream/split.rs.html#78">self</a>;
+        <span class="kw">let </span><span class="kw-2">mut </span>inner = <a class="macro" href="../../../../futures_util/macro.ready.html">ready!</a>(this.lock.poll_lock(cx));
+        <span class="self">Self</span>::poll_flush_slot(<a href="../../../../src/futures_util/stream/stream/split.rs.html#82">inner</a>.<a href="../../../../src/futures_util/lock/bilock.rs.html#245">as_pin_mut</a>(), <span class="kw-2">&amp;mut </span><a href="../../../../src/futures_util/stream/stream/split.rs.html#81">this</a>.slot, <a href="../../../../src/futures_util/stream/stream/split.rs.html#79">cx</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Sink</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&gt;</span>, <span class="ident">Item</span><span class="op">&gt;</span> <span class="ident">Sink</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SplitSink</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">Item</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">S::Error</span>;
+<span class="kw">impl</span>&lt;S: Sink&lt;Item&gt;, Item&gt; Sink&lt;Item&gt; <span class="kw">for </span>SplitSink&lt;S, Item&gt; {
+    <span class="kw">type </span>Error = S::Error;
 
-    <span class="kw">fn</span> <span class="ident">poll_ready</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">S::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">loop</span> {
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">slot</span>.<span class="ident">is_none</span>() {
-                <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()));
+    <span class="kw">fn </span>poll_ready(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), S::Error&gt;&gt; {
+        <span class="kw">loop </span>{
+            <span class="kw">if </span><span class="self">self</span>.slot.is_none() {
+                <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(()));
             }
-            <span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">as_mut</span>().<span class="ident">poll_lock_and_flush_slot</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
+            <span class="macro">ready!</span>(<span class="self">self</span>.as_mut().poll_lock_and_flush_slot(cx))<span class="question-mark">?</span>;
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">start_send</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">item</span>: <span class="ident">Item</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">S::Error</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/futures_util/stream/stream/split.rs.html#99">self</a>.<span class="ident">slot</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/split.rs.html#99">item</a>);
+    <span class="kw">fn </span>start_send(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, item: Item) -&gt; <span class="prelude-ty">Result</span>&lt;(), S::Error&gt; {
+        <a class="self" href="../../../../src/futures_util/stream/stream/split.rs.html#99">self</a>.slot = <span class="prelude-val">Some</span>(<a href="../../../../src/futures_util/stream/stream/split.rs.html#99">item</a>);
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">S::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="self" href="../../../../src/futures_util/stream/stream/split.rs.html#104">self</a>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <a class="macro" href="../../../../futures_util/macro.ready.html">ready!</a>(<span class="ident">this</span>.<span class="ident">lock</span>.<span class="ident">poll_lock</span>(<span class="ident">cx</span>));
-        <span class="macro">ready!</span>(<span class="ident"><span class="self">Self</span>::poll_flush_slot</span>(<span class="ident">inner</span>.<span class="ident">as_pin_mut</span>(), <span class="kw-2">&amp;mut</span> <span class="ident">this</span>.<span class="ident">slot</span>, <span class="ident">cx</span>))<span class="question-mark">?</span>;
-        <a class="ident" href="../../../../src/futures_util/stream/stream/split.rs.html#106">inner</a>.<a class="ident" href="../../../../src/futures_util/lock/bilock.rs.html#242">as_pin_mut</a>().<a class="ident" href="../../../../futures_util/sink/trait.Sink.html">poll_flush</a>(<a class="ident" href="../../../../src/futures_util/stream/stream/split.rs.html#104">cx</a>)
+    <span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), S::Error&gt;&gt; {
+        <span class="kw">let </span>this = <span class="kw-2">&amp;mut *</span><a class="self" href="../../../../src/futures_util/stream/stream/split.rs.html#104">self</a>;
+        <span class="kw">let </span><span class="kw-2">mut </span>inner = <a class="macro" href="../../../../futures_util/macro.ready.html">ready!</a>(this.lock.poll_lock(cx));
+        <span class="macro">ready!</span>(<span class="self">Self</span>::poll_flush_slot(inner.as_pin_mut(), <span class="kw-2">&amp;mut </span>this.slot, cx))<span class="question-mark">?</span>;
+        <a href="../../../../src/futures_util/stream/stream/split.rs.html#106">inner</a>.<a href="../../../../src/futures_util/lock/bilock.rs.html#245">as_pin_mut</a>().<a href="../../../../futures_util/sink/trait.Sink.html">poll_flush</a>(<a href="../../../../src/futures_util/stream/stream/split.rs.html#104">cx</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_close</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">S::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="self" href="../../../../src/futures_util/stream/stream/split.rs.html#111">self</a>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <a class="macro" href="../../../../futures_util/macro.ready.html">ready!</a>(<span class="ident">this</span>.<span class="ident">lock</span>.<span class="ident">poll_lock</span>(<span class="ident">cx</span>));
-        <span class="macro">ready!</span>(<span class="ident"><span class="self">Self</span>::poll_flush_slot</span>(<span class="ident">inner</span>.<span class="ident">as_pin_mut</span>(), <span class="kw-2">&amp;mut</span> <span class="ident">this</span>.<span class="ident">slot</span>, <span class="ident">cx</span>))<span class="question-mark">?</span>;
-        <a class="ident" href="../../../../src/futures_util/stream/stream/split.rs.html#113">inner</a>.<a class="ident" href="../../../../src/futures_util/lock/bilock.rs.html#242">as_pin_mut</a>().<a class="ident" href="../../../../futures_util/sink/trait.Sink.html">poll_close</a>(<a class="ident" href="../../../../src/futures_util/stream/stream/split.rs.html#111">cx</a>)
-    }
-}
-
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">split</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="../../../../futures_util/stream/trait.Stream.html">Stream</a> <span class="op">+</span> <span class="ident">Sink</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&gt;</span>, <span class="ident">Item</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="ident">S</span>) -&gt; (<span class="ident">SplitSink</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">Item</span><span class="op">&gt;</span>, <span class="ident">SplitStream</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) {
-    <span class="kw">let</span> (<span class="ident">a</span>, <span class="ident">b</span>) <span class="op">=</span> <span class="ident">BiLock::new</span>(<a class="ident" href="../../../../src/futures_util/stream/stream/split.rs.html#119">s</a>);
-    <span class="kw">let</span> <span class="ident">read</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/split.rs.html#14">SplitStream</a>(<a class="ident" href="../../../../src/futures_util/stream/stream/split.rs.html#120">a</a>);
-    <span class="kw">let</span> <span class="ident">write</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/stream/stream/split.rs.html#39">SplitSink</a>(<a class="ident" href="../../../../src/futures_util/stream/stream/split.rs.html#120">b</a>);
-    (<a class="ident" href="../../../../src/futures_util/stream/stream/split.rs.html#122">write</a>, <a class="ident" href="../../../../src/futures_util/stream/stream/split.rs.html#121">read</a>)
-}
-
-<span class="doccomment">/// Error indicating a `SplitSink&lt;S&gt;` and `SplitStream&lt;S&gt;` were not two halves</span>
-<span class="doccomment">/// of a `Stream + Split`, and thus could not be `reunite`d.</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;sink&quot;</span>)))]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ReuniteError</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Item</span><span class="op">&gt;</span>(<span class="kw">pub</span> <span class="ident">SplitSink</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Item</span><span class="op">&gt;</span>, <span class="kw">pub</span> <span class="ident">SplitStream</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Item</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">ReuniteError</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Item</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../../src/futures_util/stream/stream/split.rs.html#132">f</a>.<span class="ident">debug_tuple</span>(<span class="string">&quot;ReuniteError&quot;</span>).<span class="ident">field</span>(<span class="kw-2">&amp;</span><span class="string">&quot;...&quot;</span>).<span class="ident">finish</span>()
+    <span class="kw">fn </span>poll_close(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), S::Error&gt;&gt; {
+        <span class="kw">let </span>this = <span class="kw-2">&amp;mut *</span><a class="self" href="../../../../src/futures_util/stream/stream/split.rs.html#111">self</a>;
+        <span class="kw">let </span><span class="kw-2">mut </span>inner = <a class="macro" href="../../../../futures_util/macro.ready.html">ready!</a>(this.lock.poll_lock(cx));
+        <span class="macro">ready!</span>(<span class="self">Self</span>::poll_flush_slot(inner.as_pin_mut(), <span class="kw-2">&amp;mut </span>this.slot, cx))<span class="question-mark">?</span>;
+        <a href="../../../../src/futures_util/stream/stream/split.rs.html#113">inner</a>.<a href="../../../../src/futures_util/lock/bilock.rs.html#245">as_pin_mut</a>().<a href="../../../../futures_util/sink/trait.Sink.html">poll_close</a>(<a href="../../../../src/futures_util/stream/stream/split.rs.html#111">cx</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Item</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <span class="ident">ReuniteError</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Item</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a class="ident" href="../../../../src/futures_util/stream/stream/split.rs.html#138">f</a>, <span class="string">&quot;tried to reunite a SplitStream and SplitSink that don&#39;t form a pair&quot;</span>)
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>split&lt;S: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a> + Sink&lt;Item&gt;, Item&gt;(s: S) -&gt; (SplitSink&lt;S, Item&gt;, SplitStream&lt;S&gt;) {
+    <span class="kw">let </span>(a, b) = BiLock::new(<a href="../../../../src/futures_util/stream/stream/split.rs.html#119">s</a>);
+    <span class="kw">let </span>read = <a href="../../../../src/futures_util/stream/stream/split.rs.html#14">SplitStream</a>(<a href="../../../../src/futures_util/stream/stream/split.rs.html#120">a</a>);
+    <span class="kw">let </span>write = <a href="../../../../src/futures_util/stream/stream/split.rs.html#39">SplitSink</a>(<a href="../../../../src/futures_util/stream/stream/split.rs.html#120">b</a>);
+    (<a href="../../../../src/futures_util/stream/stream/split.rs.html#122">write</a>, <a href="../../../../src/futures_util/stream/stream/split.rs.html#121">read</a>)
+}
+
+<span class="doccomment">/// Error indicating a `SplitSink&lt;S&gt;` and `SplitStream&lt;S&gt;` were not two halves
+/// of a `Stream + Split`, and thus could not be `reunite`d.
+</span><span class="attribute">#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;sink&quot;</span>)))]
+</span><span class="kw">pub struct </span>ReuniteError&lt;T, Item&gt;(<span class="kw">pub </span>SplitSink&lt;T, Item&gt;, <span class="kw">pub </span>SplitStream&lt;T&gt;);
+
+<span class="kw">impl</span>&lt;T, Item&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>ReuniteError&lt;T, Item&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../../src/futures_util/stream/stream/split.rs.html#132">f</a>.debug_tuple(<span class="string">&quot;ReuniteError&quot;</span>).field(<span class="kw-2">&amp;</span><span class="string">&quot;...&quot;</span>).finish()
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">core::any::Any</a>, <span class="ident">Item</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">for</span> <span class="ident">ReuniteError</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Item</span><span class="op">&gt;</span> {}
+<span class="kw">impl</span>&lt;T, Item&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span>ReuniteError&lt;T, Item&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="../../../../src/futures_util/stream/stream/split.rs.html#138">f</a>, <span class="string">&quot;tried to reunite a SplitStream and SplitSink that don&#39;t form a pair&quot;</span>)
+    }
+}
+
+<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">core::any::Any</a>, Item&gt; <a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">for </span>ReuniteError&lt;T, Item&gt; {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/utils/type_visitor.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>type_visitor.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../prusti_viper/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/utils/type_visitor.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>type_visitor.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../prusti_viper/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -321,328 +321,328 @@
 <span id="321">321</span>
 <span id="322">322</span>
 <span id="323">323</span>
-</pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
-<span class="comment">//</span>
-<span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
-<span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
-<span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
+</pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/enum.Mutability.html">prusti_rustc_interface::hir::Mutability</a>;
-<span class="kw">use</span> <span class="ident">prusti_rustc_interface::middle::ty</span>::{
-    <span class="ident">AdtDef</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.FieldDef.html">FieldDef</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/list/struct.List.html">List</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/struct.ParamTy.html">ParamTy</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/struct.ProjectionTy.html">ProjectionTy</a>, <span class="ident">Region</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.Ty.html">Ty</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">TyCtxt</a>,
-    <span class="ident">TypeFlags</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/type.TyKind.html">TyKind</a>, <span class="ident">IntTy</span>, <span class="ident">UintTy</span>, <span class="ident">FloatTy</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.VariantDef.html">VariantDef</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/subst/type.SubstsRef.html">subst::SubstsRef</a>, <span class="ident">Const</span>
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/enum.Mutability.html">prusti_rustc_interface::hir::Mutability</a>;
+<span class="kw">use </span>prusti_rustc_interface::middle::ty::{
+    AdtDef, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.FieldDef.html">FieldDef</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/list/struct.List.html">List</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/struct.ParamTy.html">ParamTy</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/struct.ProjectionTy.html">ProjectionTy</a>, Region, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.Ty.html">Ty</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">TyCtxt</a>,
+    TypeFlags, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/type.TyKind.html">TyKind</a>, IntTy, UintTy, FloatTy, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.VariantDef.html">VariantDef</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/subst/type.SubstsRef.html">subst::SubstsRef</a>, Const
 };
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">prusti_rustc_interface::hir::def_id::DefId</a>;
-<span class="kw">use</span> <a class="ident" href="../../../log/macro.trace.html">log::trace</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">prusti_rustc_interface::hir::def_id::DefId</a>;
+<span class="kw">use </span><a href="../../../log/macro.trace.html">log::trace</a>;
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">TypeVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> {
-    <span class="kw">type</span> <span class="ident">Error</span>;
+<span class="kw">pub trait </span>TypeVisitor&lt;<span class="lifetime">&#39;tcx</span>&gt;: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> {
+    <span class="kw">type </span>Error;
 
-    <span class="kw">fn</span> <span class="ident">tcx</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>;
+    <span class="kw">fn </span>tcx(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TyCtxt&lt;<span class="lifetime">&#39;tcx</span>&gt;;
 
-    <span class="kw">fn</span> <span class="ident">unsupported</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_msg</span>: <span class="ident">S</span>) -&gt; <span class="ident"><span class="self">Self</span>::Error</span>;
+    <span class="kw">fn </span>unsupported&lt;S: <a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, _msg: S) -&gt; <span class="self">Self</span>::Error;
 
-    <span class="kw">fn</span> <span class="ident">visit_ty</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ty</span>: <span class="ident">Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_ty({:?})&quot;</span>, <span class="ident">ty</span>);
-        <span class="self">self</span>.<span class="ident">visit_sty</span>(<span class="ident">ty</span>.<span class="ident">kind</span>())<span class="question-mark">?</span>;
-        <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#22">self</a>.<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#87">visit_flags</a>(<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#22">ty</a>.<span class="ident">flags</span>())
+    <span class="kw">fn </span>visit_ty(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_ty({:?})&quot;</span>, ty);
+        <span class="self">self</span>.visit_sty(ty.kind())<span class="question-mark">?</span>;
+        <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#22">self</a>.<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#87">visit_flags</a>(<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#22">ty</a>.flags())
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_sty</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">sty</span>: <span class="kw-2">&amp;</span><span class="ident">TyKind</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_sty({:?})&quot;</span>, <span class="ident">sty</span>);
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">sty</a> {
-            <span class="ident">TyKind::Bool</span> =&gt; {
-                <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">self</a>.<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#91">visit_bool</a>()
+    <span class="kw">fn </span>visit_sty(<span class="kw-2">&amp;mut </span><span class="self">self</span>, sty: <span class="kw-2">&amp;</span>TyKind&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_sty({:?})&quot;</span>, sty);
+        <span class="kw">match </span><span class="kw-2">*</span><a href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">sty</a> {
+            TyKind::Bool =&gt; {
+                <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">self</a>.<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#91">visit_bool</a>()
             }
-            <span class="ident">TyKind::Int</span>(<span class="ident">ty</span>) =&gt; {
-                <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">self</a>.<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#95">visit_int</a>(<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#34">ty</a>)
+            TyKind::Int(ty) =&gt; {
+                <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">self</a>.<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#95">visit_int</a>(<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#34">ty</a>)
             }
-            <span class="ident">TyKind::Uint</span>(<span class="ident">ty</span>) =&gt; {
-                <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">self</a>.<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#99">visit_uint</a>(<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#37">ty</a>)
+            TyKind::Uint(ty) =&gt; {
+                <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">self</a>.<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#99">visit_uint</a>(<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#37">ty</a>)
             }
-            <span class="ident">TyKind::Float</span>(<span class="ident">ty</span>) =&gt; {
-                <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">self</a>.<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#103">visit_float</a>(<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#40">ty</a>)
+            TyKind::Float(ty) =&gt; {
+                <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">self</a>.<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#103">visit_float</a>(<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#40">ty</a>)
             }
-            <span class="ident">TyKind::Char</span> =&gt; {
-                <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">self</a>.<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#107">visit_char</a>()
+            TyKind::Char =&gt; {
+                <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">self</a>.<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#107">visit_char</a>()
             }
-            <span class="ident">TyKind::Adt</span>(<span class="ident">adt_def</span>, <span class="ident">substs</span>) =&gt; {
-                <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">self</a>.<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#126-130">visit_adt</a>(<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#46">adt_def</a>, <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#46">substs</a>)
+            TyKind::Adt(adt_def, substs) =&gt; {
+                <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">self</a>.<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#126-130">visit_adt</a>(<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#46">adt_def</a>, <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#46">substs</a>)
             }
-            <span class="ident">TyKind::Ref</span>(<span class="ident">region</span>, <span class="ident">ty</span>, <span class="ident">mutability</span>) =&gt; {
-                <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">self</a>.<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#156-161">visit_ref</a>(<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#49">region</a>, <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#49">ty</a>, <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#49">mutability</a>)
+            TyKind::Ref(region, ty, mutability) =&gt; {
+                <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">self</a>.<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#156-161">visit_ref</a>(<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#49">region</a>, <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#49">ty</a>, <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#49">mutability</a>)
             }
-            <span class="ident">TyKind::Tuple</span>(<span class="ident">types</span>) =&gt; {
-                <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">self</a>.<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#176-179">visit_tuple</a>(<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#52">types</a>)
+            TyKind::Tuple(types) =&gt; {
+                <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">self</a>.<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#176-179">visit_tuple</a>(<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#52">types</a>)
             }
-            <span class="ident">TyKind::RawPtr</span>(<span class="ident">ty_and_mutbl</span>) =&gt; {
-                <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">self</a>.<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#184-188">visit_raw_ptr</a>(<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#55">ty_and_mutbl</a>.<span class="ident">ty</span>, <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#55">ty_and_mutbl</a>.<span class="ident">mutbl</span>)
+            TyKind::RawPtr(ty_and_mutbl) =&gt; {
+                <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">self</a>.<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#184-188">visit_raw_ptr</a>(<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#55">ty_and_mutbl</a>.ty, <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#55">ty_and_mutbl</a>.mutbl)
             }
-            <span class="ident">TyKind::Never</span> =&gt; {
-                <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">self</a>.<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#111">visit_never</a>()
+            TyKind::Never =&gt; {
+                <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">self</a>.<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#111">visit_never</a>()
             }
-            <span class="ident">TyKind::Param</span>(<span class="ident">param</span>) =&gt; {
-                <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">self</a>.<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#115">visit_param</a>(<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#61">param</a>)
+            TyKind::Param(param) =&gt; {
+                <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">self</a>.<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#115">visit_param</a>(<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#61">param</a>)
             }
-            <span class="ident">TyKind::Projection</span>(<span class="ident">data</span>) =&gt; {
-                <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">self</a>.<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#119-122">visit_projection</a>(<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#64">data</a>)
+            TyKind::Projection(data) =&gt; {
+                <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">self</a>.<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#119-122">visit_projection</a>(<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#64">data</a>)
             }
-            <span class="ident">TyKind::Closure</span>(<span class="ident">def_id</span>, <span class="ident">substs</span>) =&gt; {
-                <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">self</a>.<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#193-197">visit_closure</a>(<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#67">def_id</a>, <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#67">substs</a>)
+            TyKind::Closure(def_id, substs) =&gt; {
+                <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">self</a>.<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#193-197">visit_closure</a>(<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#67">def_id</a>, <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#67">substs</a>)
             }
-            <span class="ident">TyKind::FnDef</span>(<span class="ident">def_id</span>, <span class="ident">substs</span>) =&gt; {
-                <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">self</a>.<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#202-206">visit_fndef</a>(<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#70">def_id</a>, <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#70">substs</a>)
+            TyKind::FnDef(def_id, substs) =&gt; {
+                <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">self</a>.<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#202-206">visit_fndef</a>(<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#70">def_id</a>, <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#70">substs</a>)
             }
-            <span class="ident">TyKind::Array</span>(<span class="ident">ty</span>, <span class="ident">len</span>) =&gt; {
-                <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">self</a>.<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#211-215">visit_array</a>(<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#73">ty</a>, <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#73">len</a>)
+            TyKind::Array(ty, len) =&gt; {
+                <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">self</a>.<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#211-215">visit_array</a>(<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#73">ty</a>, <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#73">len</a>)
             }
-            <span class="kw-2">ref</span> <span class="ident">x</span> =&gt; {
-                <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">self</a>.<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#82-85">visit_unsupported_sty</a>(<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#76">x</a>)
+            <span class="kw-2">ref </span>x =&gt; {
+                <a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#28">self</a>.<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#82-85">visit_unsupported_sty</a>(<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#76">x</a>)
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_unsupported_sty</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">_sty</span>: <span class="kw-2">&amp;</span><span class="ident">TyKind</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>;
+    <span class="kw">fn </span>visit_unsupported_sty(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        _sty: <span class="kw-2">&amp;</span>TyKind&lt;<span class="lifetime">&#39;tcx</span>&gt;
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;;
 
-    <span class="kw">fn</span> <span class="ident">visit_flags</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">_flags</span>: <span class="ident">TypeFlags</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn </span>visit_flags(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _flags: TypeFlags) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_bool</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn </span>visit_bool(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_int</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">_ty</span>: <span class="ident">IntTy</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn </span>visit_int(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _ty: IntTy) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_uint</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">_ty</span>: <span class="ident">UintTy</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn </span>visit_uint(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _ty: UintTy) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_float</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">_ty</span>: <span class="ident">FloatTy</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn </span>visit_float(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _ty: FloatTy) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_char</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn </span>visit_char(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_never</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn </span>visit_never(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_param</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">_param</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/struct.ParamTy.html">ParamTy</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn </span>visit_param(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _param: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/struct.ParamTy.html">ParamTy</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_projection</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">_data</span>: <span class="ident">ProjectionTy</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn </span>visit_projection(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        _data: ProjectionTy&lt;<span class="lifetime">&#39;tcx</span>&gt;
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_adt</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">adt_def</span>: <span class="ident">AdtDef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-        <span class="ident">substs</span>: <span class="ident">SubstsRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_adt({:?})&quot;</span>, <span class="ident">adt_def</span>);
-        <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#221-225">walk_adt</a>(<a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#127">self</a>, <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#128">adt_def</a>, <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#129">substs</a>)
+    <span class="kw">fn </span>visit_adt(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        adt_def: AdtDef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+        substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_adt({:?})&quot;</span>, adt_def);
+        <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#221-225">walk_adt</a>(<a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#127">self</a>, <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#128">adt_def</a>, <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#129">substs</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_adt_variant</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">adt</span>: <span class="ident">AdtDef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-        <span class="ident">idx</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_target/abi/struct.VariantIdx.html">prusti_rustc_interface::target::abi::VariantIdx</a>,
-        <span class="ident">variant</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.VariantDef.html">VariantDef</a>,
-        <span class="ident">substs</span>: <span class="ident">SubstsRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    )  -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_adt_variant({:?}, {:?}, {:?})&quot;</span>, <span class="ident">adt</span>, <span class="ident">idx</span>, <span class="ident">variant</span>);
-        <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#232-236">walk_adt_variant</a>(<a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#136">self</a>, <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#139">variant</a>, <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#140">substs</a>)
+    <span class="kw">fn </span>visit_adt_variant(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        adt: AdtDef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+        idx: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_target/abi/struct.VariantIdx.html">prusti_rustc_interface::target::abi::VariantIdx</a>,
+        variant: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.VariantDef.html">VariantDef</a>,
+        substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    )  -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_adt_variant({:?}, {:?}, {:?})&quot;</span>, adt, idx, variant);
+        <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#232-236">walk_adt_variant</a>(<a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#136">self</a>, <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#139">variant</a>, <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#140">substs</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_field</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.FieldDef.html">FieldDef</a>,
-        <span class="ident">substs</span>: <span class="ident">SubstsRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_field({}, {:?})&quot;</span>, <span class="ident">index</span>, <span class="ident">field</span>);
-        <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#243-247">walk_field</a>(<a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#147">self</a>, <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#149">field</a>, <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#150">substs</a>)
+    <span class="kw">fn </span>visit_field(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+        field: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.FieldDef.html">FieldDef</a>,
+        substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_field({}, {:?})&quot;</span>, index, field);
+        <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#243-247">walk_field</a>(<a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#147">self</a>, <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#149">field</a>, <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#150">substs</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_ref</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">region</span>: <span class="ident">Region</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-        <span class="ident">ty</span>: <span class="ident">Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-        <span class="ident">mutability</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/enum.Mutability.html">Mutability</a>
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_ref({:?}, {:?}, {:?})&quot;</span>, <span class="ident">region</span>, <span class="ident">ty</span>, <span class="ident">mutability</span>);
-        <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#252-257">walk_ref</a>(<a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#157">self</a>, <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#158">region</a>, <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#159">ty</a>, <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#160">mutability</a>)
+    <span class="kw">fn </span>visit_ref(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        region: Region&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+        ty: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+        mutability: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/enum.Mutability.html">Mutability</a>
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_ref({:?}, {:?}, {:?})&quot;</span>, region, ty, mutability);
+        <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#252-257">walk_ref</a>(<a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#157">self</a>, <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#158">region</a>, <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#159">ty</a>, <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#160">mutability</a>)
     }
 
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">visit_ref_type</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">ty</span>: <span class="ident">Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-        <span class="ident">mutability</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/enum.Mutability.html">Mutability</a>
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_ref_type({:?}, {:?})&quot;</span>, <span class="ident">ty</span>, <span class="ident">mutability</span>);
-        <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#261-265">walk_ref_type</a>(<a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#168">self</a>, <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#169">ty</a>, <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#170">mutability</a>)
+    <span class="attribute">#[allow(dead_code)]
+    </span><span class="kw">fn </span>visit_ref_type(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        ty: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+        mutability: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/enum.Mutability.html">Mutability</a>
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_ref_type({:?}, {:?})&quot;</span>, ty, mutability);
+        <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#261-265">walk_ref_type</a>(<a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#168">self</a>, <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#169">ty</a>, <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#170">mutability</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_tuple</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">types</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx</span> <span class="ident">List</span><span class="op">&lt;</span><span class="ident">Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_tuple({:?})&quot;</span>, <span class="ident">types</span>);
-        <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#269-272">walk_tuple</a>(<a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#177">self</a>, <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#178">types</a>)
+    <span class="kw">fn </span>visit_tuple(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        types: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx </span>List&lt;Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_tuple({:?})&quot;</span>, types);
+        <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#269-272">walk_tuple</a>(<a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#177">self</a>, <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#178">types</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_raw_ptr</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">ty</span>: <span class="ident">Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-        <span class="ident">mutability</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/enum.Mutability.html">Mutability</a>
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_raw_ptr({:?}, {:?})&quot;</span>, <span class="ident">ty</span>, <span class="ident">mutability</span>);
-        <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#279-283">walk_raw_ptr</a>(<a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#185">self</a>, <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#186">ty</a>, <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#187">mutability</a>)
+    <span class="kw">fn </span>visit_raw_ptr(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        ty: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+        mutability: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/enum.Mutability.html">Mutability</a>
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_raw_ptr({:?}, {:?})&quot;</span>, ty, mutability);
+        <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#279-283">walk_raw_ptr</a>(<a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#185">self</a>, <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#186">ty</a>, <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#187">mutability</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_closure</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
-        <span class="ident">substs</span>: <span class="ident">SubstsRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_closure({:?})&quot;</span>, <span class="ident">def_id</span>);
-        <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#287-291">walk_closure</a>(<a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#194">self</a>, <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#195">def_id</a>, <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#196">substs</a>)
+    <span class="kw">fn </span>visit_closure(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
+        substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_closure({:?})&quot;</span>, def_id);
+        <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#287-291">walk_closure</a>(<a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#194">self</a>, <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#195">def_id</a>, <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#196">substs</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_fndef</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
-        <span class="ident">substs</span>: <span class="ident">SubstsRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_fndef({:?})&quot;</span>, <span class="ident">def_id</span>);
-        <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#304-308">walk_fndef</a>(<a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#203">self</a>, <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#204">def_id</a>, <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#205">substs</a>)
+    <span class="kw">fn </span>visit_fndef(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
+        substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_fndef({:?})&quot;</span>, def_id);
+        <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#304-308">walk_fndef</a>(<a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#203">self</a>, <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#204">def_id</a>, <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#205">substs</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_array</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">ty</span>: <span class="ident">Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-        <span class="ident">len</span>: <span class="ident">Const</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_array({:?}, {:?})&quot;</span>, <span class="ident">ty</span>, <span class="ident">len</span>);
-        <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#315-319">walk_array</a>(<a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#212">self</a>, <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#213">ty</a>, <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#214">len</a>)
+    <span class="kw">fn </span>visit_array(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        ty: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+        len: Const&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;visit_array({:?}, {:?})&quot;</span>, ty, len);
+        <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#315-319">walk_array</a>(<a class="self" href="../../../src/prusti_viper/utils/type_visitor.rs.html#212">self</a>, <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#213">ty</a>, <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#214">len</a>)
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">walk_adt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">E</span>, <span class="ident">V</span>: <span class="ident">TypeVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-    <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>,
-    <span class="ident">adt_def</span>: <span class="ident">AdtDef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">substs</span>: <span class="ident">SubstsRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="kw">for</span> (<span class="ident">idx</span>, <span class="ident">variant</span>) <span class="kw">in</span> <span class="ident">adt_def</span>.<span class="ident">variants</span>().<span class="ident">iter_enumerated</span>() {
-        <span class="ident">visitor</span>.<span class="ident">visit_adt_variant</span>(<span class="ident">adt_def</span>, <span class="ident">idx</span>, <span class="ident">variant</span>, <span class="ident">substs</span>)<span class="question-mark">?</span>;
+<span class="kw">pub fn </span>walk_adt&lt;<span class="lifetime">&#39;tcx</span>, E, V: TypeVisitor&lt;<span class="lifetime">&#39;tcx</span>, Error = E&gt;&gt;(
+    visitor: <span class="kw-2">&amp;mut </span>V,
+    adt_def: AdtDef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), E&gt; {
+    <span class="kw">for </span>(idx, variant) <span class="kw">in </span>adt_def.variants().iter_enumerated() {
+        visitor.visit_adt_variant(adt_def, idx, variant, substs)<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">walk_adt_variant</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>, <span class="ident">E</span>, <span class="ident">V</span>: <span class="ident">TypeVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-    <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>,
-    <span class="ident">variant</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.VariantDef.html">VariantDef</a>,
-    <span class="ident">substs</span>: <span class="ident">SubstsRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="kw">for</span> (<span class="ident">index</span>, <span class="ident">field</span>) <span class="kw">in</span> <span class="ident">variant</span>.<span class="ident">fields</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-        <span class="ident">visitor</span>.<span class="ident">visit_field</span>(<span class="ident">index</span>, <span class="ident">field</span>, <span class="ident">substs</span>)<span class="question-mark">?</span>;
+<span class="kw">pub fn </span>walk_adt_variant&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>, E, V: TypeVisitor&lt;<span class="lifetime">&#39;tcx</span>, Error = E&gt;&gt;(
+    visitor: <span class="kw-2">&amp;mut </span>V,
+    variant: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.VariantDef.html">VariantDef</a>,
+    substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), E&gt; {
+    <span class="kw">for </span>(index, field) <span class="kw">in </span>variant.fields.iter().enumerate() {
+        visitor.visit_field(index, field, substs)<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">walk_field</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>, <span class="ident">E</span>, <span class="ident">V</span>: <span class="ident">TypeVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-    <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>,
-    <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.FieldDef.html">FieldDef</a>,
-    <span class="ident">substs</span>: <span class="ident">SubstsRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#245">field</a>.<span class="ident">ty</span>(<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#244">visitor</a>.<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#18">tcx</a>(), <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#246">substs</a>);
-    <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#244">visitor</a>.<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#22">visit_ty</a>(<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#248">ty</a>)
+<span class="kw">pub fn </span>walk_field&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>, E, V: TypeVisitor&lt;<span class="lifetime">&#39;tcx</span>, Error = E&gt;&gt;(
+    visitor: <span class="kw-2">&amp;mut </span>V,
+    field: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.FieldDef.html">FieldDef</a>,
+    substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), E&gt; {
+    <span class="kw">let </span>ty = <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#245">field</a>.ty(<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#244">visitor</a>.<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#18">tcx</a>(), <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#246">substs</a>);
+    <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#244">visitor</a>.<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#22">visit_ty</a>(<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#248">ty</a>)
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">walk_ref</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">E</span>, <span class="ident">V</span>: <span class="ident">TypeVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-    <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>,
-    <span class="kw">_</span>: <span class="ident">Region</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">ty</span>: <span class="ident">Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="kw">_</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/enum.Mutability.html">Mutability</a>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">E</span><span class="op">&gt;</span> {
-    <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#253">visitor</a>.<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#22">visit_ty</a>(<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#255">ty</a>)
+<span class="kw">pub fn </span>walk_ref&lt;<span class="lifetime">&#39;tcx</span>, E, V: TypeVisitor&lt;<span class="lifetime">&#39;tcx</span>, Error = E&gt;&gt;(
+    visitor: <span class="kw-2">&amp;mut </span>V,
+    <span class="kw">_</span>: Region&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    ty: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    <span class="kw">_</span>: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/enum.Mutability.html">Mutability</a>,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), E&gt; {
+    <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#253">visitor</a>.<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#22">visit_ty</a>(<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#255">ty</a>)
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">walk_ref_type</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">E</span>, <span class="ident">V</span>: <span class="ident">TypeVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-    <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>,
-    <span class="ident">ty</span>: <span class="ident">Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="kw">_</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/enum.Mutability.html">Mutability</a>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">E</span><span class="op">&gt;</span> {
-    <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#262">visitor</a>.<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#22">visit_ty</a>(<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#263">ty</a>)
+<span class="kw">pub fn </span>walk_ref_type&lt;<span class="lifetime">&#39;tcx</span>, E, V: TypeVisitor&lt;<span class="lifetime">&#39;tcx</span>, Error = E&gt;&gt;(
+    visitor: <span class="kw-2">&amp;mut </span>V,
+    ty: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    <span class="kw">_</span>: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/enum.Mutability.html">Mutability</a>,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), E&gt; {
+    <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#262">visitor</a>.<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#22">visit_ty</a>(<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#263">ty</a>)
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">walk_tuple</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">E</span>, <span class="ident">V</span>: <span class="ident">TypeVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-    <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>,
-    <span class="ident">types</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx</span> <span class="ident">List</span><span class="op">&lt;</span><span class="ident">Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="kw">for</span> <span class="ident">ty</span> <span class="kw">in</span> <span class="ident">types</span> {
-        <span class="ident">visitor</span>.<span class="ident">visit_ty</span>(<span class="ident">ty</span>)<span class="question-mark">?</span>;
+<span class="kw">pub fn </span>walk_tuple&lt;<span class="lifetime">&#39;tcx</span>, E, V: TypeVisitor&lt;<span class="lifetime">&#39;tcx</span>, Error = E&gt;&gt;(
+    visitor: <span class="kw-2">&amp;mut </span>V,
+    types: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx </span>List&lt;Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), E&gt; {
+    <span class="kw">for </span>ty <span class="kw">in </span>types {
+        visitor.visit_ty(ty)<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">walk_raw_ptr</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">E</span>, <span class="ident">V</span>: <span class="ident">TypeVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-    <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>,
-    <span class="ident">ty</span>: <span class="ident">Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="kw">_</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/enum.Mutability.html">Mutability</a>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">E</span><span class="op">&gt;</span> {
-    <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#280">visitor</a>.<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#22">visit_ty</a>(<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#281">ty</a>)
+<span class="kw">pub fn </span>walk_raw_ptr&lt;<span class="lifetime">&#39;tcx</span>, E, V: TypeVisitor&lt;<span class="lifetime">&#39;tcx</span>, Error = E&gt;&gt;(
+    visitor: <span class="kw-2">&amp;mut </span>V,
+    ty: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    <span class="kw">_</span>: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/enum.Mutability.html">Mutability</a>,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), E&gt; {
+    <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#280">visitor</a>.<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#22">visit_ty</a>(<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#281">ty</a>)
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">walk_closure</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">E</span>, <span class="ident">V</span>: <span class="ident">TypeVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-    <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>,
-    <span class="ident">_def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
-    <span class="ident">substs</span>: <span class="ident">SubstsRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">cl_substs</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#290">substs</a>.<span class="ident">as_closure</span>();
-    <span class="comment">// TODO: when are there bound typevars? can type visitor deal with generics?</span>
-    <span class="kw">let</span> <span class="ident">fn_sig</span> <span class="op">=</span>
-        <span class="ident">cl_substs</span>.<span class="ident">sig</span>()
-                 .<span class="ident">no_bound_vars</span>()
-                 .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">visitor</span>.<span class="ident">unsupported</span>(<span class="string">&quot;higher-ranked lifetimes and types are not supported&quot;</span>))<span class="question-mark">?</span>;
-    <span class="kw">for</span> <span class="ident">ty</span> <span class="kw">in</span> <span class="ident">fn_sig</span>.<span class="ident">inputs</span>() {
-        <span class="ident">visitor</span>.<span class="ident">visit_ty</span>(<span class="kw-2">*</span><span class="ident">ty</span>)<span class="question-mark">?</span>;
+<span class="kw">pub fn </span>walk_closure&lt;<span class="lifetime">&#39;tcx</span>, E, V: TypeVisitor&lt;<span class="lifetime">&#39;tcx</span>, Error = E&gt;&gt;(
+    visitor: <span class="kw-2">&amp;mut </span>V,
+    _def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
+    substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), E&gt; {
+    <span class="kw">let </span>cl_substs = <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#290">substs</a>.as_closure();
+    <span class="comment">// TODO: when are there bound typevars? can type visitor deal with generics?
+    </span><span class="kw">let </span>fn_sig =
+        cl_substs.sig()
+                 .no_bound_vars()
+                 .ok_or_else(|| visitor.unsupported(<span class="string">&quot;higher-ranked lifetimes and types are not supported&quot;</span>))<span class="question-mark">?</span>;
+    <span class="kw">for </span>ty <span class="kw">in </span>fn_sig.inputs() {
+        visitor.visit_ty(<span class="kw-2">*</span>ty)<span class="question-mark">?</span>;
     }
-    <a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#288">visitor</a>.<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#22">visit_ty</a>(<a class="ident" href="../../../src/prusti_viper/utils/type_visitor.rs.html#294">fn_sig</a>.<span class="ident">output</span>())
+    <a href="../../../src/prusti_viper/utils/type_visitor.rs.html#288">visitor</a>.<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#22">visit_ty</a>(<a href="../../../src/prusti_viper/utils/type_visitor.rs.html#294">fn_sig</a>.output())
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">walk_fndef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">E</span>, <span class="ident">V</span>: <span class="ident">TypeVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-    <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>,
-    <span class="ident">_def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
-    <span class="ident">substs</span>: <span class="ident">SubstsRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="kw">for</span> <span class="ident">ty</span> <span class="kw">in</span> <span class="ident">substs</span>.<span class="ident">types</span>() {
-        <span class="ident">visitor</span>.<span class="ident">visit_ty</span>(<span class="ident">ty</span>)<span class="question-mark">?</span>;
+<span class="kw">pub fn </span>walk_fndef&lt;<span class="lifetime">&#39;tcx</span>, E, V: TypeVisitor&lt;<span class="lifetime">&#39;tcx</span>, Error = E&gt;&gt;(
+    visitor: <span class="kw-2">&amp;mut </span>V,
+    _def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
+    substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), E&gt; {
+    <span class="kw">for </span>ty <span class="kw">in </span>substs.types() {
+        visitor.visit_ty(ty)<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">walk_array</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">E</span>, <span class="ident">V</span>: <span class="ident">TypeVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-    <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>,
-    <span class="ident">ty</span>: <span class="ident">Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">_len</span>: <span class="ident">Const</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="ident">visitor</span>.<span class="ident">visit_ty</span>(<span class="ident">ty</span>)<span class="question-mark">?</span>;
+<span class="kw">pub fn </span>walk_array&lt;<span class="lifetime">&#39;tcx</span>, E, V: TypeVisitor&lt;<span class="lifetime">&#39;tcx</span>, Error = E&gt;&gt;(
+    visitor: <span class="kw-2">&amp;mut </span>V,
+    ty: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    _len: Const&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), E&gt; {
+    visitor.visit_ty(ty)<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(())
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

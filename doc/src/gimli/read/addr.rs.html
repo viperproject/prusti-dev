@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.26.2/src/read/addr.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>addr.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../gimli/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../gimli/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../gimli/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.26.2/src/read/addr.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>addr.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../gimli/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../gimli/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../gimli/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -126,128 +126,128 @@
 <span id="126">126</span>
 <span id="127">127</span>
 <span id="128">128</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common</span>::{<a class="ident" href="../../../src/gimli/common.rs.html#96">DebugAddrBase</a>, <a class="ident" href="../../../src/gimli/common.rs.html#100">DebugAddrIndex</a>, <a class="ident" href="../../../src/gimli/common.rs.html#245">SectionId</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read</span>::{<a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a>, <a class="ident" href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>, <span class="prelude-ty">Result</span>, <a class="ident" href="../../../src/gimli/read/mod.rs.html#612">Section</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::common::{<a href="../../../src/gimli/common.rs.html#96">DebugAddrBase</a>, <a href="../../../src/gimli/common.rs.html#100">DebugAddrIndex</a>, <a href="../../../src/gimli/common.rs.html#245">SectionId</a>};
+<span class="kw">use </span><span class="kw">crate</span>::read::{<a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>, <a href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>, <span class="prelude-ty">Result</span>, <a href="../../../src/gimli/read/mod.rs.html#612">Section</a>};
 
-<span class="doccomment">/// The raw contents of the `.debug_addr` section.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DebugAddr</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="ident">section</span>: <span class="ident">R</span>,
+<span class="doccomment">/// The raw contents of the `.debug_addr` section.
+</span><span class="attribute">#[derive(Debug, Default, Clone, Copy)]
+</span><span class="kw">pub struct </span>DebugAddr&lt;R&gt; {
+    section: R,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span> <span class="ident">DebugAddr</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="comment">// TODO: add an iterator over the sets of addresses in the section.</span>
-    <span class="comment">// This is not needed for common usage of the section though.</span>
+<span class="kw">impl</span>&lt;R: <a href="../../../src/gimli/read/reader.rs.html#215">Reader</a>&gt; DebugAddr&lt;R&gt; {
+    <span class="comment">// TODO: add an iterator over the sets of addresses in the section.
+    // This is not needed for common usage of the section though.
 
-    <span class="doccomment">/// Returns the address at the given `base` and `index`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A set of addresses in the `.debug_addr` section consists of a header</span>
-    <span class="doccomment">/// followed by a series of addresses.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `base` must be the `DW_AT_addr_base` value from the compilation unit DIE.</span>
-    <span class="doccomment">/// This is an offset that points to the first address following the header.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `index` is the value of a `DW_FORM_addrx` attribute.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `address_size` must be the size of the address for the compilation unit.</span>
-    <span class="doccomment">/// This value must also match the header. However, note that we do not parse the</span>
-    <span class="doccomment">/// header to validate this, since locating the header is unreliable, and the GNU</span>
-    <span class="doccomment">/// extensions do not emit it.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_address</span>(
+    </span><span class="doccomment">/// Returns the address at the given `base` and `index`.
+    ///
+    /// A set of addresses in the `.debug_addr` section consists of a header
+    /// followed by a series of addresses.
+    ///
+    /// The `base` must be the `DW_AT_addr_base` value from the compilation unit DIE.
+    /// This is an offset that points to the first address following the header.
+    ///
+    /// The `index` is the value of a `DW_FORM_addrx` attribute.
+    ///
+    /// The `address_size` must be the size of the address for the compilation unit.
+    /// This value must also match the header. However, note that we do not parse the
+    /// header to validate this, since locating the header is unreliable, and the GNU
+    /// extensions do not emit it.
+    </span><span class="kw">pub fn </span>get_address(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">address_size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>,
-        <span class="ident">base</span>: <span class="ident">DebugAddrBase</span><span class="op">&lt;</span><span class="ident">R::Offset</span><span class="op">&gt;</span>,
-        <span class="ident">index</span>: <span class="ident">DebugAddrIndex</span><span class="op">&lt;</span><span class="ident">R::Offset</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/gimli/read/addr.rs.html#29">self</a>.<span class="ident">section</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="ident">input</span>.<span class="ident">skip</span>(<span class="ident">base</span>.<span class="number">0</span>)<span class="question-mark">?</span>;
-        <span class="ident">input</span>.<span class="ident">skip</span>(<span class="ident">R::Offset::from_u64</span>(
-            <span class="ident">index</span>.<span class="number">0</span>.<span class="ident">into_u64</span>() <span class="op">*</span> <span class="ident">u64::from</span>(<span class="ident">address_size</span>),
+        address_size: <a href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>,
+        base: DebugAddrBase&lt;R::Offset&gt;,
+        index: DebugAddrIndex&lt;R::Offset&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>&gt; {
+        <span class="kw">let </span>input = <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/gimli/read/addr.rs.html#29">self</a>.section.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        input.skip(base.<span class="number">0</span>)<span class="question-mark">?</span>;
+        input.skip(R::Offset::from_u64(
+            index.<span class="number">0</span>.into_u64() * u64::from(address_size),
         )<span class="question-mark">?</span>)<span class="question-mark">?</span>;
-        <a class="ident" href="../../../src/gimli/read/addr.rs.html#34">input</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#456">read_address</a>(<a class="ident" href="../../../src/gimli/read/addr.rs.html#30">address_size</a>)
+        <a href="../../../src/gimli/read/addr.rs.html#34">input</a>.<a href="../../../src/gimli/read/reader.rs.html#456">read_address</a>(<a href="../../../src/gimli/read/addr.rs.html#30">address_size</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">DebugAddr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Create a `DebugAddr` section that references the data in `self`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is useful when `R` implements `Reader` but `T` does not.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ## Example Usage</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust,no_run</span>
-    <span class="doccomment">/// # let load_section = || unimplemented!();</span>
-    <span class="doccomment">/// // Read the DWARF section into a `Vec` with whatever object loader you&#39;re using.</span>
-    <span class="doccomment">/// let owned_section: gimli::DebugAddr&lt;Vec&lt;u8&gt;&gt; = load_section();</span>
-    <span class="doccomment">/// // Create a reference to the DWARF section.</span>
-    <span class="doccomment">/// let section = owned_section.borrow(|section| {</span>
-    <span class="doccomment">///     gimli::EndianSlice::new(&amp;section, gimli::LittleEndian)</span>
-    <span class="doccomment">/// });</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">borrow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">borrow</span>: <span class="ident">F</span>) -&gt; <span class="ident">DebugAddr</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span>) -&gt; <span class="ident">R</span>,
+<span class="kw">impl</span>&lt;T&gt; DebugAddr&lt;T&gt; {
+    <span class="doccomment">/// Create a `DebugAddr` section that references the data in `self`.
+    ///
+    /// This is useful when `R` implements `Reader` but `T` does not.
+    ///
+    /// ## Example Usage
+    ///
+    /// ```rust,no_run
+    /// # let load_section = || unimplemented!();
+    /// // Read the DWARF section into a `Vec` with whatever object loader you&#39;re using.
+    /// let owned_section: gimli::DebugAddr&lt;Vec&lt;u8&gt;&gt; = load_section();
+    /// // Create a reference to the DWARF section.
+    /// let section = owned_section.borrow(|section| {
+    ///     gimli::EndianSlice::new(&amp;section, gimli::LittleEndian)
+    /// });
+    /// ```
+    </span><span class="kw">pub fn </span>borrow&lt;<span class="lifetime">&#39;a</span>, F, R&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, <span class="kw-2">mut </span>borrow: F) -&gt; DebugAddr&lt;R&gt;
+    <span class="kw">where
+        </span>F: FnMut(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T) -&gt; R,
     {
-        <a class="ident" href="../../../src/gimli/read/addr.rs.html#59">borrow</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/addr.rs.html#59">self</a>.<span class="ident">section</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+        <a href="../../../src/gimli/read/addr.rs.html#59">borrow</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/addr.rs.html#59">self</a>.section).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">Section</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugAddr</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">id</span>() -&gt; <a class="ident" href="../../../src/gimli/common.rs.html#245">SectionId</a> {
-        <a class="ident" href="../../../src/gimli/common.rs.html#249">SectionId::DebugAddr</a>
+<span class="kw">impl</span>&lt;R&gt; Section&lt;R&gt; <span class="kw">for </span>DebugAddr&lt;R&gt; {
+    <span class="kw">fn </span>id() -&gt; <a href="../../../src/gimli/common.rs.html#245">SectionId</a> {
+        <a href="../../../src/gimli/common.rs.html#249">SectionId::DebugAddr</a>
     }
 
-    <span class="kw">fn</span> <span class="ident">reader</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">R</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/addr.rs.html#72">self</a>.<span class="ident">section</span>
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugAddr</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">section</span>: <span class="ident">R</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/gimli/read/addr.rs.html#6">DebugAddr</a> { <a class="ident" href="../../../src/gimli/read/addr.rs.html#78">section</a> }
+    <span class="kw">fn </span>reader(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>R {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/addr.rs.html#72">self</a>.section
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read::EndianSlice</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::test_util::GimliSectionMethods</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Format</span>, <span class="ident">LittleEndian</span>};
-    <span class="kw">use</span> <span class="ident">test_assembler</span>::{<span class="ident">Endian</span>, <span class="ident">Label</span>, <span class="ident">LabelMaker</span>, <span class="ident">Section</span>};
+<span class="kw">impl</span>&lt;R&gt; From&lt;R&gt; <span class="kw">for </span>DebugAddr&lt;R&gt; {
+    <span class="kw">fn </span>from(section: R) -&gt; <span class="self">Self </span>{
+        <a href="../../../src/gimli/read/addr.rs.html#6">DebugAddr</a> { <a href="../../../src/gimli/read/addr.rs.html#78">section</a> }
+    }
+}
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_get_address</span>() {
-        <span class="kw">for</span> <span class="ident">format</span> <span class="kw">in</span> <span class="macro">vec!</span>[<span class="ident">Format::Dwarf32</span>, <span class="ident">Format::Dwarf64</span>] {
-            <span class="kw">for</span> <span class="ident">address_size</span> <span class="kw">in</span> <span class="macro">vec!</span>[<span class="number">4</span>, <span class="number">8</span>] {
-                <span class="kw">let</span> <span class="ident">zero</span> <span class="op">=</span> <span class="ident">Label::new</span>();
-                <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">Label::new</span>();
-                <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">Label::new</span>();
-                <span class="kw">let</span> <span class="ident">first</span> <span class="op">=</span> <span class="ident">Label::new</span>();
-                <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">Label::new</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">section</span> <span class="op">=</span> <span class="ident">Section::with_endian</span>(<span class="ident">Endian::Little</span>)
-                    .<span class="ident">mark</span>(<span class="kw-2">&amp;</span><span class="ident">zero</span>)
-                    .<span class="ident">initial_length</span>(<span class="ident">format</span>, <span class="kw-2">&amp;</span><span class="ident">length</span>, <span class="kw-2">&amp;</span><span class="ident">start</span>)
-                    .<span class="ident">D16</span>(<span class="number">5</span>)
-                    .<span class="ident">D8</span>(<span class="ident">address_size</span>)
-                    .<span class="ident">D8</span>(<span class="number">0</span>)
-                    .<span class="ident">mark</span>(<span class="kw-2">&amp;</span><span class="ident">first</span>);
-                <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">20</span> {
-                    <span class="ident">section</span> <span class="op">=</span> <span class="ident">section</span>.<span class="ident">word</span>(<span class="ident">address_size</span>, <span class="number">1000</span> <span class="op">+</span> <span class="ident">i</span>);
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span><span class="kw">crate</span>::read::EndianSlice;
+    <span class="kw">use </span><span class="kw">crate</span>::test_util::GimliSectionMethods;
+    <span class="kw">use crate</span>::{Format, LittleEndian};
+    <span class="kw">use </span>test_assembler::{Endian, Label, LabelMaker, Section};
+
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_get_address() {
+        <span class="kw">for </span>format <span class="kw">in </span><span class="macro">vec!</span>[Format::Dwarf32, Format::Dwarf64] {
+            <span class="kw">for </span>address_size <span class="kw">in </span><span class="macro">vec!</span>[<span class="number">4</span>, <span class="number">8</span>] {
+                <span class="kw">let </span>zero = Label::new();
+                <span class="kw">let </span>length = Label::new();
+                <span class="kw">let </span>start = Label::new();
+                <span class="kw">let </span>first = Label::new();
+                <span class="kw">let </span>end = Label::new();
+                <span class="kw">let </span><span class="kw-2">mut </span>section = Section::with_endian(Endian::Little)
+                    .mark(<span class="kw-2">&amp;</span>zero)
+                    .initial_length(format, <span class="kw-2">&amp;</span>length, <span class="kw-2">&amp;</span>start)
+                    .D16(<span class="number">5</span>)
+                    .D8(address_size)
+                    .D8(<span class="number">0</span>)
+                    .mark(<span class="kw-2">&amp;</span>first);
+                <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">20 </span>{
+                    section = section.word(address_size, <span class="number">1000 </span>+ i);
                 }
-                <span class="ident">section</span> <span class="op">=</span> <span class="ident">section</span>.<span class="ident">mark</span>(<span class="kw-2">&amp;</span><span class="ident">end</span>);
-                <span class="ident">length</span>.<span class="ident">set_const</span>((<span class="kw-2">&amp;</span><span class="ident">end</span> <span class="op">-</span> <span class="kw-2">&amp;</span><span class="ident">start</span>) <span class="kw">as</span> <span class="ident">u64</span>);
+                section = section.mark(<span class="kw-2">&amp;</span>end);
+                length.set_const((<span class="kw-2">&amp;</span>end - <span class="kw-2">&amp;</span>start) <span class="kw">as </span>u64);
 
-                <span class="kw">let</span> <span class="ident">section</span> <span class="op">=</span> <span class="ident">section</span>.<span class="ident">get_contents</span>().<span class="ident">unwrap</span>();
-                <span class="kw">let</span> <span class="ident">debug_addr</span> <span class="op">=</span> <span class="ident">DebugAddr::from</span>(<span class="ident">EndianSlice::new</span>(<span class="kw-2">&amp;</span><span class="ident">section</span>, <span class="ident">LittleEndian</span>));
-                <span class="kw">let</span> <span class="ident">base</span> <span class="op">=</span> <span class="ident">DebugAddrBase</span>((<span class="kw-2">&amp;</span><span class="ident">first</span> <span class="op">-</span> <span class="kw-2">&amp;</span><span class="ident">zero</span>) <span class="kw">as</span> <span class="ident">usize</span>);
+                <span class="kw">let </span>section = section.get_contents().unwrap();
+                <span class="kw">let </span>debug_addr = DebugAddr::from(EndianSlice::new(<span class="kw-2">&amp;</span>section, LittleEndian));
+                <span class="kw">let </span>base = DebugAddrBase((<span class="kw-2">&amp;</span>first - <span class="kw-2">&amp;</span>zero) <span class="kw">as </span>usize);
 
                 <span class="macro">assert_eq!</span>(
-                    <span class="ident">debug_addr</span>.<span class="ident">get_address</span>(<span class="ident">address_size</span>, <span class="ident">base</span>, <span class="ident">DebugAddrIndex</span>(<span class="number">0</span>)),
+                    debug_addr.get_address(address_size, base, DebugAddrIndex(<span class="number">0</span>)),
                     <span class="prelude-val">Ok</span>(<span class="number">1000</span>)
                 );
                 <span class="macro">assert_eq!</span>(
-                    <span class="ident">debug_addr</span>.<span class="ident">get_address</span>(<span class="ident">address_size</span>, <span class="ident">base</span>, <span class="ident">DebugAddrIndex</span>(<span class="number">19</span>)),
+                    debug_addr.get_address(address_size, base, DebugAddrIndex(<span class="number">19</span>)),
                     <span class="prelude-val">Ok</span>(<span class="number">1019</span>)
                 );
             }
@@ -255,4 +255,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="gimli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="gimli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

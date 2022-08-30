@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/foldunfold/borrows.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>borrows.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/foldunfold/borrows.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>borrows.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -134,141 +134,141 @@
 <span id="134">134</span>
 <span id="135">135</span>
 <span id="136">136</span>
-</pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
-<span class="comment">//</span>
-<span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
-<span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
-<span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
+</pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-<span class="kw">use</span> <a class="ident" href="../../../../rustc_hash/type.FxHashMap.html">rustc_hash::FxHashMap</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use</span> <span class="ident">vir_crate</span>::{<a class="ident" href="../../../../vir/common/graphviz/helpers/fn.escape_html.html">common::graphviz::escape_html</a>, <a class="ident" href="../../../../vir/polymorphic/index.html">polymorphic</a> <span class="kw">as</span> <span class="ident">vir</span>};
+</span><span class="kw">use </span><a href="../../../../rustc_hash/type.FxHashMap.html">rustc_hash::FxHashMap</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
+<span class="kw">use </span>vir_crate::{<a href="../../../../vir/common/graphviz/helpers/fn.escape_html.html">common::graphviz::escape_html</a>, <a href="../../../../vir/polymorphic/index.html">polymorphic</a> <span class="kw">as </span>vir};
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">BasicBlock</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="ident">guard</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
-    <span class="kw">pub</span> <span class="ident">current_guard</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
-    <span class="kw">pub</span> <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../../vir/gen/polymorphic/borrows/struct.Node.html">vir::borrows::Node</a>,
-    <span class="kw">pub</span> <span class="ident">predecessors</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">statements</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/enum.Stmt.html">vir::Stmt</a><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">successors</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>BasicBlock&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">pub </span>guard: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
+    <span class="kw">pub </span>current_guard: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
+    <span class="kw">pub </span>node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../../vir/gen/polymorphic/borrows/struct.Node.html">vir::borrows::Node</a>,
+    <span class="kw">pub </span>predecessors: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
+    <span class="kw">pub </span>statements: Vec&lt;<a href="../../../../vir/gen/polymorphic/ast/stmt/enum.Stmt.html">vir::Stmt</a>&gt;,
+    <span class="kw">pub </span>successors: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
 }
 
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::upper_case_acronyms</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">CFG</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="ident">basic_blocks</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BasicBlock</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// Basic blocks that connect a pair of basic blocks. They are needed for performing</span>
-    <span class="doccomment">/// fold-unfold operations on an edge.</span>
-    <span class="kw">pub</span> <span class="ident">edges</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>), <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/stmt/enum.Stmt.html">vir::Stmt</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="attribute">#[allow(clippy::upper_case_acronyms)]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>CFG&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">pub </span>basic_blocks: Vec&lt;BasicBlock&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
+    <span class="doccomment">/// Basic blocks that connect a pair of basic blocks. They are needed for performing
+    /// fold-unfold operations on an edge.
+    </span><span class="kw">pub </span>edges: FxHashMap&lt;(<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>), Vec&lt;<a href="../../../../vir/gen/polymorphic/ast/stmt/enum.Stmt.html">vir::Stmt</a>&gt;&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">CFG</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">basic_blocks</span>: <span class="ident">Vec::new</span>(),
-            <span class="ident">edges</span>: <span class="ident">FxHashMap::default</span>(),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; CFG&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            basic_blocks: Vec::new(),
+            edges: FxHashMap::default(),
         }
     }
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">add_block</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">block</span>: <span class="ident">BasicBlock</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) {
-        <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#35">self</a>.<span class="ident">basic_blocks</span>.<span class="ident">push</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#35">block</a>);
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>add_block(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block: BasicBlock&lt;<span class="lifetime">&#39;a</span>&gt;) {
+        <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#35">self</a>.basic_blocks.push(<a href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#35">block</a>);
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">CFG</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">block_label</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;block_{}&quot;</span>, <span class="ident">index</span>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; CFG&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>block_label(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;block_{}&quot;</span>, index)
     }
-    <span class="kw">fn</span> <span class="ident">edge_label</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">from</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">to</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;edge_{}_{}&quot;</span>, <span class="ident">from</span>, <span class="ident">to</span>)
+    <span class="kw">fn </span>edge_label(<span class="kw-2">&amp;</span><span class="self">self</span>, from: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, to: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;edge_{}_{}&quot;</span>, from, to)
     }
-    <span class="kw">fn</span> <span class="ident">write_to_graphviz</span>(
+    <span class="kw">fn </span>write_to_graphviz(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">graph</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a>,
-        <span class="ident">curr_block_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span> {
-        <span class="macro">writeln!</span>(<span class="ident">graph</span>, <span class="string">&quot;digraph CFG {{&quot;</span>)<span class="question-mark">?</span>;
-        <span class="macro">writeln!</span>(<span class="ident">graph</span>, <span class="string">&quot;graph [fontname=monospace];&quot;</span>)<span class="question-mark">?</span>;
-        <span class="macro">writeln!</span>(<span class="ident">graph</span>, <span class="string">&quot;node [fontname=monospace];&quot;</span>)<span class="question-mark">?</span>;
-        <span class="macro">writeln!</span>(<span class="ident">graph</span>, <span class="string">&quot;edge [fontname=monospace];&quot;</span>)<span class="question-mark">?</span>;
+        graph: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a>,
+        curr_block_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>&gt; {
+        <span class="macro">writeln!</span>(graph, <span class="string">&quot;digraph CFG {{&quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(graph, <span class="string">&quot;graph [fontname=monospace];&quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(graph, <span class="string">&quot;node [fontname=monospace];&quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(graph, <span class="string">&quot;edge [fontname=monospace];&quot;</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">for</span> (<span class="ident">index</span>, <span class="ident">block</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">basic_blocks</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-            <span class="macro">write!</span>(<span class="ident">graph</span>, <span class="string">&quot;{} [shape=none,&quot;</span>, <span class="self">self</span>.<span class="ident">block_label</span>(<span class="ident">index</span>))<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="ident">index</span> <span class="op">==</span> <span class="ident">curr_block_index</span> {
-                <span class="macro">write!</span>(<span class="ident">graph</span>, <span class="string">&quot;color=green,&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">for </span>(index, block) <span class="kw">in </span><span class="self">self</span>.basic_blocks.iter().enumerate() {
+            <span class="macro">write!</span>(graph, <span class="string">&quot;{} [shape=none,&quot;</span>, <span class="self">self</span>.block_label(index))<span class="question-mark">?</span>;
+            <span class="kw">if </span>index == curr_block_index {
+                <span class="macro">write!</span>(graph, <span class="string">&quot;color=green,&quot;</span>)<span class="question-mark">?</span>;
             }
-            <span class="macro">write!</span>(<span class="ident">graph</span>, <span class="string">&quot;label=&lt;&quot;</span>)<span class="question-mark">?</span>;
-            <span class="macro">write!</span>(<span class="ident">graph</span>, <span class="string">&quot;&lt;table&gt;&quot;</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(graph, <span class="string">&quot;label=&lt;&quot;</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(graph, <span class="string">&quot;&lt;table&gt;&quot;</span>)<span class="question-mark">?</span>;
             <span class="macro">write!</span>(
-                <span class="ident">graph</span>,
+                graph,
                 <span class="string">&quot;&lt;tr&gt;&lt;td&gt;borrow:&lt;/td&gt;&lt;td&gt;{:?}&lt;br/&gt;{}&lt;/td&gt;&lt;/tr&gt;&quot;</span>,
-                <span class="ident">block</span>.<span class="ident">node</span>.<span class="ident">borrow</span>,
-                <span class="ident">block</span>
-                    .<span class="ident">node</span>
-                    .<span class="ident">stmts</span>
-                    .<span class="ident">iter</span>()
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">escape_html</span>(<span class="ident">s</span>.<span class="ident">to_string</span>()))
-                    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
-                    .<span class="ident">join</span>(<span class="string">&quot;&lt;br/&gt;&quot;</span>),
+                block.node.borrow,
+                block
+                    .node
+                    .stmts
+                    .iter()
+                    .map(|s| escape_html(s.to_string()))
+                    .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
+                    .join(<span class="string">&quot;&lt;br/&gt;&quot;</span>),
             )<span class="question-mark">?</span>;
-            <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">stmt</span>) <span class="kw">in</span> <span class="ident">block</span>.<span class="ident">statements</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
+            <span class="kw">for </span>(i, stmt) <span class="kw">in </span>block.statements.iter().enumerate() {
                 <span class="macro">write!</span>(
-                    <span class="ident">graph</span>,
+                    graph,
                     <span class="string">&quot;&lt;tr&gt;&lt;td&gt;{}&lt;/td&gt;&lt;td&gt;{}&lt;/td&gt;&lt;/tr&gt;&quot;</span>,
-                    <span class="ident">i</span>,
-                    <span class="ident">escape_html</span>(<span class="ident">stmt</span>)
+                    i,
+                    escape_html(stmt)
                 )<span class="question-mark">?</span>;
             }
-            <span class="macro">write!</span>(<span class="ident">graph</span>, <span class="string">&quot;&lt;/table&gt;&quot;</span>)<span class="question-mark">?</span>;
-            <span class="macro">writeln!</span>(<span class="ident">graph</span>, <span class="string">&quot;&gt;];&quot;</span>)<span class="question-mark">?</span>;
-            <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">predecessor</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">block</span>.<span class="ident">predecessors</span> {
+            <span class="macro">write!</span>(graph, <span class="string">&quot;&lt;/table&gt;&quot;</span>)<span class="question-mark">?</span>;
+            <span class="macro">writeln!</span>(graph, <span class="string">&quot;&gt;];&quot;</span>)<span class="question-mark">?</span>;
+            <span class="kw">for </span><span class="kw-2">&amp;</span>predecessor <span class="kw">in </span><span class="kw-2">&amp;</span>block.predecessors {
                 <span class="macro">writeln!</span>(
-                    <span class="ident">graph</span>,
+                    graph,
                     <span class="string">&quot;{} -&gt; {};&quot;</span>,
-                    <span class="self">self</span>.<span class="ident">block_label</span>(<span class="ident">predecessor</span>),
-                    <span class="self">self</span>.<span class="ident">block_label</span>(<span class="ident">index</span>)
+                    <span class="self">self</span>.block_label(predecessor),
+                    <span class="self">self</span>.block_label(index)
                 )<span class="question-mark">?</span>;
             }
-            <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">successor</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">block</span>.<span class="ident">successors</span> {
+            <span class="kw">for </span><span class="kw-2">&amp;</span>successor <span class="kw">in </span><span class="kw-2">&amp;</span>block.successors {
                 <span class="macro">writeln!</span>(
-                    <span class="ident">graph</span>,
+                    graph,
                     <span class="string">&quot;{} -&gt; {};&quot;</span>,
-                    <span class="self">self</span>.<span class="ident">block_label</span>(<span class="ident">index</span>),
-                    <span class="self">self</span>.<span class="ident">block_label</span>(<span class="ident">successor</span>)
+                    <span class="self">self</span>.block_label(index),
+                    <span class="self">self</span>.block_label(successor)
                 )<span class="question-mark">?</span>;
             }
         }
 
-        <span class="kw">for</span> (<span class="kw-2">&amp;</span>(<span class="ident">from</span>, <span class="ident">to</span>), <span class="ident">stmts</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">edges</span> {
-            <span class="macro">write!</span>(<span class="ident">graph</span>, <span class="string">&quot;{} [shape=none,label=&lt;&quot;</span>, <span class="self">self</span>.<span class="ident">edge_label</span>(<span class="ident">from</span>, <span class="ident">to</span>))<span class="question-mark">?</span>;
-            <span class="macro">write!</span>(<span class="ident">graph</span>, <span class="string">&quot;&lt;table&gt;&quot;</span>)<span class="question-mark">?</span>;
-            <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">stmt</span>) <span class="kw">in</span> <span class="ident">stmts</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
+        <span class="kw">for </span>(<span class="kw-2">&amp;</span>(from, to), stmts) <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.edges {
+            <span class="macro">write!</span>(graph, <span class="string">&quot;{} [shape=none,label=&lt;&quot;</span>, <span class="self">self</span>.edge_label(from, to))<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(graph, <span class="string">&quot;&lt;table&gt;&quot;</span>)<span class="question-mark">?</span>;
+            <span class="kw">for </span>(i, stmt) <span class="kw">in </span>stmts.iter().enumerate() {
                 <span class="macro">write!</span>(
-                    <span class="ident">graph</span>,
+                    graph,
                     <span class="string">&quot;&lt;tr&gt;&lt;td&gt;{}&lt;/td&gt;&lt;td&gt;{}&lt;/td&gt;&lt;/tr&gt;&quot;</span>,
-                    <span class="ident">i</span>,
-                    <span class="ident">escape_html</span>(<span class="ident">stmt</span>)
+                    i,
+                    escape_html(stmt)
                 )<span class="question-mark">?</span>;
             }
-            <span class="macro">write!</span>(<span class="ident">graph</span>, <span class="string">&quot;&lt;/table&gt;&quot;</span>)<span class="question-mark">?</span>;
-            <span class="macro">writeln!</span>(<span class="ident">graph</span>, <span class="string">&quot;&gt;];&quot;</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(graph, <span class="string">&quot;&lt;/table&gt;&quot;</span>)<span class="question-mark">?</span>;
+            <span class="macro">writeln!</span>(graph, <span class="string">&quot;&gt;];&quot;</span>)<span class="question-mark">?</span>;
             <span class="macro">writeln!</span>(
-                <span class="ident">graph</span>,
+                graph,
                 <span class="string">&quot;{} -&gt; {};&quot;</span>,
-                <span class="self">self</span>.<span class="ident">block_label</span>(<span class="ident">from</span>),
-                <span class="self">self</span>.<span class="ident">edge_label</span>(<span class="ident">from</span>, <span class="ident">to</span>)
+                <span class="self">self</span>.block_label(from),
+                <span class="self">self</span>.edge_label(from, to)
             )<span class="question-mark">?</span>;
             <span class="macro">writeln!</span>(
-                <span class="ident">graph</span>,
+                graph,
                 <span class="string">&quot;{} -&gt; {};&quot;</span>,
-                <span class="self">self</span>.<span class="ident">edge_label</span>(<span class="ident">from</span>, <span class="ident">to</span>),
-                <span class="self">self</span>.<span class="ident">block_label</span>(<span class="ident">to</span>)
+                <span class="self">self</span>.edge_label(from, to),
+                <span class="self">self</span>.block_label(to)
             )<span class="question-mark">?</span>;
         }
 
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.writeln.html">writeln!</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#49">graph</a>, <span class="string">&quot;}}&quot;</span>)
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.writeln.html">writeln!</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#49">graph</a>, <span class="string">&quot;}}&quot;</span>)
     }
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">to_graphviz</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">graph</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a>, <span class="ident">curr_block_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#133">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#47-51">write_to_graphviz</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#133">graph</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#133">curr_block_index</a>).<span class="ident">unwrap</span>();
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>to_graphviz(<span class="kw-2">&amp;</span><span class="self">self</span>, graph: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">io::Write</a>, curr_block_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#133">self</a>.<a href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#47-51">write_to_graphviz</a>(<a href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#133">graph</a>, <a href="../../../../src/prusti_viper/encoder/foldunfold/borrows.rs.html#133">curr_block_index</a>).unwrap();
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

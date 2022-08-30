@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.21/src/task/spawn.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>spawn.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.24/src/task/spawn.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>spawn.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -164,171 +164,177 @@
 <span id="164">164</span>
 <span id="165">165</span>
 <span id="166">166</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">futures_task</span>::{<a class="ident" href="../../../futures_util/task/trait.LocalSpawn.html">LocalSpawn</a>, <a class="ident" href="../../../futures_util/task/trait.Spawn.html">Spawn</a>};
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+</pre><pre class="rust"><code><span class="kw">use </span>futures_task::{<a href="../../../futures_util/task/trait.LocalSpawn.html">LocalSpawn</a>, <a href="../../../futures_util/task/trait.Spawn.html">Spawn</a>};
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;compat&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::compat::Compat</span>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;compat&quot;</span>)]
+</span><span class="kw">use </span><span class="kw">crate</span>::compat::Compat;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;channel&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::future</span>::{<a class="ident" href="../../../src/futures_util/future/future/mod.rs.html#123">FutureExt</a>, <a class="ident" href="../../../src/futures_util/future/future/remote_handle.rs.html#42">RemoteHandle</a>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html">alloc::boxed::Box</a>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">futures_core::future::Future</a>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">futures_task</span>::{<a class="ident" href="../../../futures_util/task/struct.FutureObj.html">FutureObj</a>, <a class="ident" href="../../../futures_util/task/struct.LocalFutureObj.html">LocalFutureObj</a>, <a class="ident" href="../../../futures_util/task/struct.SpawnError.html">SpawnError</a>};
+<span class="attribute">#[cfg(feature = <span class="string">&quot;channel&quot;</span>)]
+#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="kw">use </span><span class="kw">crate</span>::future::{<a href="../../../src/futures_util/future/future/mod.rs.html#123">FutureExt</a>, <a href="../../../src/futures_util/future/future/remote_handle.rs.html#42">RemoteHandle</a>};
+<span class="attribute">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html">alloc::boxed::Box</a>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">futures_core::future::Future</a>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+</span><span class="kw">use </span>futures_task::{<a href="../../../futures_util/task/struct.FutureObj.html">FutureObj</a>, <a href="../../../futures_util/task/struct.LocalFutureObj.html">LocalFutureObj</a>, <a href="../../../futures_util/task/struct.SpawnError.html">SpawnError</a>};
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Sp</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="../../../src/futures_util/task/spawn.rs.html#20">SpawnExt</a> <span class="kw">for</span> <span class="ident">Sp</span> <span class="kw">where</span> <span class="ident">Sp</span>: <a class="ident" href="../../../futures_util/task/trait.Spawn.html">Spawn</a> {}
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Sp</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="../../../src/futures_util/task/spawn.rs.html#99">LocalSpawnExt</a> <span class="kw">for</span> <span class="ident">Sp</span> <span class="kw">where</span> <span class="ident">Sp</span>: <a class="ident" href="../../../futures_util/task/trait.LocalSpawn.html">LocalSpawn</a> {}
+<span class="kw">impl</span>&lt;Sp: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="../../../src/futures_util/task/spawn.rs.html#20">SpawnExt</a> <span class="kw">for </span>Sp <span class="kw">where </span>Sp: <a href="../../../futures_util/task/trait.Spawn.html">Spawn</a> {}
+<span class="kw">impl</span>&lt;Sp: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>&gt; <a href="../../../src/futures_util/task/spawn.rs.html#103">LocalSpawnExt</a> <span class="kw">for </span>Sp <span class="kw">where </span>Sp: <a href="../../../futures_util/task/trait.LocalSpawn.html">LocalSpawn</a> {}
 
-<span class="doccomment">/// Extension trait for `Spawn`.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">SpawnExt</span>: <a class="ident" href="../../../futures_util/task/trait.Spawn.html">Spawn</a> {
-    <span class="doccomment">/// Spawns a task that polls the given future with output `()` to</span>
-    <span class="doccomment">/// completion.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method returns a [`Result`] that contains a [`SpawnError`] if</span>
-    <span class="doccomment">/// spawning fails.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// You can use [`spawn_with_handle`](SpawnExt::spawn_with_handle) if</span>
-    <span class="doccomment">/// you want to spawn a future with output other than `()` or if you want</span>
-    <span class="doccomment">/// to be able to await its completion.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note this method will eventually be replaced with the upcoming</span>
-    <span class="doccomment">/// `Spawn::spawn` method which will take a `dyn Future` as input.</span>
-    <span class="doccomment">/// Technical limitations prevent `Spawn::spawn` from being implemented</span>
-    <span class="doccomment">/// today. Feel free to use this method in the meantime.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # if cfg!(miri) { return; } // https://github.com/rust-lang/miri/issues/1038</span>
-    <span class="doccomment">/// use futures::executor::ThreadPool;</span>
-    <span class="doccomment">/// use futures::task::SpawnExt;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let executor = ThreadPool::new().unwrap();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let future = async { /* ... */ };</span>
-    <span class="doccomment">/// executor.spawn(future).unwrap();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">spawn</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">future</span>: <span class="ident">Fut</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../futures_util/task/struct.SpawnError.html">SpawnError</a><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">Fut</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+<span class="doccomment">/// Extension trait for `Spawn`.
+</span><span class="kw">pub trait </span>SpawnExt: <a href="../../../futures_util/task/trait.Spawn.html">Spawn</a> {
+    <span class="doccomment">/// Spawns a task that polls the given future with output `()` to
+    /// completion.
+    ///
+    /// This method returns a [`Result`] that contains a [`SpawnError`] if
+    /// spawning fails.
+    ///
+    /// You can use [`spawn_with_handle`](SpawnExt::spawn_with_handle) if
+    /// you want to spawn a future with output other than `()` or if you want
+    /// to be able to await its completion.
+    ///
+    /// Note this method will eventually be replaced with the upcoming
+    /// `Spawn::spawn` method which will take a `dyn Future` as input.
+    /// Technical limitations prevent `Spawn::spawn` from being implemented
+    /// today. Feel free to use this method in the meantime.
+    ///
+    /// ```
+    /// # {
+    /// use futures::executor::ThreadPool;
+    /// use futures::task::SpawnExt;
+    ///
+    /// let executor = ThreadPool::new().unwrap();
+    ///
+    /// let future = async { /* ... */ };
+    /// executor.spawn(future).unwrap();
+    /// # }
+    /// # std::thread::sleep(std::time::Duration::from_millis(500)); // wait for background threads closed: https://github.com/rust-lang/miri/issues/1371
+    /// ```
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+    </span><span class="kw">fn </span>spawn&lt;Fut&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, future: Fut) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../futures_util/task/struct.SpawnError.html">SpawnError</a>&gt;
+    <span class="kw">where
+        </span>Fut: Future&lt;Output = ()&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
     {
-        <a class="self" href="../../../src/futures_util/task/spawn.rs.html#47">self</a>.<a class="ident" href="../../../futures_util/task/trait.Spawn.html">spawn_obj</a>(<span class="ident">FutureObj::new</span>(<span class="ident">Box::new</span>(<a class="ident" href="../../../src/futures_util/task/spawn.rs.html#47">future</a>)))
+        <a class="self" href="../../../src/futures_util/task/spawn.rs.html#49">self</a>.<a href="../../../futures_util/task/trait.Spawn.html">spawn_obj</a>(FutureObj::new(Box::new(<a href="../../../src/futures_util/task/spawn.rs.html#49">future</a>)))
     }
 
-    <span class="doccomment">/// Spawns a task that polls the given future to completion and returns a</span>
-    <span class="doccomment">/// future that resolves to the spawned future&#39;s output.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method returns a [`Result`] that contains a [`RemoteHandle`](crate::future::RemoteHandle), or, if</span>
-    <span class="doccomment">/// spawning fails, a [`SpawnError`]. [`RemoteHandle`](crate::future::RemoteHandle) is a future that</span>
-    <span class="doccomment">/// resolves to the output of the spawned future.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # if cfg!(miri) { return; } // https://github.com/rust-lang/miri/issues/1038</span>
-    <span class="doccomment">/// use futures::executor::{block_on, ThreadPool};</span>
-    <span class="doccomment">/// use futures::future;</span>
-    <span class="doccomment">/// use futures::task::SpawnExt;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let executor = ThreadPool::new().unwrap();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let future = future::ready(1);</span>
-    <span class="doccomment">/// let join_handle_fut = executor.spawn_with_handle(future).unwrap();</span>
-    <span class="doccomment">/// assert_eq!(block_on(join_handle_fut), 1);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;channel&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;channel&quot;</span>)))]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">spawn_with_handle</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">future</span>: <span class="ident">Fut</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RemoteHandle</span><span class="op">&lt;</span><span class="ident">Fut::Output</span><span class="op">&gt;</span>, <a class="ident" href="../../../futures_util/task/struct.SpawnError.html">SpawnError</a><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">Fut</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-        <span class="ident">Fut::Output</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
+    <span class="doccomment">/// Spawns a task that polls the given future to completion and returns a
+    /// future that resolves to the spawned future&#39;s output.
+    ///
+    /// This method returns a [`Result`] that contains a [`RemoteHandle`](crate::future::RemoteHandle), or, if
+    /// spawning fails, a [`SpawnError`]. [`RemoteHandle`](crate::future::RemoteHandle) is a future that
+    /// resolves to the output of the spawned future.
+    ///
+    /// ```
+    /// # {
+    /// use futures::executor::{block_on, ThreadPool};
+    /// use futures::future;
+    /// use futures::task::SpawnExt;
+    ///
+    /// let executor = ThreadPool::new().unwrap();
+    ///
+    /// let future = future::ready(1);
+    /// let join_handle_fut = executor.spawn_with_handle(future).unwrap();
+    /// assert_eq!(block_on(join_handle_fut), 1);
+    /// # }
+    /// # std::thread::sleep(std::time::Duration::from_millis(500)); // wait for background threads closed: https://github.com/rust-lang/miri/issues/1371
+    /// ```
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;channel&quot;</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;channel&quot;</span>)))]
+    #[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+    </span><span class="kw">fn </span>spawn_with_handle&lt;Fut&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, future: Fut) -&gt; <span class="prelude-ty">Result</span>&lt;RemoteHandle&lt;Fut::Output&gt;, <a href="../../../futures_util/task/struct.SpawnError.html">SpawnError</a>&gt;
+    <span class="kw">where
+        </span>Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <span class="lifetime">&#39;static</span>,
+        Fut::Output: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
     {
-        <span class="kw">let</span> (<span class="ident">future</span>, <span class="ident">handle</span>) <span class="op">=</span> <a class="ident" href="../../../src/futures_util/task/spawn.rs.html#76">future</a>.<a class="ident" href="../../../src/futures_util/future/future/mod.rs.html#505-507">remote_handle</a>();
-        <span class="self">self</span>.<span class="ident">spawn</span>(<span class="ident">future</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures_util/task/spawn.rs.html#81">handle</a>)
+        <span class="kw">let </span>(future, handle) = <a href="../../../src/futures_util/task/spawn.rs.html#80">future</a>.<a href="../../../src/futures_util/future/future/mod.rs.html#505-507">remote_handle</a>();
+        <span class="self">self</span>.spawn(future)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a href="../../../src/futures_util/task/spawn.rs.html#85">handle</a>)
     }
 
-    <span class="doccomment">/// Wraps a [`Spawn`] and makes it usable as a futures 0.1 `Executor`.</span>
-    <span class="doccomment">/// Requires the `compat` feature to enable.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;compat&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;compat&quot;</span>)))]</span>
-    <span class="kw">fn</span> <span class="ident">compat</span>(<span class="self">self</span>) -&gt; <span class="ident">Compat</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="self">Self</span>: <span class="ident">Sized</span>,
+    <span class="doccomment">/// Wraps a [`Spawn`] and makes it usable as a futures 0.1 `Executor`.
+    /// Requires the `compat` feature to enable.
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;compat&quot;</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;compat&quot;</span>)))]
+    </span><span class="kw">fn </span>compat(<span class="self">self</span>) -&gt; Compat&lt;<span class="self">Self</span>&gt;
+    <span class="kw">where
+        </span><span class="self">Self</span>: Sized,
     {
-        <span class="ident">Compat::new</span>(<span class="self">self</span>)
+        Compat::new(<span class="self">self</span>)
     }
 }
 
-<span class="doccomment">/// Extension trait for `LocalSpawn`.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">LocalSpawnExt</span>: <a class="ident" href="../../../futures_util/task/trait.LocalSpawn.html">LocalSpawn</a> {
-    <span class="doccomment">/// Spawns a task that polls the given future with output `()` to</span>
-    <span class="doccomment">/// completion.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method returns a [`Result`] that contains a [`SpawnError`] if</span>
-    <span class="doccomment">/// spawning fails.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// You can use [`spawn_with_handle`](SpawnExt::spawn_with_handle) if</span>
-    <span class="doccomment">/// you want to spawn a future with output other than `()` or if you want</span>
-    <span class="doccomment">/// to be able to await its completion.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note this method will eventually be replaced with the upcoming</span>
-    <span class="doccomment">/// `Spawn::spawn` method which will take a `dyn Future` as input.</span>
-    <span class="doccomment">/// Technical limitations prevent `Spawn::spawn` from being implemented</span>
-    <span class="doccomment">/// today. Feel free to use this method in the meantime.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use futures::executor::LocalPool;</span>
-    <span class="doccomment">/// use futures::task::LocalSpawnExt;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let executor = LocalPool::new();</span>
-    <span class="doccomment">/// let spawner = executor.spawner();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let future = async { /* ... */ };</span>
-    <span class="doccomment">/// spawner.spawn_local(future).unwrap();</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">spawn_local</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">future</span>: <span class="ident">Fut</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../futures_util/task/struct.SpawnError.html">SpawnError</a><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">Fut</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+<span class="doccomment">/// Extension trait for `LocalSpawn`.
+</span><span class="kw">pub trait </span>LocalSpawnExt: <a href="../../../futures_util/task/trait.LocalSpawn.html">LocalSpawn</a> {
+    <span class="doccomment">/// Spawns a task that polls the given future with output `()` to
+    /// completion.
+    ///
+    /// This method returns a [`Result`] that contains a [`SpawnError`] if
+    /// spawning fails.
+    ///
+    /// You can use [`spawn_with_handle`](SpawnExt::spawn_with_handle) if
+    /// you want to spawn a future with output other than `()` or if you want
+    /// to be able to await its completion.
+    ///
+    /// Note this method will eventually be replaced with the upcoming
+    /// `Spawn::spawn` method which will take a `dyn Future` as input.
+    /// Technical limitations prevent `Spawn::spawn` from being implemented
+    /// today. Feel free to use this method in the meantime.
+    ///
+    /// ```
+    /// use futures::executor::LocalPool;
+    /// use futures::task::LocalSpawnExt;
+    ///
+    /// let executor = LocalPool::new();
+    /// let spawner = executor.spawner();
+    ///
+    /// let future = async { /* ... */ };
+    /// spawner.spawn_local(future).unwrap();
+    /// ```
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+    </span><span class="kw">fn </span>spawn_local&lt;Fut&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, future: Fut) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../futures_util/task/struct.SpawnError.html">SpawnError</a>&gt;
+    <span class="kw">where
+        </span>Fut: Future&lt;Output = ()&gt; + <span class="lifetime">&#39;static</span>,
     {
-        <a class="self" href="../../../src/futures_util/task/spawn.rs.html#126">self</a>.<a class="ident" href="../../../futures_util/task/trait.LocalSpawn.html">spawn_local_obj</a>(<span class="ident">LocalFutureObj::new</span>(<span class="ident">Box::new</span>(<a class="ident" href="../../../src/futures_util/task/spawn.rs.html#126">future</a>)))
+        <a class="self" href="../../../src/futures_util/task/spawn.rs.html#130">self</a>.<a href="../../../futures_util/task/trait.LocalSpawn.html">spawn_local_obj</a>(LocalFutureObj::new(Box::new(<a href="../../../src/futures_util/task/spawn.rs.html#130">future</a>)))
     }
 
-    <span class="doccomment">/// Spawns a task that polls the given future to completion and returns a</span>
-    <span class="doccomment">/// future that resolves to the spawned future&#39;s output.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method returns a [`Result`] that contains a [`RemoteHandle`](crate::future::RemoteHandle), or, if</span>
-    <span class="doccomment">/// spawning fails, a [`SpawnError`]. [`RemoteHandle`](crate::future::RemoteHandle) is a future that</span>
-    <span class="doccomment">/// resolves to the output of the spawned future.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # if cfg!(miri) { return; } // https://github.com/rust-lang/miri/issues/1038</span>
-    <span class="doccomment">/// use futures::executor::LocalPool;</span>
-    <span class="doccomment">/// use futures::task::LocalSpawnExt;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut executor = LocalPool::new();</span>
-    <span class="doccomment">/// let spawner = executor.spawner();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let future = async { 1 };</span>
-    <span class="doccomment">/// let join_handle_fut = spawner.spawn_local_with_handle(future).unwrap();</span>
-    <span class="doccomment">/// assert_eq!(executor.run_until(join_handle_fut), 1);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;channel&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;channel&quot;</span>)))]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">spawn_local_with_handle</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span>(
+    <span class="doccomment">/// Spawns a task that polls the given future to completion and returns a
+    /// future that resolves to the spawned future&#39;s output.
+    ///
+    /// This method returns a [`Result`] that contains a [`RemoteHandle`](crate::future::RemoteHandle), or, if
+    /// spawning fails, a [`SpawnError`]. [`RemoteHandle`](crate::future::RemoteHandle) is a future that
+    /// resolves to the output of the spawned future.
+    ///
+    /// ```
+    /// use futures::executor::LocalPool;
+    /// use futures::task::LocalSpawnExt;
+    ///
+    /// let mut executor = LocalPool::new();
+    /// let spawner = executor.spawner();
+    ///
+    /// let future = async { 1 };
+    /// let join_handle_fut = spawner.spawn_local_with_handle(future).unwrap();
+    /// assert_eq!(executor.run_until(join_handle_fut), 1);
+    /// ```
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;channel&quot;</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;channel&quot;</span>)))]
+    #[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+    </span><span class="kw">fn </span>spawn_local_with_handle&lt;Fut&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">future</span>: <span class="ident">Fut</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RemoteHandle</span><span class="op">&lt;</span><span class="ident">Fut::Output</span><span class="op">&gt;</span>, <a class="ident" href="../../../futures_util/task/struct.SpawnError.html">SpawnError</a><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">Fut</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        future: Fut,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;RemoteHandle&lt;Fut::Output&gt;, <a href="../../../futures_util/task/struct.SpawnError.html">SpawnError</a>&gt;
+    <span class="kw">where
+        </span>Fut: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> + <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">let</span> (<span class="ident">future</span>, <span class="ident">handle</span>) <span class="op">=</span> <a class="ident" href="../../../src/futures_util/task/spawn.rs.html#157">future</a>.<a class="ident" href="../../../src/futures_util/future/future/mod.rs.html#505-507">remote_handle</a>();
-        <span class="self">self</span>.<span class="ident">spawn_local</span>(<span class="ident">future</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/futures_util/task/spawn.rs.html#162">handle</a>)
+        <span class="kw">let </span>(future, handle) = <a href="../../../src/futures_util/task/spawn.rs.html#160">future</a>.<a href="../../../src/futures_util/future/future/mod.rs.html#505-507">remote_handle</a>();
+        <span class="self">self</span>.spawn_local(future)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<a href="../../../src/futures_util/task/spawn.rs.html#165">handle</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

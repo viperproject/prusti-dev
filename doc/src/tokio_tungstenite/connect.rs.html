@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-tungstenite-0.15.0/src/connect.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>connect.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tokio_tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tokio_tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tokio_tungstenite/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-tungstenite-0.15.0/src/connect.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>connect.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tokio_tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tokio_tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tokio_tungstenite/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -55,62 +55,62 @@
 <span id="55">55</span>
 <span id="56">56</span>
 <span id="57">57</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Connection helper.</span>
-<span class="kw">use</span> <a class="ident" href="../../tokio/net/tcp/stream/struct.TcpStream.html">tokio::net::TcpStream</a>;
+</pre><pre class="rust"><code><span class="doccomment">//! Connection helper.
+</span><span class="kw">use </span><a href="../../tokio/net/tcp/stream/struct.TcpStream.html">tokio::net::TcpStream</a>;
 
-<span class="kw">use</span> <span class="ident">tungstenite</span>::{
-    <span class="ident">error</span>::{<a class="ident" href="../../tungstenite/error/enum.Error.html">Error</a>, <a class="ident" href="../../tungstenite/error/enum.UrlError.html">UrlError</a>},
-    <a class="ident" href="../../tungstenite/handshake/client/type.Response.html">handshake::client::Response</a>,
-    <a class="ident" href="../../tungstenite/protocol/struct.WebSocketConfig.html">protocol::WebSocketConfig</a>,
+<span class="kw">use </span>tungstenite::{
+    error::{<a href="../../tungstenite/error/enum.Error.html">Error</a>, <a href="../../tungstenite/error/enum.UrlError.html">UrlError</a>},
+    <a href="../../tungstenite/handshake/client/type.Response.html">handshake::client::Response</a>,
+    <a href="../../tungstenite/protocol/struct.WebSocketConfig.html">protocol::WebSocketConfig</a>,
 };
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/tokio_tungstenite/lib.rs.html#326">domain</a>, <a class="ident" href="../../src/tokio_tungstenite/stream.rs.html#18">stream::MaybeTlsStream</a>, <a class="ident" href="../../tungstenite/client/trait.IntoClientRequest.html">IntoClientRequest</a>, <a class="ident" href="../../src/tokio_tungstenite/lib.rs.html#179">WebSocketStream</a>};
+<span class="kw">use crate</span>::{<a href="../../src/tokio_tungstenite/lib.rs.html#326">domain</a>, <a href="../../src/tokio_tungstenite/stream.rs.html#18">stream::MaybeTlsStream</a>, <a href="../../tungstenite/client/trait.IntoClientRequest.html">IntoClientRequest</a>, <a href="../../src/tokio_tungstenite/lib.rs.html#179">WebSocketStream</a>};
 
-<span class="doccomment">/// Connect to a given URL.</span>
-<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">connect_async</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(
-    <span class="ident">request</span>: <span class="ident">R</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">WebSocketStream</span><span class="op">&lt;</span><span class="ident">MaybeTlsStream</span><span class="op">&lt;</span><a class="ident" href="../../tokio/net/tcp/stream/struct.TcpStream.html">TcpStream</a><span class="op">&gt;</span><span class="op">&gt;</span>, <a class="ident" href="../../tungstenite/handshake/client/type.Response.html">Response</a>), <a class="ident" href="../../tungstenite/error/enum.Error.html">Error</a><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <a class="ident" href="../../tungstenite/client/trait.IntoClientRequest.html">IntoClientRequest</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+<span class="doccomment">/// Connect to a given URL.
+</span><span class="kw">pub async fn </span>connect_async&lt;R&gt;(
+    request: R,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(WebSocketStream&lt;MaybeTlsStream&lt;<a href="../../tokio/net/tcp/stream/struct.TcpStream.html">TcpStream</a>&gt;&gt;, <a href="../../tungstenite/handshake/client/type.Response.html">Response</a>), <a href="../../tungstenite/error/enum.Error.html">Error</a>&gt;
+<span class="kw">where
+    </span>R: <a href="../../tungstenite/client/trait.IntoClientRequest.html">IntoClientRequest</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
 {
-    <span class="ident">connect_async_with_config</span>(<span class="ident">request</span>, <span class="prelude-val">None</span>).<span class="kw">await</span>
-}
+    connect_async_with_config(request, <span class="prelude-val">None</span>).<span class="kw">await
+</span>}
 
-<span class="doccomment">/// The same as `connect_async()` but the one can specify a websocket configuration.</span>
-<span class="doccomment">/// Please refer to `connect_async()` for more details.</span>
-<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">connect_async_with_config</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(
-    <span class="ident">request</span>: <span class="ident">R</span>,
-    <span class="ident">config</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../tungstenite/protocol/struct.WebSocketConfig.html">WebSocketConfig</a><span class="op">&gt;</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">WebSocketStream</span><span class="op">&lt;</span><span class="ident">MaybeTlsStream</span><span class="op">&lt;</span><a class="ident" href="../../tokio/net/tcp/stream/struct.TcpStream.html">TcpStream</a><span class="op">&gt;</span><span class="op">&gt;</span>, <a class="ident" href="../../tungstenite/handshake/client/type.Response.html">Response</a>), <a class="ident" href="../../tungstenite/error/enum.Error.html">Error</a><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <a class="ident" href="../../tungstenite/client/trait.IntoClientRequest.html">IntoClientRequest</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
+<span class="doccomment">/// The same as `connect_async()` but the one can specify a websocket configuration.
+/// Please refer to `connect_async()` for more details.
+</span><span class="kw">pub async fn </span>connect_async_with_config&lt;R&gt;(
+    request: R,
+    config: <span class="prelude-ty">Option</span>&lt;<a href="../../tungstenite/protocol/struct.WebSocketConfig.html">WebSocketConfig</a>&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(WebSocketStream&lt;MaybeTlsStream&lt;<a href="../../tokio/net/tcp/stream/struct.TcpStream.html">TcpStream</a>&gt;&gt;, <a href="../../tungstenite/handshake/client/type.Response.html">Response</a>), <a href="../../tungstenite/error/enum.Error.html">Error</a>&gt;
+<span class="kw">where
+    </span>R: <a href="../../tungstenite/client/trait.IntoClientRequest.html">IntoClientRequest</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
 {
-    <span class="kw">let</span> <span class="ident">request</span> <span class="op">=</span> <span class="ident">request</span>.<span class="ident">into_client_request</span>()<span class="question-mark">?</span>;
+    <span class="kw">let </span>request = request.into_client_request()<span class="question-mark">?</span>;
 
-    <span class="kw">let</span> <span class="ident">domain</span> <span class="op">=</span> <span class="ident">domain</span>(<span class="kw-2">&amp;</span><span class="ident">request</span>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">port</span> <span class="op">=</span> <span class="ident">request</span>
-        .<span class="ident">uri</span>()
-        .<span class="ident">port_u16</span>()
-        .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">request</span>.<span class="ident">uri</span>().<span class="ident">scheme_str</span>() {
+    <span class="kw">let </span>domain = domain(<span class="kw-2">&amp;</span>request)<span class="question-mark">?</span>;
+    <span class="kw">let </span>port = request
+        .uri()
+        .port_u16()
+        .or_else(|| <span class="kw">match </span>request.uri().scheme_str() {
             <span class="prelude-val">Some</span>(<span class="string">&quot;wss&quot;</span>) =&gt; <span class="prelude-val">Some</span>(<span class="number">443</span>),
             <span class="prelude-val">Some</span>(<span class="string">&quot;ws&quot;</span>) =&gt; <span class="prelude-val">Some</span>(<span class="number">80</span>),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         })
-        .<span class="ident">ok_or</span>(<span class="ident">Error::Url</span>(<span class="ident">UrlError::UnsupportedUrlScheme</span>))<span class="question-mark">?</span>;
+        .ok_or(Error::Url(UrlError::UnsupportedUrlScheme))<span class="question-mark">?</span>;
 
-    <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{}:{}&quot;</span>, <span class="ident">domain</span>, <span class="ident">port</span>);
-    <span class="kw">let</span> <span class="ident">try_socket</span> <span class="op">=</span> <span class="ident">TcpStream::connect</span>(<span class="ident">addr</span>).<span class="kw">await</span>;
-    <span class="kw">let</span> <span class="ident">socket</span> <span class="op">=</span> <span class="ident">try_socket</span>.<span class="ident">map_err</span>(<span class="ident">Error::Io</span>)<span class="question-mark">?</span>;
+    <span class="kw">let </span>addr = <span class="macro">format!</span>(<span class="string">&quot;{}:{}&quot;</span>, domain, port);
+    <span class="kw">let </span>try_socket = TcpStream::connect(addr).<span class="kw">await</span>;
+    <span class="kw">let </span>socket = try_socket.map_err(Error::Io)<span class="question-mark">?</span>;
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-tls&quot;</span>)))]</span>
-    {
-        <span class="ident"><span class="kw">crate</span>::client_async_with_config</span>(<span class="ident">request</span>, <span class="ident">MaybeTlsStream::Plain</span>(<span class="ident">socket</span>), <span class="ident">config</span>).<span class="kw">await</span>
-    }
+    <span class="attribute">#[cfg(not(any(feature = <span class="string">&quot;native-tls&quot;</span>, feature = <span class="string">&quot;rustls-tls&quot;</span>)))]
+    </span>{
+        <span class="kw">crate</span>::client_async_with_config(request, MaybeTlsStream::Plain(socket), config).<span class="kw">await
+    </span>}
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-tls&quot;</span>))]</span>
-    {
-        <span class="ident"><span class="kw">crate</span>::tls::client_async_tls_with_config</span>(<span class="ident">request</span>, <span class="ident">socket</span>, <span class="ident">config</span>, <span class="prelude-val">None</span>).<span class="kw">await</span>
-    }
+    <span class="attribute">#[cfg(any(feature = <span class="string">&quot;native-tls&quot;</span>, feature = <span class="string">&quot;rustls-tls&quot;</span>))]
+    </span>{
+        <span class="kw">crate</span>::tls::client_async_tls_with_config(request, socket, config, <span class="prelude-val">None</span>).<span class="kw">await
+    </span>}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tokio_tungstenite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tokio_tungstenite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

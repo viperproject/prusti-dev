@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/ron-0.7.1/src/value.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>value.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../ron/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../ron/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../ron/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/ron-0.7.1/src/value.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>value.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../ron/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../ron/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../ron/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -552,537 +552,537 @@
 <span id="552">552</span>
 <span id="553">553</span>
 <span id="554">554</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Value module.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Value module.
 
-<span class="kw">use</span> <span class="ident">serde</span>::{
-    <span class="ident">de</span>::{
-        <a class="ident" href="../../serde/de/trait.DeserializeOwned.html">DeserializeOwned</a>, <a class="ident" href="../../serde/de/trait.DeserializeSeed.html">DeserializeSeed</a>, <a class="ident" href="../../serde/de/trait.Deserializer.html">Deserializer</a>, <a class="ident" href="../../serde/de/trait.Error.html">Error</a> <span class="kw">as</span> <span class="ident">SerdeError</span>, <a class="ident" href="../../serde/de/trait.MapAccess.html">MapAccess</a>, <a class="ident" href="../../serde/de/trait.SeqAccess.html">SeqAccess</a>,
-        <a class="ident" href="../../serde/de/trait.Visitor.html">Visitor</a>,
+</span><span class="kw">use </span>serde::{
+    de::{
+        <a href="../../serde/de/trait.DeserializeOwned.html">DeserializeOwned</a>, <a href="../../serde/de/trait.DeserializeSeed.html">DeserializeSeed</a>, <a href="../../serde/de/trait.Deserializer.html">Deserializer</a>, <a href="../../serde/de/trait.Error.html">Error</a> <span class="kw">as </span>SerdeError, <a href="../../serde/de/trait.MapAccess.html">MapAccess</a>, <a href="../../serde/de/trait.SeqAccess.html">SeqAccess</a>,
+        <a href="../../serde/de/trait.Visitor.html">Visitor</a>,
     },
-    <a class="ident" href="../../serde/macro.forward_to_deserialize_any.html">forward_to_deserialize_any</a>, <a class="ident" href="../../serde_derive/derive.Deserialize.html">Deserialize</a>, <a class="ident" href="../../serde_derive/derive.Serialize.html">Serialize</a>,
+    <a href="../../serde/macro.forward_to_deserialize_any.html">forward_to_deserialize_any</a>, <a href="../../serde_derive/derive.Deserialize.html">Deserialize</a>, <a href="../../serde_derive/derive.Serialize.html">Serialize</a>,
 };
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">cmp</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/derive.Eq.html">Eq</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>},
-    <span class="ident">hash</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/macros/derive.Hash.html">Hash</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a>},
-    <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.FromIterator.html">iter::FromIterator</a>,
-    <span class="ident">ops</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/index/trait.Index.html">Index</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/index/trait.IndexMut.html">IndexMut</a>},
+<span class="kw">use </span>std::{
+    cmp::{<a href="https://doc.rust-lang.org/nightly/core/cmp/derive.Eq.html">Eq</a>, <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>},
+    hash::{<a href="https://doc.rust-lang.org/nightly/core/hash/macros/derive.Hash.html">Hash</a>, <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a>},
+    <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.FromIterator.html">iter::FromIterator</a>,
+    ops::{<a href="https://doc.rust-lang.org/nightly/core/ops/index/trait.Index.html">Index</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/index/trait.IndexMut.html">IndexMut</a>},
 };
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::de</span>::{<a class="ident" href="../../src/ron/error.rs.html#7">Error</a> <span class="kw">as</span> <span class="ident">RonError</span>, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span><span class="kw">crate</span>::de::{<a href="../../src/ron/error.rs.html#7">Error</a> <span class="kw">as </span>RonError, <span class="prelude-ty">Result</span>};
 
-<span class="doccomment">/// A `Value` to `Value` map.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This structure either uses a [BTreeMap](std::collections::BTreeMap) or the</span>
-<span class="doccomment">/// [IndexMap](indexmap::IndexMap) internally.</span>
-<span class="doccomment">/// The latter can be used by enabling the `indexmap` feature. This can be used</span>
-<span class="doccomment">/// to preserve the order of the parsed map.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>)]</span>
-<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">transparent</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Map</span>(<a class="ident" href="../../src/ron/value.rs.html#131">MapInner</a>);
+<span class="doccomment">/// A `Value` to `Value` map.
+///
+/// This structure either uses a [BTreeMap](std::collections::BTreeMap) or the
+/// [IndexMap](indexmap::IndexMap) internally.
+/// The latter can be used by enabling the `indexmap` feature. This can be used
+/// to preserve the order of the parsed map.
+</span><span class="attribute">#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[serde(transparent)]
+</span><span class="kw">pub struct </span>Map(<a href="../../src/ron/value.rs.html#131">MapInner</a>);
 
-<span class="kw">impl</span> <a class="ident" href="../../src/ron/value.rs.html#27">Map</a> {
-    <span class="doccomment">/// Creates a new, empty `Map`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../src/ron/value.rs.html#27">Map</a> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>()
+<span class="kw">impl </span><a href="../../src/ron/value.rs.html#27">Map</a> {
+    <span class="doccomment">/// Creates a new, empty `Map`.
+    </span><span class="kw">pub fn </span>new() -&gt; <a href="../../src/ron/value.rs.html#27">Map</a> {
+        <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>()
     }
 
-    <span class="doccomment">/// Returns the number of elements in the map.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/ron/value.rs.html#36">self</a>.<span class="number">0</span>.<span class="ident">len</span>()
+    <span class="doccomment">/// Returns the number of elements in the map.
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../src/ron/value.rs.html#36">self</a>.<span class="number">0</span>.len()
     }
 
-    <span class="doccomment">/// Returns `true` if `self.len() == 0`, `false` otherwise.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/ron/value.rs.html#41">self</a>.<span class="number">0</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span>
+    <span class="doccomment">/// Returns `true` if `self.len() == 0`, `false` otherwise.
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/ron/value.rs.html#41">self</a>.<span class="number">0</span>.len() == <span class="number">0
+    </span>}
+
+    <span class="doccomment">/// Inserts a new element, returning the previous element with this `key` if
+    /// there was any.
+    </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <a href="../../src/ron/value.rs.html#319">Value</a>, value: <a href="../../src/ron/value.rs.html#319">Value</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/ron/value.rs.html#319">Value</a>&gt; {
+        <a class="self" href="../../src/ron/value.rs.html#47">self</a>.<span class="number">0</span>.insert(<a href="../../src/ron/value.rs.html#47">key</a>, <a href="../../src/ron/value.rs.html#47">value</a>)
     }
 
-    <span class="doccomment">/// Inserts a new element, returning the previous element with this `key` if</span>
-    <span class="doccomment">/// there was any.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">insert</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <a class="ident" href="../../src/ron/value.rs.html#319">Value</a>, <span class="ident">value</span>: <a class="ident" href="../../src/ron/value.rs.html#319">Value</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/ron/value.rs.html#319">Value</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/ron/value.rs.html#47">self</a>.<span class="number">0</span>.<span class="ident">insert</span>(<a class="ident" href="../../src/ron/value.rs.html#47">key</a>, <a class="ident" href="../../src/ron/value.rs.html#47">value</a>)
+    <span class="doccomment">/// Removes an element by its `key`.
+    </span><span class="kw">pub fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><a href="../../src/ron/value.rs.html#319">Value</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../src/ron/value.rs.html#319">Value</a>&gt; {
+        <a class="self" href="../../src/ron/value.rs.html#52">self</a>.<span class="number">0</span>.remove(<a href="../../src/ron/value.rs.html#52">key</a>)
     }
 
-    <span class="doccomment">/// Removes an element by its `key`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/ron/value.rs.html#319">Value</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/ron/value.rs.html#319">Value</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/ron/value.rs.html#52">self</a>.<span class="number">0</span>.<span class="ident">remove</span>(<a class="ident" href="../../src/ron/value.rs.html#52">key</a>)
+    <span class="doccomment">/// Iterate all key-value pairs.
+    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = (<span class="kw-2">&amp;</span><a href="../../src/ron/value.rs.html#319">Value</a>, <span class="kw-2">&amp;</span><a href="../../src/ron/value.rs.html#319">Value</a>)&gt; + <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> {
+        <a class="self" href="../../src/ron/value.rs.html#57">self</a>.<span class="number">0</span>.iter()
     }
 
-    <span class="doccomment">/// Iterate all key-value pairs.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><a class="ident" href="../../src/ron/value.rs.html#319">Value</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/ron/value.rs.html#319">Value</a>)<span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> {
-        <a class="self" href="../../src/ron/value.rs.html#57">self</a>.<span class="number">0</span>.<span class="ident">iter</span>()
+    <span class="doccomment">/// Iterate all key-value pairs mutably.
+    </span><span class="kw">pub fn </span>iter_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = (<span class="kw-2">&amp;</span><a href="../../src/ron/value.rs.html#319">Value</a>, <span class="kw-2">&amp;mut </span><a href="../../src/ron/value.rs.html#319">Value</a>)&gt; + <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> {
+        <a class="self" href="../../src/ron/value.rs.html#62">self</a>.<span class="number">0</span>.iter_mut()
     }
 
-    <span class="doccomment">/// Iterate all key-value pairs mutably.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><a class="ident" href="../../src/ron/value.rs.html#319">Value</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/ron/value.rs.html#319">Value</a>)<span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> {
-        <a class="self" href="../../src/ron/value.rs.html#62">self</a>.<span class="number">0</span>.<span class="ident">iter_mut</span>()
+    <span class="doccomment">/// Iterate all keys.
+    </span><span class="kw">pub fn </span>keys(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><a href="../../src/ron/value.rs.html#319">Value</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> {
+        <a class="self" href="../../src/ron/value.rs.html#67">self</a>.<span class="number">0</span>.keys()
     }
 
-    <span class="doccomment">/// Iterate all keys.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">keys</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/ron/value.rs.html#319">Value</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> {
-        <a class="self" href="../../src/ron/value.rs.html#67">self</a>.<span class="number">0</span>.<span class="ident">keys</span>()
+    <span class="doccomment">/// Iterate all values.
+    </span><span class="kw">pub fn </span>values(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><a href="../../src/ron/value.rs.html#319">Value</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> {
+        <a class="self" href="../../src/ron/value.rs.html#72">self</a>.<span class="number">0</span>.values()
     }
 
-    <span class="doccomment">/// Iterate all values.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">values</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/ron/value.rs.html#319">Value</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> {
-        <a class="self" href="../../src/ron/value.rs.html#72">self</a>.<span class="number">0</span>.<span class="ident">values</span>()
-    }
-
-    <span class="doccomment">/// Iterate all values mutably.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">values_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/ron/value.rs.html#319">Value</a><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> {
-        <a class="self" href="../../src/ron/value.rs.html#77">self</a>.<span class="number">0</span>.<span class="ident">values_mut</span>()
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">FromIterator</span><span class="op">&lt;</span>(<a class="ident" href="../../src/ron/value.rs.html#319">Value</a>, <a class="ident" href="../../src/ron/value.rs.html#319">Value</a>)<span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/ron/value.rs.html#27">Map</a> {
-    <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<a class="ident" href="../../src/ron/value.rs.html#319">Value</a>, <a class="ident" href="../../src/ron/value.rs.html#319">Value</a>)<span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/ron/value.rs.html#27">Map</a>(<span class="ident">MapInner::from_iter</span>(<a class="ident" href="../../src/ron/value.rs.html#83">iter</a>))
+    <span class="doccomment">/// Iterate all values mutably.
+    </span><span class="kw">pub fn </span>values_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;mut </span><a href="../../src/ron/value.rs.html#319">Value</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> {
+        <a class="self" href="../../src/ron/value.rs.html#77">self</a>.<span class="number">0</span>.values_mut()
     }
 }
 
-<span class="doccomment">/// Note: equality is only given if both values and order of values match</span>
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for</span> <a class="ident" href="../../src/ron/value.rs.html#27">Map</a> {}
-
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> <span class="kw">for</span> <a class="ident" href="../../src/ron/value.rs.html#27">Map</a> {
-    <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident">H</span>) {
-        <a class="self" href="../../src/ron/value.rs.html#92">self</a>.<a class="ident" href="../../src/ron/value.rs.html#57">iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <a class="ident" href="../../src/ron/value.rs.html#93">x</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a class="ident" href="../../src/ron/value.rs.html#92">state</a>));
+<span class="kw">impl </span>FromIterator&lt;(<a href="../../src/ron/value.rs.html#319">Value</a>, <a href="../../src/ron/value.rs.html#319">Value</a>)&gt; <span class="kw">for </span><a href="../../src/ron/value.rs.html#27">Map</a> {
+    <span class="kw">fn </span>from_iter&lt;T: IntoIterator&lt;Item = (<a href="../../src/ron/value.rs.html#319">Value</a>, <a href="../../src/ron/value.rs.html#319">Value</a>)&gt;&gt;(iter: T) -&gt; <span class="self">Self </span>{
+        <a href="../../src/ron/value.rs.html#27">Map</a>(MapInner::from_iter(<a href="../../src/ron/value.rs.html#83">iter</a>))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Index</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/ron/value.rs.html#319">Value</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/ron/value.rs.html#27">Map</a> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <a class="ident" href="../../src/ron/value.rs.html#319">Value</a>;
+<span class="doccomment">/// Note: equality is only given if both values and order of values match
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for </span><a href="../../src/ron/value.rs.html#27">Map</a> {}
 
-    <span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/ron/value.rs.html#319">Value</a>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Output</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/ron/value.rs.html#100">self</a>.<span class="number">0</span>[<a class="ident" href="../../src/ron/value.rs.html#100">index</a>]
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> <span class="kw">for </span><a href="../../src/ron/value.rs.html#27">Map</a> {
+    <span class="kw">fn </span>hash&lt;H: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
+        <a class="self" href="../../src/ron/value.rs.html#92">self</a>.<a href="../../src/ron/value.rs.html#57">iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(|x| <a href="../../src/ron/value.rs.html#93">x</a>.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">hash</a>(<a href="../../src/ron/value.rs.html#92">state</a>));
     }
 }
 
-<span class="kw">impl</span> <span class="ident">IndexMut</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/ron/value.rs.html#319">Value</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/ron/value.rs.html#27">Map</a> {
-    <span class="kw">fn</span> <span class="ident">index_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/ron/value.rs.html#319">Value</a>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::Output</span> {
-        <a class="self" href="../../src/ron/value.rs.html#106">self</a>.<span class="number">0</span>.<span class="ident">get_mut</span>(<a class="ident" href="../../src/ron/value.rs.html#106">index</a>).<span class="ident">expect</span>(<span class="string">&quot;no entry found for key&quot;</span>)
+<span class="kw">impl </span>Index&lt;<span class="kw-2">&amp;</span><a href="../../src/ron/value.rs.html#319">Value</a>&gt; <span class="kw">for </span><a href="../../src/ron/value.rs.html#27">Map</a> {
+    <span class="kw">type </span>Output = <a href="../../src/ron/value.rs.html#319">Value</a>;
+
+    <span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span><a href="../../src/ron/value.rs.html#319">Value</a>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Output {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/ron/value.rs.html#100">self</a>.<span class="number">0</span>[<a href="../../src/ron/value.rs.html#100">index</a>]
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a> <span class="kw">for</span> <a class="ident" href="../../src/ron/value.rs.html#27">Map</a> {
-    <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/ron/value.rs.html#27">Map</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a> {
-        <a class="self" href="../../src/ron/value.rs.html#112">self</a>.<a class="ident" href="../../src/ron/value.rs.html#57">iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cmp</a>(<a class="ident" href="../../src/ron/value.rs.html#112">other</a>.<a class="ident" href="../../src/ron/value.rs.html#57">iter</a>())
+<span class="kw">impl </span>IndexMut&lt;<span class="kw-2">&amp;</span><a href="../../src/ron/value.rs.html#319">Value</a>&gt; <span class="kw">for </span><a href="../../src/ron/value.rs.html#27">Map</a> {
+    <span class="kw">fn </span>index_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <span class="kw-2">&amp;</span><a href="../../src/ron/value.rs.html#319">Value</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Output {
+        <a class="self" href="../../src/ron/value.rs.html#106">self</a>.<span class="number">0</span>.get_mut(<a href="../../src/ron/value.rs.html#106">index</a>).expect(<span class="string">&quot;no entry found for key&quot;</span>)
     }
 }
 
-<span class="doccomment">/// Note: equality is only given if both values and order of values match</span>
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for</span> <a class="ident" href="../../src/ron/value.rs.html#27">Map</a> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/ron/value.rs.html#27">Map</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/ron/value.rs.html#119">self</a>.<a class="ident" href="../../src/ron/value.rs.html#57">iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">zip</a>(<a class="ident" href="../../src/ron/value.rs.html#119">other</a>.<a class="ident" href="../../src/ron/value.rs.html#57">iter</a>()).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(<span class="op">|</span>(<span class="ident">a</span>, <span class="ident">b</span>)<span class="op">|</span> <a class="ident" href="../../src/ron/value.rs.html#120">a</a> <span class="op">==</span> <a class="ident" href="../../src/ron/value.rs.html#120">b</a>)
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a> <span class="kw">for </span><a href="../../src/ron/value.rs.html#27">Map</a> {
+    <span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="../../src/ron/value.rs.html#27">Map</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a> {
+        <a class="self" href="../../src/ron/value.rs.html#112">self</a>.<a href="../../src/ron/value.rs.html#57">iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cmp</a>(<a href="../../src/ron/value.rs.html#112">other</a>.<a href="../../src/ron/value.rs.html#57">iter</a>())
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a> <span class="kw">for</span> <a class="ident" href="../../src/ron/value.rs.html#27">Map</a> {
-    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/ron/value.rs.html#27">Map</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/ron/value.rs.html#125">self</a>.<a class="ident" href="../../src/ron/value.rs.html#57">iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">partial_cmp</a>(<a class="ident" href="../../src/ron/value.rs.html#125">other</a>.<a class="ident" href="../../src/ron/value.rs.html#57">iter</a>())
+<span class="doccomment">/// Note: equality is only given if both values and order of values match
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for </span><a href="../../src/ron/value.rs.html#27">Map</a> {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="../../src/ron/value.rs.html#27">Map</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/ron/value.rs.html#119">self</a>.<a href="../../src/ron/value.rs.html#57">iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">zip</a>(<a href="../../src/ron/value.rs.html#119">other</a>.<a href="../../src/ron/value.rs.html#57">iter</a>()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(|(a, b)| <a href="../../src/ron/value.rs.html#120">a</a> == <a href="../../src/ron/value.rs.html#120">b</a>)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;indexmap&quot;</span>))]</span>
-<span class="kw">type</span> <span class="ident">MapInner</span> <span class="op">=</span> <span class="ident">std::collections::BTreeMap</span><span class="op">&lt;</span><a class="ident" href="../../src/ron/value.rs.html#319">Value</a>, <a class="ident" href="../../src/ron/value.rs.html#319">Value</a><span class="op">&gt;</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;indexmap&quot;</span>)]</span>
-<span class="kw">type</span> <span class="ident">MapInner</span> <span class="op">=</span> <span class="ident">indexmap::IndexMap</span><span class="op">&lt;</span><span class="ident">Value</span>, <span class="ident">Value</span><span class="op">&gt;</span>;
-
-<span class="doccomment">/// A wrapper for a number, which can be either `f64` or `i64`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Number</span> {
-    <span class="ident">Integer</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>),
-    <span class="ident">Float</span>(<a class="ident" href="../../src/ron/value.rs.html#145">Float</a>),
-}
-
-<span class="doccomment">/// A wrapper for `f64`, which guarantees that the inner value</span>
-<span class="doccomment">/// is finite and thus implements `Eq`, `Hash` and `Ord`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Float</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>);
-
-<span class="kw">impl</span> <a class="ident" href="../../src/ron/value.rs.html#145">Float</a> {
-    <span class="doccomment">/// Construct a new `Float`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">v</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/ron/value.rs.html#145">Float</a>(<a class="ident" href="../../src/ron/value.rs.html#149">v</a>)
-    }
-
-    <span class="doccomment">/// Returns the wrapped float.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> {
-        <a class="self" href="../../src/ron/value.rs.html#154">self</a>.<span class="number">0</span>
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a> <span class="kw">for </span><a href="../../src/ron/value.rs.html#27">Map</a> {
+    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="../../src/ron/value.rs.html#27">Map</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>&gt; {
+        <a class="self" href="../../src/ron/value.rs.html#125">self</a>.<a href="../../src/ron/value.rs.html#57">iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">partial_cmp</a>(<a href="../../src/ron/value.rs.html#125">other</a>.<a href="../../src/ron/value.rs.html#57">iter</a>())
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/ron/value.rs.html#137">Number</a> {
-    <span class="doccomment">/// Construct a new number.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">v</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="../../src/ron/value.rs.html#137">Number</a><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/ron/value.rs.html#161">v</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
+<span class="attribute">#[cfg(not(feature = <span class="string">&quot;indexmap&quot;</span>))]
+</span><span class="kw">type </span>MapInner = std::collections::BTreeMap&lt;<a href="../../src/ron/value.rs.html#319">Value</a>, <a href="../../src/ron/value.rs.html#319">Value</a>&gt;;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;indexmap&quot;</span>)]
+</span><span class="kw">type </span>MapInner = indexmap::IndexMap&lt;Value, Value&gt;;
+
+<span class="doccomment">/// A wrapper for a number, which can be either `f64` or `i64`.
+</span><span class="attribute">#[derive(Copy, Clone, Debug, PartialEq, PartialOrd, Eq, Hash, Ord)]
+</span><span class="kw">pub enum </span>Number {
+    Integer(<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>),
+    Float(<a href="../../src/ron/value.rs.html#145">Float</a>),
+}
+
+<span class="doccomment">/// A wrapper for `f64`, which guarantees that the inner value
+/// is finite and thus implements `Eq`, `Hash` and `Ord`.
+</span><span class="attribute">#[derive(Copy, Clone, Debug)]
+</span><span class="kw">pub struct </span>Float(<a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>);
+
+<span class="kw">impl </span><a href="../../src/ron/value.rs.html#145">Float</a> {
+    <span class="doccomment">/// Construct a new `Float`.
+    </span><span class="kw">pub fn </span>new(v: <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>) -&gt; <span class="self">Self </span>{
+        <a href="../../src/ron/value.rs.html#145">Float</a>(<a href="../../src/ron/value.rs.html#149">v</a>)
     }
 
-    <span class="doccomment">/// Returns the `f64` representation of the number regardless of whether the number is stored</span>
-    <span class="doccomment">/// as a float or integer.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use ron::value::Number;</span>
-    <span class="doccomment">/// let i = Number::new(5);</span>
-    <span class="doccomment">/// let f = Number::new(2.0);</span>
-    <span class="doccomment">/// assert_eq!(i.into_f64(), 5.0);</span>
-    <span class="doccomment">/// assert_eq!(f.into_f64(), 2.0);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_f64</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> {
-        <a class="self" href="../../src/ron/value.rs.html#177">self</a>.<a class="ident" href="../../src/ron/value.rs.html#222-226">map_to</a>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <a class="ident" href="../../src/ron/value.rs.html#178">i</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>, <span class="op">|</span><span class="ident">f</span><span class="op">|</span> <a class="ident" href="../../src/ron/value.rs.html#178">f</a>)
+    <span class="doccomment">/// Returns the wrapped float.
+    </span><span class="kw">pub fn </span>get(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> {
+        <a class="self" href="../../src/ron/value.rs.html#154">self</a>.<span class="number">0
+    </span>}
+}
+
+<span class="kw">impl </span><a href="../../src/ron/value.rs.html#137">Number</a> {
+    <span class="doccomment">/// Construct a new number.
+    </span><span class="kw">pub fn </span>new(v: <span class="kw">impl </span>Into&lt;<a href="../../src/ron/value.rs.html#137">Number</a>&gt;) -&gt; <span class="self">Self </span>{
+        <a href="../../src/ron/value.rs.html#161">v</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
 
-    <span class="doccomment">/// If the `Number` is a float, return it. Otherwise return `None`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use ron::value::Number;</span>
-    <span class="doccomment">/// let i = Number::new(5);</span>
-    <span class="doccomment">/// let f = Number::new(2.0);</span>
-    <span class="doccomment">/// assert_eq!(i.as_f64(), None);</span>
-    <span class="doccomment">/// assert_eq!(f.as_f64(), Some(2.0));</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_f64</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/ron/value.rs.html#192">self</a>.<a class="ident" href="../../src/ron/value.rs.html#222-226">map_to</a>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>)
+    <span class="doccomment">/// Returns the `f64` representation of the number regardless of whether the number is stored
+    /// as a float or integer.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use ron::value::Number;
+    /// let i = Number::new(5);
+    /// let f = Number::new(2.0);
+    /// assert_eq!(i.into_f64(), 5.0);
+    /// assert_eq!(f.into_f64(), 2.0);
+    /// ```
+    </span><span class="kw">pub fn </span>into_f64(<span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> {
+        <a class="self" href="../../src/ron/value.rs.html#177">self</a>.<a href="../../src/ron/value.rs.html#222-226">map_to</a>(|i| <a href="../../src/ron/value.rs.html#178">i</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>, |f| <a href="../../src/ron/value.rs.html#178">f</a>)
     }
 
-    <span class="doccomment">/// If the `Number` is an integer, return it. Otherwise return `None`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use ron::value::Number;</span>
-    <span class="doccomment">/// let i = Number::new(5);</span>
-    <span class="doccomment">/// let f = Number::new(2.0);</span>
-    <span class="doccomment">/// assert_eq!(i.as_i64(), Some(5));</span>
-    <span class="doccomment">/// assert_eq!(f.as_i64(), None);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_i64</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/ron/value.rs.html#207">self</a>.<a class="ident" href="../../src/ron/value.rs.html#222-226">map_to</a>(<span class="prelude-val">Some</span>, <span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="prelude-val">None</span>)
+    <span class="doccomment">/// If the `Number` is a float, return it. Otherwise return `None`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use ron::value::Number;
+    /// let i = Number::new(5);
+    /// let f = Number::new(2.0);
+    /// assert_eq!(i.as_f64(), None);
+    /// assert_eq!(f.as_f64(), Some(2.0));
+    /// ```
+    </span><span class="kw">pub fn </span>as_f64(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>&gt; {
+        <a class="self" href="../../src/ron/value.rs.html#192">self</a>.<a href="../../src/ron/value.rs.html#222-226">map_to</a>(|<span class="kw">_</span>| <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>)
     }
 
-    <span class="doccomment">/// Map this number to a single type using the appropriate closure.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use ron::value::Number;</span>
-    <span class="doccomment">/// let i = Number::new(5);</span>
-    <span class="doccomment">/// let f = Number::new(2.0);</span>
-    <span class="doccomment">/// assert!(i.map_to(|i| i &gt; 3, |f| f &gt; 3.0));</span>
-    <span class="doccomment">/// assert!(!f.map_to(|i| i &gt; 3, |f| f &gt; 3.0));</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map_to</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
+    <span class="doccomment">/// If the `Number` is an integer, return it. Otherwise return `None`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use ron::value::Number;
+    /// let i = Number::new(5);
+    /// let f = Number::new(2.0);
+    /// assert_eq!(i.as_i64(), Some(5));
+    /// assert_eq!(f.as_i64(), None);
+    /// ```
+    </span><span class="kw">pub fn </span>as_i64(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt; {
+        <a class="self" href="../../src/ron/value.rs.html#207">self</a>.<a href="../../src/ron/value.rs.html#222-226">map_to</a>(<span class="prelude-val">Some</span>, |<span class="kw">_</span>| <span class="prelude-val">None</span>)
+    }
+
+    <span class="doccomment">/// Map this number to a single type using the appropriate closure.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use ron::value::Number;
+    /// let i = Number::new(5);
+    /// let f = Number::new(2.0);
+    /// assert!(i.map_to(|i| i &gt; 3, |f| f &gt; 3.0));
+    /// assert!(!f.map_to(|i| i &gt; 3, |f| f &gt; 3.0));
+    /// ```
+    </span><span class="kw">pub fn </span>map_to&lt;T&gt;(
         <span class="self">self</span>,
-        <span class="ident">integer_fn</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <span class="ident">T</span>,
-        <span class="ident">float_fn</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>) -&gt; <span class="ident">T</span>,
-    ) -&gt; <span class="ident">T</span> {
-        <span class="kw">match</span> <a class="self" href="../../src/ron/value.rs.html#223">self</a> {
-            <a class="ident" href="../../src/ron/value.rs.html#138">Number::Integer</a>(<span class="ident">i</span>) =&gt; <a class="ident" href="../../src/ron/value.rs.html#224">integer_fn</a>(<a class="ident" href="../../src/ron/value.rs.html#228">i</a>),
-            <a class="ident" href="../../src/ron/value.rs.html#139">Number::Float</a>(<a class="ident" href="../../src/ron/value.rs.html#145">Float</a>(<span class="ident">f</span>)) =&gt; <a class="ident" href="../../src/ron/value.rs.html#225">float_fn</a>(<a class="ident" href="../../src/ron/value.rs.html#229">f</a>),
+        integer_fn: <span class="kw">impl </span>FnOnce(<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; T,
+        float_fn: <span class="kw">impl </span>FnOnce(<a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>) -&gt; T,
+    ) -&gt; T {
+        <span class="kw">match </span><span class="self"><a href="../../src/ron/value.rs.html#223">self</a> </span>{
+            <a href="../../src/ron/value.rs.html#138">Number::Integer</a>(i) =&gt; <a href="../../src/ron/value.rs.html#224">integer_fn</a>(<a href="../../src/ron/value.rs.html#228">i</a>),
+            <a href="../../src/ron/value.rs.html#139">Number::Float</a>(<a href="../../src/ron/value.rs.html#145">Float</a>(f)) =&gt; <a href="../../src/ron/value.rs.html#225">float_fn</a>(<a href="../../src/ron/value.rs.html#229">f</a>),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/ron/value.rs.html#137">Number</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">f</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>) -&gt; <a class="ident" href="../../src/ron/value.rs.html#137">Number</a> {
-        <a class="ident" href="../../src/ron/value.rs.html#139">Number::Float</a>(<a class="ident" href="../../src/ron/value.rs.html#145">Float</a>(<a class="ident" href="../../src/ron/value.rs.html#235">f</a>))
+<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>&gt; <span class="kw">for </span><a href="../../src/ron/value.rs.html#137">Number</a> {
+    <span class="kw">fn </span>from(f: <a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>) -&gt; <a href="../../src/ron/value.rs.html#137">Number</a> {
+        <a href="../../src/ron/value.rs.html#139">Number::Float</a>(<a href="../../src/ron/value.rs.html#145">Float</a>(<a href="../../src/ron/value.rs.html#235">f</a>))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/ron/value.rs.html#137">Number</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">i</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <a class="ident" href="../../src/ron/value.rs.html#137">Number</a> {
-        <a class="ident" href="../../src/ron/value.rs.html#138">Number::Integer</a>(<a class="ident" href="../../src/ron/value.rs.html#241">i</a>)
+<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt; <span class="kw">for </span><a href="../../src/ron/value.rs.html#137">Number</a> {
+    <span class="kw">fn </span>from(i: <a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>) -&gt; <a href="../../src/ron/value.rs.html#137">Number</a> {
+        <a href="../../src/ron/value.rs.html#138">Number::Integer</a>(<a href="../../src/ron/value.rs.html#241">i</a>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/ron/value.rs.html#137">Number</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">i</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a class="ident" href="../../src/ron/value.rs.html#137">Number</a> {
-        <a class="ident" href="../../src/ron/value.rs.html#138">Number::Integer</a>(<span class="ident">i64::from</span>(<a class="ident" href="../../src/ron/value.rs.html#247">i</a>))
+<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>&gt; <span class="kw">for </span><a href="../../src/ron/value.rs.html#137">Number</a> {
+    <span class="kw">fn </span>from(i: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a href="../../src/ron/value.rs.html#137">Number</a> {
+        <a href="../../src/ron/value.rs.html#138">Number::Integer</a>(i64::from(<a href="../../src/ron/value.rs.html#247">i</a>))
     }
 }
 
-<span class="comment">// The following number conversion checks if the integer fits losslessly into an i64, before</span>
-<span class="comment">// constructing a Number::Integer variant. If not, the conversion defaults to float.</span>
+<span class="comment">// The following number conversion checks if the integer fits losslessly into an i64, before
+// constructing a Number::Integer variant. If not, the conversion defaults to float.
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/ron/value.rs.html#137">Number</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">i</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <a class="ident" href="../../src/ron/value.rs.html#137">Number</a> {
-        <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">std::i64::MAX</span> <span class="kw">as</span> <span class="ident">u64</span> {
-            <a class="ident" href="../../src/ron/value.rs.html#138">Number::Integer</a>(<a class="ident" href="../../src/ron/value.rs.html#256">i</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>)
-        } <span class="kw">else</span> {
-            <span class="ident">Number::new</span>(<a class="ident" href="../../src/ron/value.rs.html#256">i</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>)
+</span><span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; <span class="kw">for </span><a href="../../src/ron/value.rs.html#137">Number</a> {
+    <span class="kw">fn </span>from(i: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <a href="../../src/ron/value.rs.html#137">Number</a> {
+        <span class="kw">if </span>i &lt;= std::i64::MAX <span class="kw">as </span>u64 {
+            <a href="../../src/ron/value.rs.html#138">Number::Integer</a>(<a href="../../src/ron/value.rs.html#256">i</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>)
+        } <span class="kw">else </span>{
+            Number::new(<a href="../../src/ron/value.rs.html#256">i</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>)
         }
     }
 }
 
-<span class="doccomment">/// Partial equality comparison</span>
-<span class="doccomment">/// In order to be able to use `Number` as a mapping key, NaN floating values</span>
-<span class="doccomment">/// wrapped in `Float` are equals to each other. It is not the case for</span>
-<span class="doccomment">/// underlying `f64` values itself.</span>
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for</span> <a class="ident" href="../../src/ron/value.rs.html#145">Float</a> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/ron/value.rs.html#270">self</a>.<span class="number">0</span>.<span class="ident">is_nan</span>() <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/ron/value.rs.html#270">other</a>.<span class="number">0</span>.<span class="ident">is_nan</span>() <span class="op">|</span><span class="op">|</span> <a class="self" href="../../src/ron/value.rs.html#270">self</a>.<span class="number">0</span> <span class="op">==</span> <a class="ident" href="../../src/ron/value.rs.html#270">other</a>.<span class="number">0</span>
+<span class="doccomment">/// Partial equality comparison
+/// In order to be able to use `Number` as a mapping key, NaN floating values
+/// wrapped in `Float` are equals to each other. It is not the case for
+/// underlying `f64` values itself.
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for </span><a href="../../src/ron/value.rs.html#145">Float</a> {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/ron/value.rs.html#270">self</a>.<span class="number">0</span>.is_nan() &amp;&amp; <a href="../../src/ron/value.rs.html#270">other</a>.<span class="number">0</span>.is_nan() || <a class="self" href="../../src/ron/value.rs.html#270">self</a>.<span class="number">0 </span>== <a href="../../src/ron/value.rs.html#270">other</a>.<span class="number">0
+    </span>}
+}
+
+<span class="doccomment">/// Equality comparison
+/// In order to be able to use `Float` as a mapping key, NaN floating values
+/// wrapped in `Float` are equals to each other. It is not the case for
+/// underlying `f64` values itself.
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for </span><a href="../../src/ron/value.rs.html#145">Float</a> {}
+
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> <span class="kw">for </span><a href="../../src/ron/value.rs.html#145">Float</a> {
+    <span class="kw">fn </span>hash&lt;H: <a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
+        <a href="../../src/ron/value.rs.html#282">state</a>.<a href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">write_u64</a>(<a class="self" href="../../src/ron/value.rs.html#282">self</a>.<span class="number">0</span>.to_bits());
     }
 }
 
-<span class="doccomment">/// Equality comparison</span>
-<span class="doccomment">/// In order to be able to use `Float` as a mapping key, NaN floating values</span>
-<span class="doccomment">/// wrapped in `Float` are equals to each other. It is not the case for</span>
-<span class="doccomment">/// underlying `f64` values itself.</span>
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for</span> <a class="ident" href="../../src/ron/value.rs.html#145">Float</a> {}
-
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html">Hash</a> <span class="kw">for</span> <a class="ident" href="../../src/ron/value.rs.html#145">Float</a> {
-    <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">Hasher</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident">H</span>) {
-        <a class="ident" href="../../src/ron/value.rs.html#282">state</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html">write_u64</a>(<a class="self" href="../../src/ron/value.rs.html#282">self</a>.<span class="number">0</span>.<span class="ident">to_bits</span>());
-    }
-}
-
-<span class="doccomment">/// Partial ordering comparison</span>
-<span class="doccomment">/// In order to be able to use `Number` as a mapping key, NaN floating values</span>
-<span class="doccomment">/// wrapped in `Number` are equals to each other and are less then any other</span>
-<span class="doccomment">/// floating value. It is not the case for the underlying `f64` values themselves.</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use ron::value::Number;</span>
-<span class="doccomment">/// assert!(Number::new(std::f64::NAN) &lt; Number::new(std::f64::NEG_INFINITY));</span>
-<span class="doccomment">/// assert_eq!(Number::new(std::f64::NAN), Number::new(std::f64::NAN));</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a> <span class="kw">for</span> <a class="ident" href="../../src/ron/value.rs.html#145">Float</a> {
-    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> (<a class="self" href="../../src/ron/value.rs.html#297">self</a>.<span class="number">0</span>.<span class="ident">is_nan</span>(), <a class="ident" href="../../src/ron/value.rs.html#297">other</a>.<span class="number">0</span>.<span class="ident">is_nan</span>()) {
-            (<span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Ordering::Equal</span>),
-            (<span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Ordering::Less</span>),
-            (<span class="bool-val">false</span>, <span class="bool-val">true</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Ordering::Greater</span>),
-            <span class="kw">_</span> =&gt; <a class="self" href="../../src/ron/value.rs.html#297">self</a>.<span class="number">0</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">partial_cmp</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/ron/value.rs.html#297">other</a>.<span class="number">0</span>),
+<span class="doccomment">/// Partial ordering comparison
+/// In order to be able to use `Number` as a mapping key, NaN floating values
+/// wrapped in `Number` are equals to each other and are less then any other
+/// floating value. It is not the case for the underlying `f64` values themselves.
+/// ```
+/// use ron::value::Number;
+/// assert!(Number::new(std::f64::NAN) &lt; Number::new(std::f64::NEG_INFINITY));
+/// assert_eq!(Number::new(std::f64::NAN), Number::new(std::f64::NAN));
+/// ```
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a> <span class="kw">for </span><a href="../../src/ron/value.rs.html#145">Float</a> {
+    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>&gt; {
+        <span class="kw">match </span>(<a class="self" href="../../src/ron/value.rs.html#297">self</a>.<span class="number">0</span>.is_nan(), <a href="../../src/ron/value.rs.html#297">other</a>.<span class="number">0</span>.is_nan()) {
+            (<span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; <span class="prelude-val">Some</span>(Ordering::Equal),
+            (<span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; <span class="prelude-val">Some</span>(Ordering::Less),
+            (<span class="bool-val">false</span>, <span class="bool-val">true</span>) =&gt; <span class="prelude-val">Some</span>(Ordering::Greater),
+            <span class="kw">_ </span>=&gt; <a class="self" href="../../src/ron/value.rs.html#297">self</a>.<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">partial_cmp</a>(<span class="kw-2">&amp;</span><a href="../../src/ron/value.rs.html#297">other</a>.<span class="number">0</span>),
         }
     }
 }
 
-<span class="doccomment">/// Ordering comparison</span>
-<span class="doccomment">/// In order to be able to use `Float` as a mapping key, NaN floating values</span>
-<span class="doccomment">/// wrapped in `Float` are equals to each other and are less then any other</span>
-<span class="doccomment">/// floating value. It is not the case for underlying `f64` values itself. See</span>
-<span class="doccomment">/// the `PartialEq` implementation.</span>
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a> <span class="kw">for</span> <a class="ident" href="../../src/ron/value.rs.html#145">Float</a> {
-    <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a> {
-        <a class="self" href="../../src/ron/value.rs.html#313">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">partial_cmp</a>(<a class="ident" href="../../src/ron/value.rs.html#313">other</a>).<span class="ident">expect</span>(<span class="string">&quot;Bug: Contract violation&quot;</span>)
+<span class="doccomment">/// Ordering comparison
+/// In order to be able to use `Float` as a mapping key, NaN floating values
+/// wrapped in `Float` are equals to each other and are less then any other
+/// floating value. It is not the case for underlying `f64` values itself. See
+/// the `PartialEq` implementation.
+</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a> <span class="kw">for </span><a href="../../src/ron/value.rs.html#145">Float</a> {
+    <span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a> {
+        <a class="self" href="../../src/ron/value.rs.html#313">self</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">partial_cmp</a>(<a href="../../src/ron/value.rs.html#313">other</a>).expect(<span class="string">&quot;Bug: Contract violation&quot;</span>)
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Value</span> {
-    <span class="ident">Bool</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>),
-    <span class="ident">Char</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>),
-    <span class="ident">Map</span>(<a class="ident" href="../../src/ron/value.rs.html#27">Map</a>),
-    <span class="ident">Number</span>(<a class="ident" href="../../src/ron/value.rs.html#137">Number</a>),
-    <span class="prelude-ty">Option</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../src/ron/value.rs.html#319">Value</a><span class="op">&gt;</span><span class="op">&gt;</span>),
-    <span class="ident">String</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>),
-    <span class="ident">Seq</span>(<span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/ron/value.rs.html#319">Value</a><span class="op">&gt;</span>),
-    <span class="ident">Unit</span>,
+<span class="attribute">#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+</span><span class="kw">pub enum </span>Value {
+    Bool(<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>),
+    Char(<a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>),
+    Map(<a href="../../src/ron/value.rs.html#27">Map</a>),
+    Number(<a href="../../src/ron/value.rs.html#137">Number</a>),
+    <span class="prelude-ty">Option</span>(<span class="prelude-ty">Option</span>&lt;Box&lt;<a href="../../src/ron/value.rs.html#319">Value</a>&gt;&gt;),
+    String(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>),
+    Seq(Vec&lt;<a href="../../src/ron/value.rs.html#319">Value</a>&gt;),
+    Unit,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/ron/value.rs.html#319">Value</a> {
-    <span class="doccomment">/// Tries to deserialize this `Value` into `T`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_rust</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <a class="ident" href="../../serde/de/trait.DeserializeOwned.html">DeserializeOwned</a>,
+<span class="kw">impl </span><a href="../../src/ron/value.rs.html#319">Value</a> {
+    <span class="doccomment">/// Tries to deserialize this `Value` into `T`.
+    </span><span class="kw">pub fn </span>into_rust&lt;T&gt;(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt;
+    <span class="kw">where
+        </span>T: <a href="../../serde/de/trait.DeserializeOwned.html">DeserializeOwned</a>,
     {
-        <span class="ident">T::deserialize</span>(<a class="self" href="../../src/ron/value.rs.html#332">self</a>)
+        T::deserialize(<a class="self" href="../../src/ron/value.rs.html#332">self</a>)
     }
 }
 
-<span class="doccomment">/// Deserializer implementation for RON `Value`.</span>
-<span class="doccomment">/// This does not support enums (because `Value` doesn&#39;t store them).</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/ron/value.rs.html#319">Value</a> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../src/ron/error.rs.html#7">RonError</a>;
+<span class="doccomment">/// Deserializer implementation for RON `Value`.
+/// This does not support enums (because `Value` doesn&#39;t store them).
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; Deserializer&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><a href="../../src/ron/value.rs.html#319">Value</a> {
+    <span class="kw">type </span>Error = <a href="../../src/ron/error.rs.html#7">RonError</a>;
 
-    <a class="macro" href="../../serde/macro.forward_to_deserialize_any.html">forward_to_deserialize_any!</a> {
-        <span class="ident">bool</span> <span class="ident">f32</span> <span class="ident">f64</span> <span class="ident">char</span> <span class="ident">str</span> <span class="ident">string</span> <span class="ident">bytes</span>
-        <span class="ident">byte_buf</span> <span class="ident">option</span> <span class="ident">unit</span> <span class="ident">unit_struct</span> <span class="ident">newtype_struct</span> <span class="ident">seq</span> <span class="ident">tuple</span>
-        <span class="ident">tuple_struct</span> <span class="ident">map</span> <span class="kw">struct</span> <span class="kw">enum</span> <span class="ident">identifier</span> <span class="ident">ignored_any</span>
+    <a class="macro" href="../../serde/macro.forward_to_deserialize_any.html">forward_to_deserialize_any! </a>{
+        bool f32 f64 char str string bytes
+        byte_buf option unit unit_struct newtype_struct seq tuple
+        tuple_struct map <span class="kw">struct enum </span>identifier ignored_any
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_any</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_any&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match</span> <a class="self" href="../../src/ron/value.rs.html#351">self</a> {
-            <a class="ident" href="../../src/ron/value.rs.html#320">Value::Bool</a>(<span class="ident">b</span>) =&gt; <a class="ident" href="../../src/ron/value.rs.html#351">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_bool</a>(<a class="ident" href="../../src/ron/value.rs.html#356">b</a>),
-            <a class="ident" href="../../src/ron/value.rs.html#321">Value::Char</a>(<span class="ident">c</span>) =&gt; <a class="ident" href="../../src/ron/value.rs.html#351">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_char</a>(<a class="ident" href="../../src/ron/value.rs.html#357">c</a>),
-            <a class="ident" href="../../src/ron/value.rs.html#322">Value::Map</a>(<span class="ident">m</span>) =&gt; <a class="ident" href="../../src/ron/value.rs.html#351">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_map</a>(<a class="ident" href="../../src/ron/value.rs.html#438">MapAccessor</a> {
-                <span class="ident">keys</span>: <a class="ident" href="../../src/ron/value.rs.html#358">m</a>.<a class="ident" href="../../src/ron/value.rs.html#67">keys</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rev</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-                <span class="ident">values</span>: <a class="ident" href="../../src/ron/value.rs.html#358">m</a>.<a class="ident" href="../../src/ron/value.rs.html#72">values</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rev</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+        <span class="kw">match </span><span class="self"><a href="../../src/ron/value.rs.html#351">self</a> </span>{
+            <a href="../../src/ron/value.rs.html#320">Value::Bool</a>(b) =&gt; <a href="../../src/ron/value.rs.html#351">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_bool</a>(<a href="../../src/ron/value.rs.html#356">b</a>),
+            <a href="../../src/ron/value.rs.html#321">Value::Char</a>(c) =&gt; <a href="../../src/ron/value.rs.html#351">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_char</a>(<a href="../../src/ron/value.rs.html#357">c</a>),
+            <a href="../../src/ron/value.rs.html#322">Value::Map</a>(m) =&gt; <a href="../../src/ron/value.rs.html#351">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_map</a>(<a href="../../src/ron/value.rs.html#438">MapAccessor</a> {
+                keys: <a href="../../src/ron/value.rs.html#358">m</a>.<a href="../../src/ron/value.rs.html#67">keys</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rev</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+                values: <a href="../../src/ron/value.rs.html#358">m</a>.<a href="../../src/ron/value.rs.html#72">values</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rev</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
             }),
-            <a class="ident" href="../../src/ron/value.rs.html#323">Value::Number</a>(<a class="ident" href="../../src/ron/value.rs.html#139">Number::Float</a>(<span class="kw-2">ref</span> <span class="ident">f</span>)) =&gt; <a class="ident" href="../../src/ron/value.rs.html#351">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_f64</a>(<a class="ident" href="../../src/ron/value.rs.html#362">f</a>.<a class="ident" href="../../src/ron/value.rs.html#154">get</a>()),
-            <a class="ident" href="../../src/ron/value.rs.html#323">Value::Number</a>(<a class="ident" href="../../src/ron/value.rs.html#138">Number::Integer</a>(<span class="ident">i</span>)) =&gt; <a class="ident" href="../../src/ron/value.rs.html#351">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_i64</a>(<a class="ident" href="../../src/ron/value.rs.html#363">i</a>),
-            <a class="ident" href="../../src/ron/value.rs.html#324">Value::Option</a>(<span class="prelude-val">Some</span>(<span class="ident">o</span>)) =&gt; <a class="ident" href="../../src/ron/value.rs.html#351">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_some</a>(<span class="kw-2">*</span><a class="ident" href="../../src/ron/value.rs.html#364">o</a>),
-            <a class="ident" href="../../src/ron/value.rs.html#324">Value::Option</a>(<span class="prelude-val">None</span>) =&gt; <a class="ident" href="../../src/ron/value.rs.html#351">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_none</a>(),
-            <a class="ident" href="../../src/ron/value.rs.html#325">Value::String</a>(<span class="ident">s</span>) =&gt; <a class="ident" href="../../src/ron/value.rs.html#351">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_string</a>(<a class="ident" href="../../src/ron/value.rs.html#366">s</a>),
-            <a class="ident" href="../../src/ron/value.rs.html#326">Value::Seq</a>(<span class="kw-2">mut</span> <span class="ident">seq</span>) =&gt; {
-                <a class="ident" href="../../src/ron/value.rs.html#367">seq</a>.<span class="ident">reverse</span>();
-                <a class="ident" href="../../src/ron/value.rs.html#351">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_seq</a>(<a class="ident" href="../../src/ron/value.rs.html#468">Seq</a> { <a class="ident" href="../../src/ron/value.rs.html#367">seq</a> })
+            <a href="../../src/ron/value.rs.html#323">Value::Number</a>(<a href="../../src/ron/value.rs.html#139">Number::Float</a>(<span class="kw-2">ref </span>f)) =&gt; <a href="../../src/ron/value.rs.html#351">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_f64</a>(<a href="../../src/ron/value.rs.html#362">f</a>.<a href="../../src/ron/value.rs.html#154">get</a>()),
+            <a href="../../src/ron/value.rs.html#323">Value::Number</a>(<a href="../../src/ron/value.rs.html#138">Number::Integer</a>(i)) =&gt; <a href="../../src/ron/value.rs.html#351">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_i64</a>(<a href="../../src/ron/value.rs.html#363">i</a>),
+            <a href="../../src/ron/value.rs.html#324">Value::Option</a>(<span class="prelude-val">Some</span>(o)) =&gt; <a href="../../src/ron/value.rs.html#351">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_some</a>(<span class="kw-2">*</span><a href="../../src/ron/value.rs.html#364">o</a>),
+            <a href="../../src/ron/value.rs.html#324">Value::Option</a>(<span class="prelude-val">None</span>) =&gt; <a href="../../src/ron/value.rs.html#351">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_none</a>(),
+            <a href="../../src/ron/value.rs.html#325">Value::String</a>(s) =&gt; <a href="../../src/ron/value.rs.html#351">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_string</a>(<a href="../../src/ron/value.rs.html#366">s</a>),
+            <a href="../../src/ron/value.rs.html#326">Value::Seq</a>(<span class="kw-2">mut </span>seq) =&gt; {
+                <a href="../../src/ron/value.rs.html#367">seq</a>.reverse();
+                <a href="../../src/ron/value.rs.html#351">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_seq</a>(<a href="../../src/ron/value.rs.html#468">Seq</a> { <a href="../../src/ron/value.rs.html#367">seq</a> })
             }
-            <a class="ident" href="../../src/ron/value.rs.html#327">Value::Unit</a> =&gt; <a class="ident" href="../../src/ron/value.rs.html#351">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_unit</a>(),
+            <a href="../../src/ron/value.rs.html#327">Value::Unit</a> =&gt; <a href="../../src/ron/value.rs.html#351">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_unit</a>(),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_i8</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_i8&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="../../src/ron/value.rs.html#375">self</a>.<a class="ident" href="../../serde/de/trait.Deserializer.html">deserialize_i64</a>(<a class="ident" href="../../src/ron/value.rs.html#375">visitor</a>)
+        <a class="self" href="../../src/ron/value.rs.html#375">self</a>.<a href="../../serde/de/trait.Deserializer.html">deserialize_i64</a>(<a href="../../src/ron/value.rs.html#375">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_i16</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_i16&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="../../src/ron/value.rs.html#382">self</a>.<a class="ident" href="../../serde/de/trait.Deserializer.html">deserialize_i64</a>(<a class="ident" href="../../src/ron/value.rs.html#382">visitor</a>)
+        <a class="self" href="../../src/ron/value.rs.html#382">self</a>.<a href="../../serde/de/trait.Deserializer.html">deserialize_i64</a>(<a href="../../src/ron/value.rs.html#382">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_i32</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_i32&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="../../src/ron/value.rs.html#389">self</a>.<a class="ident" href="../../serde/de/trait.Deserializer.html">deserialize_i64</a>(<a class="ident" href="../../src/ron/value.rs.html#389">visitor</a>)
+        <a class="self" href="../../src/ron/value.rs.html#389">self</a>.<a href="../../serde/de/trait.Deserializer.html">deserialize_i64</a>(<a href="../../src/ron/value.rs.html#389">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_i64</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_i64&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match</span> <a class="self" href="../../src/ron/value.rs.html#396">self</a> {
-            <a class="ident" href="../../src/ron/value.rs.html#323">Value::Number</a>(<a class="ident" href="../../src/ron/value.rs.html#138">Number::Integer</a>(<span class="ident">i</span>)) =&gt; <a class="ident" href="../../src/ron/value.rs.html#396">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_i64</a>(<a class="ident" href="../../src/ron/value.rs.html#401">i</a>),
-            <span class="ident">v</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">RonError::custom</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;Expected a number, got {:?}&quot;</span>, <span class="ident">v</span>))),
+        <span class="kw">match </span><span class="self"><a href="../../src/ron/value.rs.html#396">self</a> </span>{
+            <a href="../../src/ron/value.rs.html#323">Value::Number</a>(<a href="../../src/ron/value.rs.html#138">Number::Integer</a>(i)) =&gt; <a href="../../src/ron/value.rs.html#396">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_i64</a>(<a href="../../src/ron/value.rs.html#401">i</a>),
+            v =&gt; <span class="prelude-val">Err</span>(RonError::custom(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;Expected a number, got {:?}&quot;</span>, v))),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_u8</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_u8&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="../../src/ron/value.rs.html#406">self</a>.<a class="ident" href="../../serde/de/trait.Deserializer.html">deserialize_u64</a>(<a class="ident" href="../../src/ron/value.rs.html#406">visitor</a>)
+        <a class="self" href="../../src/ron/value.rs.html#406">self</a>.<a href="../../serde/de/trait.Deserializer.html">deserialize_u64</a>(<a href="../../src/ron/value.rs.html#406">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_u16</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_u16&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="../../src/ron/value.rs.html#413">self</a>.<a class="ident" href="../../serde/de/trait.Deserializer.html">deserialize_u64</a>(<a class="ident" href="../../src/ron/value.rs.html#413">visitor</a>)
+        <a class="self" href="../../src/ron/value.rs.html#413">self</a>.<a href="../../serde/de/trait.Deserializer.html">deserialize_u64</a>(<a href="../../src/ron/value.rs.html#413">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_u32</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_u32&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="../../src/ron/value.rs.html#420">self</a>.<a class="ident" href="../../serde/de/trait.Deserializer.html">deserialize_u64</a>(<a class="ident" href="../../src/ron/value.rs.html#420">visitor</a>)
+        <a class="self" href="../../src/ron/value.rs.html#420">self</a>.<a href="../../serde/de/trait.Deserializer.html">deserialize_u64</a>(<a href="../../src/ron/value.rs.html#420">visitor</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deserialize_u64</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_u64&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match</span> <a class="self" href="../../src/ron/value.rs.html#427">self</a> {
-            <a class="ident" href="../../src/ron/value.rs.html#323">Value::Number</a>(<a class="ident" href="../../src/ron/value.rs.html#138">Number::Integer</a>(<span class="ident">i</span>)) =&gt; <a class="ident" href="../../src/ron/value.rs.html#427">visitor</a>.<a class="ident" href="../../serde/de/trait.Visitor.html">visit_u64</a>(<a class="ident" href="../../src/ron/value.rs.html#432">i</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>),
-            <span class="ident">v</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">RonError::custom</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;Expected a number, got {:?}&quot;</span>, <span class="ident">v</span>))),
+        <span class="kw">match </span><span class="self"><a href="../../src/ron/value.rs.html#427">self</a> </span>{
+            <a href="../../src/ron/value.rs.html#323">Value::Number</a>(<a href="../../src/ron/value.rs.html#138">Number::Integer</a>(i)) =&gt; <a href="../../src/ron/value.rs.html#427">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_u64</a>(<a href="../../src/ron/value.rs.html#432">i</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>),
+            v =&gt; <span class="prelude-val">Err</span>(RonError::custom(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;Expected a number, got {:?}&quot;</span>, v))),
         }
     }
 }
 
-<span class="kw">struct</span> <span class="ident">MapAccessor</span> {
-    <span class="ident">keys</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/ron/value.rs.html#319">Value</a><span class="op">&gt;</span>,
-    <span class="ident">values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/ron/value.rs.html#319">Value</a><span class="op">&gt;</span>,
+<span class="kw">struct </span>MapAccessor {
+    keys: Vec&lt;<a href="../../src/ron/value.rs.html#319">Value</a>&gt;,
+    values: Vec&lt;<a href="../../src/ron/value.rs.html#319">Value</a>&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">MapAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/ron/value.rs.html#438">MapAccessor</a> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../src/ron/error.rs.html#7">RonError</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; MapAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><a href="../../src/ron/value.rs.html#438">MapAccessor</a> {
+    <span class="kw">type </span>Error = <a href="../../src/ron/error.rs.html#7">RonError</a>;
 
-    <span class="kw">fn</span> <span class="ident">next_key_seed</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">seed</span>: <span class="ident">K</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">K::Value</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">K</span>: <span class="ident">DeserializeSeed</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>next_key_seed&lt;K&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, seed: K) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;K::Value&gt;&gt;
+    <span class="kw">where
+        </span>K: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="comment">// The `Vec` is reversed, so we can pop to get the originally first element</span>
-        <a class="self" href="../../src/ron/value.rs.html#446">self</a>.<span class="ident">keys</span>
-            .<span class="ident">pop</span>()
-            .<span class="ident">map_or</span>(<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>), <span class="op">|</span><span class="ident">v</span><span class="op">|</span> <a class="ident" href="../../src/ron/value.rs.html#446">seed</a>.<a class="ident" href="../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a class="ident" href="../../src/ron/value.rs.html#453">v</a>).<span class="ident">map</span>(<span class="prelude-val">Some</span>))
+        <span class="comment">// The `Vec` is reversed, so we can pop to get the originally first element
+        </span><a class="self" href="../../src/ron/value.rs.html#446">self</a>.keys
+            .pop()
+            .map_or(<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>), |v| <a href="../../src/ron/value.rs.html#446">seed</a>.<a href="../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a href="../../src/ron/value.rs.html#453">v</a>).map(<span class="prelude-val">Some</span>))
     }
 
-    <span class="kw">fn</span> <span class="ident">next_value_seed</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">seed</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">DeserializeSeed</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>next_value_seed&lt;V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, seed: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="comment">// The `Vec` is reversed, so we can pop to get the originally first element</span>
-        <a class="self" href="../../src/ron/value.rs.html#456">self</a>.<span class="ident">values</span>
-            .<span class="ident">pop</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <a class="ident" href="../../src/ron/value.rs.html#456">seed</a>.<a class="ident" href="../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a class="ident" href="../../src/ron/value.rs.html#463">v</a>))
-            .<span class="ident">expect</span>(<span class="string">&quot;Contract violation&quot;</span>)
-    }
-}
-
-<span class="kw">struct</span> <span class="ident">Seq</span> {
-    <span class="ident">seq</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/ron/value.rs.html#319">Value</a><span class="op">&gt;</span>,
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">SeqAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/ron/value.rs.html#468">Seq</a> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../src/ron/error.rs.html#7">RonError</a>;
-
-    <span class="kw">fn</span> <span class="ident">next_element_seed</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">seed</span>: <span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T::Value</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">DeserializeSeed</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
-    {
-        <span class="comment">// The `Vec` is reversed, so we can pop to get the originally first element</span>
-        <a class="self" href="../../src/ron/value.rs.html#475">self</a>.<span class="ident">seq</span>
-            .<span class="ident">pop</span>()
-            .<span class="ident">map_or</span>(<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>), <span class="op">|</span><span class="ident">v</span><span class="op">|</span> <a class="ident" href="../../src/ron/value.rs.html#475">seed</a>.<a class="ident" href="../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a class="ident" href="../../src/ron/value.rs.html#482">v</a>).<span class="ident">map</span>(<span class="prelude-val">Some</span>))
+        <span class="comment">// The `Vec` is reversed, so we can pop to get the originally first element
+        </span><a class="self" href="../../src/ron/value.rs.html#456">self</a>.values
+            .pop()
+            .map(|v| <a href="../../src/ron/value.rs.html#456">seed</a>.<a href="../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a href="../../src/ron/value.rs.html#463">v</a>))
+            .expect(<span class="string">&quot;Contract violation&quot;</span>)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident">serde::Deserialize</span>;
-    <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::BTreeMap</span>, <span class="ident">fmt::Debug</span>};
+<span class="kw">struct </span>Seq {
+    seq: Vec&lt;<a href="../../src/ron/value.rs.html#319">Value</a>&gt;,
+}
 
-    <span class="kw">fn</span> <span class="ident">assert_same</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;de</span> <span class="ident">str</span>)
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">PartialEq</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; SeqAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><a href="../../src/ron/value.rs.html#468">Seq</a> {
+    <span class="kw">type </span>Error = <a href="../../src/ron/error.rs.html#7">RonError</a>;
+
+    <span class="kw">fn </span>next_element_seed&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, seed: T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;T::Value&gt;&gt;
+    <span class="kw">where
+        </span>T: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::de::from_str</span>;
+        <span class="comment">// The `Vec` is reversed, so we can pop to get the originally first element
+        </span><a class="self" href="../../src/ron/value.rs.html#475">self</a>.seq
+            .pop()
+            .map_or(<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>), |v| <a href="../../src/ron/value.rs.html#475">seed</a>.<a href="../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a href="../../src/ron/value.rs.html#482">v</a>).map(<span class="prelude-val">Some</span>))
+    }
+}
 
-        <span class="kw">let</span> <span class="ident">direct</span>: <span class="ident">T</span> <span class="op">=</span> <span class="ident">from_str</span>(<span class="ident">s</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">value</span>: <span class="ident">Value</span> <span class="op">=</span> <span class="ident">from_str</span>(<span class="ident">s</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">T::deserialize</span>(<span class="ident">value</span>).<span class="ident">unwrap</span>();
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span>serde::Deserialize;
+    <span class="kw">use </span>std::{collections::BTreeMap, fmt::Debug};
 
-        <span class="macro">assert_eq!</span>(<span class="ident">direct</span>, <span class="ident">value</span>, <span class="string">&quot;Deserialization for {:?} is not the same&quot;</span>, <span class="ident">s</span>);
+    <span class="kw">fn </span>assert_same&lt;<span class="lifetime">&#39;de</span>, T&gt;(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span>str)
+    <span class="kw">where
+        </span>T: Debug + Deserialize&lt;<span class="lifetime">&#39;de</span>&gt; + PartialEq,
+    {
+        <span class="kw">use </span><span class="kw">crate</span>::de::from_str;
+
+        <span class="kw">let </span>direct: T = from_str(s).unwrap();
+        <span class="kw">let </span>value: Value = from_str(s).unwrap();
+        <span class="kw">let </span>value = T::deserialize(value).unwrap();
+
+        <span class="macro">assert_eq!</span>(direct, value, <span class="string">&quot;Deserialization for {:?} is not the same&quot;</span>, s);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">boolean</span>() {
-        <span class="ident">assert_same</span>::<span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>(<span class="string">&quot;true&quot;</span>);
-        <span class="ident">assert_same</span>::<span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>(<span class="string">&quot;false&quot;</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>boolean() {
+        assert_same::&lt;bool&gt;(<span class="string">&quot;true&quot;</span>);
+        assert_same::&lt;bool&gt;(<span class="string">&quot;false&quot;</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">float</span>() {
-        <span class="ident">assert_same</span>::<span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>(<span class="string">&quot;0.123&quot;</span>);
-        <span class="ident">assert_same</span>::<span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>(<span class="string">&quot;-4.19&quot;</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>float() {
+        assert_same::&lt;f64&gt;(<span class="string">&quot;0.123&quot;</span>);
+        assert_same::&lt;f64&gt;(<span class="string">&quot;-4.19&quot;</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">int</span>() {
-        <span class="ident">assert_same</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(<span class="string">&quot;626&quot;</span>);
-        <span class="ident">assert_same</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>(<span class="string">&quot;-50&quot;</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>int() {
+        assert_same::&lt;u32&gt;(<span class="string">&quot;626&quot;</span>);
+        assert_same::&lt;i32&gt;(<span class="string">&quot;-50&quot;</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">char</span>() {
-        <span class="ident">assert_same</span>::<span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span>(<span class="string">&quot;&#39;4&#39;&quot;</span>);
-        <span class="ident">assert_same</span>::<span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span>(<span class="string">&quot;&#39;c&#39;&quot;</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>char() {
+        assert_same::&lt;char&gt;(<span class="string">&quot;&#39;4&#39;&quot;</span>);
+        assert_same::&lt;char&gt;(<span class="string">&quot;&#39;c&#39;&quot;</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">map</span>() {
-        <span class="ident">assert_same</span>::<span class="op">&lt;</span><span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">char</span>, <span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>(
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>map() {
+        assert_same::&lt;BTreeMap&lt;char, String&gt;&gt;(
             <span class="string">&quot;{
 &#39;a&#39;: \&quot;Hello\&quot;,
 &#39;b&#39;: \&quot;Bye\&quot;,
@@ -1090,21 +1090,21 @@
         );
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">option</span>() {
-        <span class="ident">assert_same</span>::<span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="string">&quot;Some(&#39;a&#39;)&quot;</span>);
-        <span class="ident">assert_same</span>::<span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="string">&quot;None&quot;</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>option() {
+        assert_same::&lt;<span class="prelude-ty">Option</span>&lt;char&gt;&gt;(<span class="string">&quot;Some(&#39;a&#39;)&quot;</span>);
+        assert_same::&lt;<span class="prelude-ty">Option</span>&lt;char&gt;&gt;(<span class="string">&quot;None&quot;</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">seq</span>() {
-        <span class="ident">assert_same</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="string">&quot;[1.0, 2.0, 3.0, 4.0]&quot;</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>seq() {
+        assert_same::&lt;Vec&lt;f64&gt;&gt;(<span class="string">&quot;[1.0, 2.0, 3.0, 4.0]&quot;</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">unit</span>() {
-        <span class="ident">assert_same</span>::<span class="op">&lt;</span>()<span class="op">&gt;</span>(<span class="string">&quot;()&quot;</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>unit() {
+        assert_same::&lt;()&gt;(<span class="string">&quot;()&quot;</span>);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="ron" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="ron" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

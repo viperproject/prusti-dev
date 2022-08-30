@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-sys-0.9.75/src/handwritten/x509.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>x509.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../openssl_sys/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../openssl_sys/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../openssl_sys/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-sys-0.9.75/src/handwritten/x509.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>x509.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../openssl_sys/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../openssl_sys/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../openssl_sys/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -637,644 +637,644 @@
 <span id="637">637</span>
 <span id="638">638</span>
 <span id="639">639</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../libc/index.html">libc</a>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw-2">*</span>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../libc/index.html">libc</a>::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="kw-2">*</span>;
 
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">X509_VAL</span> {
-    <span class="kw">pub</span> <span class="ident">notBefore</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#10">ASN1_TIME</a>,
-    <span class="kw">pub</span> <span class="ident">notAfter</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#10">ASN1_TIME</a>,
+<span class="attribute">#[repr(C)]
+</span><span class="kw">pub struct </span>X509_VAL {
+    <span class="kw">pub </span>notBefore: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#10">ASN1_TIME</a>,
+    <span class="kw">pub </span>notAfter: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#10">ASN1_TIME</a>,
 }
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">X509_NAME_ENTRY</span> {}
+<span class="kw">pub enum </span>X509_NAME_ENTRY {}
 
-<span class="macro">stack!</span>(<span class="ident">stack_st_X509_NAME</span>);
+<span class="macro">stack!</span>(stack_st_X509_NAME);
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">X509_EXTENSION</span> {}
+<span class="kw">pub enum </span>X509_EXTENSION {}
 
-<span class="macro">stack!</span>(<span class="ident">stack_st_X509_EXTENSION</span>);
+<span class="macro">stack!</span>(stack_st_X509_EXTENSION);
 
-<span class="macro">stack!</span>(<span class="ident">stack_st_X509_ATTRIBUTE</span>);
+<span class="macro">stack!</span>(stack_st_X509_ATTRIBUTE);
 
-<span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl350</span>))]</span> {
-        <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">X509_REQ_INFO</span> {}
-    } <span class="kw">else</span> {
-        <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-        <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">X509_REQ_INFO</span> {
-            <span class="kw">pub</span> <span class="ident">enc</span>: <span class="ident">ASN1_ENCODING</span>,
-            <span class="kw">pub</span> <span class="ident">version</span>: <span class="kw-2">*mut</span> <span class="ident">::ASN1_INTEGER</span>,
-            <span class="kw">pub</span> <span class="ident">subject</span>: <span class="kw-2">*mut</span> <span class="ident">::X509_NAME</span>,
-            <span class="ident">pubkey</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
-            <span class="kw">pub</span> <span class="ident">attributes</span>: <span class="kw-2">*mut</span> <span class="ident">stack_st_X509_ATTRIBUTE</span>,
+<span class="macro">cfg_if! </span>{
+    <span class="kw">if </span><span class="attribute">#[cfg(any(ossl110, libressl350))] </span>{
+        <span class="kw">pub enum </span>X509_REQ_INFO {}
+    } <span class="kw">else </span>{
+        <span class="attribute">#[repr(C)]
+        </span><span class="kw">pub struct </span>X509_REQ_INFO {
+            <span class="kw">pub </span>enc: ASN1_ENCODING,
+            <span class="kw">pub </span>version: <span class="kw-2">*mut </span>::ASN1_INTEGER,
+            <span class="kw">pub </span>subject: <span class="kw-2">*mut </span>::X509_NAME,
+            pubkey: <span class="kw-2">*mut </span>c_void,
+            <span class="kw">pub </span>attributes: <span class="kw-2">*mut </span>stack_st_X509_ATTRIBUTE,
         }
     }
 }
 
-<span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl350</span>))]</span> {
-        <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">X509_CRL</span> {}
-    } <span class="kw">else</span> {
-        <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-        <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">X509_CRL</span> {
-            <span class="kw">pub</span> <span class="ident">crl</span>: <span class="kw-2">*mut</span> <span class="ident">X509_CRL_INFO</span>,
-            <span class="ident">sig_alg</span>: <span class="kw-2">*mut</span> <span class="ident">X509_ALGOR</span>,
-            <span class="ident">signature</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
-            <span class="ident">references</span>: <span class="ident">c_int</span>,
-            <span class="ident">flags</span>: <span class="ident">c_int</span>,
-            <span class="ident">akid</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
-            <span class="ident">idp</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
-            <span class="ident">idp_flags</span>: <span class="ident">c_int</span>,
-            <span class="ident">idp_reasons</span>: <span class="ident">c_int</span>,
-            <span class="ident">crl_number</span>: <span class="kw-2">*mut</span> <span class="ident">ASN1_INTEGER</span>,
-            <span class="ident">base_crl_number</span>: <span class="kw-2">*mut</span> <span class="ident">ASN1_INTEGER</span>,
-            <span class="ident">sha1_hash</span>: [<span class="ident">c_uchar</span>; <span class="number">20</span>],
-            <span class="ident">issuers</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
-            <span class="ident">meth</span>: <span class="kw-2">*const</span> <span class="ident">c_void</span>,
-            <span class="ident">meth_data</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
+<span class="macro">cfg_if! </span>{
+    <span class="kw">if </span><span class="attribute">#[cfg(any(ossl110, libressl350))] </span>{
+        <span class="kw">pub enum </span>X509_CRL {}
+    } <span class="kw">else </span>{
+        <span class="attribute">#[repr(C)]
+        </span><span class="kw">pub struct </span>X509_CRL {
+            <span class="kw">pub </span>crl: <span class="kw-2">*mut </span>X509_CRL_INFO,
+            sig_alg: <span class="kw-2">*mut </span>X509_ALGOR,
+            signature: <span class="kw-2">*mut </span>c_void,
+            references: c_int,
+            flags: c_int,
+            akid: <span class="kw-2">*mut </span>c_void,
+            idp: <span class="kw-2">*mut </span>c_void,
+            idp_flags: c_int,
+            idp_reasons: c_int,
+            crl_number: <span class="kw-2">*mut </span>ASN1_INTEGER,
+            base_crl_number: <span class="kw-2">*mut </span>ASN1_INTEGER,
+            sha1_hash: [c_uchar; <span class="number">20</span>],
+            issuers: <span class="kw-2">*mut </span>c_void,
+            meth: <span class="kw-2">*const </span>c_void,
+            meth_data: <span class="kw-2">*mut </span>c_void,
         }
     }
 }
 
-<span class="macro">stack!</span>(<span class="ident">stack_st_X509_CRL</span>);
+<span class="macro">stack!</span>(stack_st_X509_CRL);
 
-<span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl350</span>))]</span> {
-        <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">X509_CRL_INFO</span> {}
-    } <span class="kw">else</span> {
-        <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-        <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">X509_CRL_INFO</span> {
-            <span class="ident">version</span>: <span class="kw-2">*mut</span> <span class="ident">ASN1_INTEGER</span>,
-            <span class="ident">sig_alg</span>: <span class="kw-2">*mut</span> <span class="ident">X509_ALGOR</span>,
-            <span class="kw">pub</span> <span class="ident">issuer</span>: <span class="kw-2">*mut</span> <span class="ident">X509_NAME</span>,
-            <span class="kw">pub</span> <span class="ident">lastUpdate</span>: <span class="kw-2">*mut</span> <span class="ident">ASN1_TIME</span>,
-            <span class="kw">pub</span> <span class="ident">nextUpdate</span>: <span class="kw-2">*mut</span> <span class="ident">ASN1_TIME</span>,
-            <span class="kw">pub</span> <span class="ident">revoked</span>: <span class="kw-2">*mut</span> <span class="ident">stack_st_X509_REVOKED</span>,
-            <span class="ident">extensions</span>: <span class="kw-2">*mut</span> <span class="ident">stack_st_X509_EXTENSION</span>,
-            <span class="ident">enc</span>: <span class="ident">ASN1_ENCODING</span>,
+<span class="macro">cfg_if! </span>{
+    <span class="kw">if </span><span class="attribute">#[cfg(any(ossl110, libressl350))] </span>{
+        <span class="kw">pub enum </span>X509_CRL_INFO {}
+    } <span class="kw">else </span>{
+        <span class="attribute">#[repr(C)]
+        </span><span class="kw">pub struct </span>X509_CRL_INFO {
+            version: <span class="kw-2">*mut </span>ASN1_INTEGER,
+            sig_alg: <span class="kw-2">*mut </span>X509_ALGOR,
+            <span class="kw">pub </span>issuer: <span class="kw-2">*mut </span>X509_NAME,
+            <span class="kw">pub </span>lastUpdate: <span class="kw-2">*mut </span>ASN1_TIME,
+            <span class="kw">pub </span>nextUpdate: <span class="kw-2">*mut </span>ASN1_TIME,
+            <span class="kw">pub </span>revoked: <span class="kw-2">*mut </span>stack_st_X509_REVOKED,
+            extensions: <span class="kw-2">*mut </span>stack_st_X509_EXTENSION,
+            enc: ASN1_ENCODING,
         }
     }
 }
 
-<span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl350</span>))]</span> {
-        <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">X509_REVOKED</span> {}
-    } <span class="kw">else</span> {
-        <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-        <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">X509_REVOKED</span> {
-            <span class="kw">pub</span> <span class="ident">serialNumber</span>: <span class="kw-2">*mut</span> <span class="ident">ASN1_INTEGER</span>,
-            <span class="kw">pub</span> <span class="ident">revocationDate</span>: <span class="kw-2">*mut</span> <span class="ident">ASN1_TIME</span>,
-            <span class="kw">pub</span> <span class="ident">extensions</span>: <span class="kw-2">*mut</span> <span class="ident">stack_st_X509_EXTENSION</span>,
-            <span class="ident">issuer</span>: <span class="kw-2">*mut</span> <span class="ident">stack_st_GENERAL_NAME</span>,
-            <span class="ident">reason</span>: <span class="ident">c_int</span>,
-            <span class="ident">sequence</span>: <span class="ident">c_int</span>,
+<span class="macro">cfg_if! </span>{
+    <span class="kw">if </span><span class="attribute">#[cfg(any(ossl110, libressl350))] </span>{
+        <span class="kw">pub enum </span>X509_REVOKED {}
+    } <span class="kw">else </span>{
+        <span class="attribute">#[repr(C)]
+        </span><span class="kw">pub struct </span>X509_REVOKED {
+            <span class="kw">pub </span>serialNumber: <span class="kw-2">*mut </span>ASN1_INTEGER,
+            <span class="kw">pub </span>revocationDate: <span class="kw-2">*mut </span>ASN1_TIME,
+            <span class="kw">pub </span>extensions: <span class="kw-2">*mut </span>stack_st_X509_EXTENSION,
+            issuer: <span class="kw-2">*mut </span>stack_st_GENERAL_NAME,
+            reason: c_int,
+            sequence: c_int,
         }
     }
 }
 
-<span class="macro">stack!</span>(<span class="ident">stack_st_X509_REVOKED</span>);
+<span class="macro">stack!</span>(stack_st_X509_REVOKED);
 
-<span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl350</span>))]</span> {
-        <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">X509_REQ</span> {}
-    } <span class="kw">else</span> {
-        <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-        <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">X509_REQ</span> {
-            <span class="kw">pub</span> <span class="ident">req_info</span>: <span class="kw-2">*mut</span> <span class="ident">X509_REQ_INFO</span>,
-            <span class="ident">sig_alg</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
-            <span class="ident">signature</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
-            <span class="ident">references</span>: <span class="ident">c_int</span>,
+<span class="macro">cfg_if! </span>{
+    <span class="kw">if </span><span class="attribute">#[cfg(any(ossl110, libressl350))] </span>{
+        <span class="kw">pub enum </span>X509_REQ {}
+    } <span class="kw">else </span>{
+        <span class="attribute">#[repr(C)]
+        </span><span class="kw">pub struct </span>X509_REQ {
+            <span class="kw">pub </span>req_info: <span class="kw-2">*mut </span>X509_REQ_INFO,
+            sig_alg: <span class="kw-2">*mut </span>c_void,
+            signature: <span class="kw-2">*mut </span>c_void,
+            references: c_int,
         }
     }
 }
 
-<span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl350</span>))]</span> {
-        <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">X509_CINF</span> {}
-    } <span class="kw">else</span> {
-        <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-        <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">X509_CINF</span> {
-            <span class="ident">version</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
-            <span class="ident">serialNumber</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
-            <span class="ident">signature</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
-            <span class="ident">issuer</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
-            <span class="kw">pub</span> <span class="ident">validity</span>: <span class="kw-2">*mut</span> <span class="ident">X509_VAL</span>,
-            <span class="ident">subject</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
-            <span class="ident">key</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
-            <span class="ident">issuerUID</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
-            <span class="ident">subjectUID</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
-            <span class="kw">pub</span> <span class="ident">extensions</span>: <span class="kw-2">*mut</span> <span class="ident">stack_st_X509_EXTENSION</span>,
-            <span class="ident">enc</span>: <span class="ident">ASN1_ENCODING</span>,
+<span class="macro">cfg_if! </span>{
+    <span class="kw">if </span><span class="attribute">#[cfg(any(ossl110, libressl350))] </span>{
+        <span class="kw">pub enum </span>X509_CINF {}
+    } <span class="kw">else </span>{
+        <span class="attribute">#[repr(C)]
+        </span><span class="kw">pub struct </span>X509_CINF {
+            version: <span class="kw-2">*mut </span>c_void,
+            serialNumber: <span class="kw-2">*mut </span>c_void,
+            signature: <span class="kw-2">*mut </span>c_void,
+            issuer: <span class="kw-2">*mut </span>c_void,
+            <span class="kw">pub </span>validity: <span class="kw-2">*mut </span>X509_VAL,
+            subject: <span class="kw-2">*mut </span>c_void,
+            key: <span class="kw-2">*mut </span>c_void,
+            issuerUID: <span class="kw-2">*mut </span>c_void,
+            subjectUID: <span class="kw-2">*mut </span>c_void,
+            <span class="kw">pub </span>extensions: <span class="kw-2">*mut </span>stack_st_X509_EXTENSION,
+            enc: ASN1_ENCODING,
         }
     }
 }
 
-<span class="macro">stack!</span>(<span class="ident">stack_st_X509</span>);
+<span class="macro">stack!</span>(stack_st_X509);
 
-<span class="macro">stack!</span>(<span class="ident">stack_st_X509_OBJECT</span>);
+<span class="macro">stack!</span>(stack_st_X509_OBJECT);
 
-<span class="macro">stack!</span>(<span class="ident">stack_st_X509_LOOKUP</span>);
+<span class="macro">stack!</span>(stack_st_X509_LOOKUP);
 
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_verify_cert_error_string</span>(<span class="ident">n</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>) -&gt; <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>;
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+    <span class="kw">pub fn </span>X509_verify_cert_error_string(n: <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>) -&gt; <span class="kw-2">*const </span><a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_sign</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, <span class="ident">pkey</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/types.rs.html#6">EVP_PKEY</a>, <span class="ident">md</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#92">EVP_MD</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>X509_sign(x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, pkey: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/types.rs.html#6">EVP_PKEY</a>, md: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#92">EVP_MD</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_digest</span>(
-        <span class="ident">x</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>,
-        <span class="ident">digest</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#92">EVP_MD</a>,
-        <span class="ident">buf</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
-        <span class="ident">len</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_uint.html">c_uint</a>,
-    ) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>X509_digest(
+        x: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>,
+        digest: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#92">EVP_MD</a>,
+        buf: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
+        len: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_uint.html">c_uint</a>,
+    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_REQ_sign</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>, <span class="ident">pkey</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/types.rs.html#6">EVP_PKEY</a>, <span class="ident">md</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#92">EVP_MD</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>X509_REQ_sign(x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>, pkey: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/types.rs.html#6">EVP_PKEY</a>, md: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#92">EVP_MD</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
 }
 
-<span class="macro">const_ptr_api!</span> {
-    <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_X509_bio</span>(<span class="ident">b</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#18">BIO</a>, <span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_X509_REQ_bio</span>(<span class="ident">b</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#18">BIO</a>, <span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_PrivateKey_bio</span>(<span class="ident">b</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#18">BIO</a>, <span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <a class="ident" href="../../../src/openssl_sys/types.rs.html#6">EVP_PKEY</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_PUBKEY_bio</span>(<span class="ident">b</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#18">BIO</a>, <span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <a class="ident" href="../../../src/openssl_sys/types.rs.html#6">EVP_PKEY</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
+<span class="macro">const_ptr_api! </span>{
+    <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+        <span class="kw">pub fn </span>i2d_X509_bio(b: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#18">BIO</a>, x: <span class="attribute">#[const_ptr_if(ossl300)] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="kw">pub fn </span>i2d_X509_REQ_bio(b: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#18">BIO</a>, x: <span class="attribute">#[const_ptr_if(ossl300)] </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="kw">pub fn </span>i2d_PrivateKey_bio(b: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#18">BIO</a>, x: <span class="attribute">#[const_ptr_if(ossl300)] </span><a href="../../../src/openssl_sys/types.rs.html#6">EVP_PKEY</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="kw">pub fn </span>i2d_PUBKEY_bio(b: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#18">BIO</a>, x: <span class="attribute">#[const_ptr_if(ossl300)] </span><a href="../../../src/openssl_sys/types.rs.html#6">EVP_PKEY</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
 
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_PUBKEY</span>(<span class="ident">k</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <a class="ident" href="../../../src/openssl_sys/types.rs.html#6">EVP_PKEY</a>, <span class="ident">buf</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_RSA_PUBKEY</span>(<span class="ident">k</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>, <span class="ident">buf</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_DSA_PUBKEY</span>(<span class="ident">a</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#162">DSA</a>, <span class="ident">pp</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_PrivateKey</span>(<span class="ident">k</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <a class="ident" href="../../../src/openssl_sys/types.rs.html#6">EVP_PKEY</a>, <span class="ident">buf</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_ECPrivateKey</span>(<span class="ident">ec_key</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#253">EC_KEY</a>, <span class="ident">pp</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_EC_PUBKEY</span>(<span class="ident">a</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#253">EC_KEY</a>, <span class="ident">pp</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="kw">pub fn </span>i2d_PUBKEY(k: <span class="attribute">#[const_ptr_if(ossl300)] </span><a href="../../../src/openssl_sys/types.rs.html#6">EVP_PKEY</a>, buf: <span class="kw-2">*mut *mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="kw">pub fn </span>i2d_RSA_PUBKEY(k: <span class="attribute">#[const_ptr_if(ossl300)] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>, buf: <span class="kw-2">*mut *mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="kw">pub fn </span>i2d_DSA_PUBKEY(a: <span class="attribute">#[const_ptr_if(ossl300)] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#162">DSA</a>, pp: <span class="kw-2">*mut *mut </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="kw">pub fn </span>i2d_PrivateKey(k: <span class="attribute">#[const_ptr_if(ossl300)] </span><a href="../../../src/openssl_sys/types.rs.html#6">EVP_PKEY</a>, buf: <span class="kw-2">*mut *mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="kw">pub fn </span>i2d_ECPrivateKey(ec_key: <span class="attribute">#[const_ptr_if(ossl300)] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#253">EC_KEY</a>, pp: <span class="kw-2">*mut *mut </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="kw">pub fn </span>i2d_EC_PUBKEY(a: <span class="attribute">#[const_ptr_if(ossl300)] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#253">EC_KEY</a>, pp: <span class="kw-2">*mut *mut </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
     }
 }
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">d2i_PUBKEY</span>(<span class="ident">k</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/types.rs.html#6">EVP_PKEY</a>, <span class="ident">buf</span>: <span class="kw-2">*mut</span> <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">len</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/types.rs.html#6">EVP_PKEY</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">d2i_RSA_PUBKEY</span>(<span class="ident">k</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>, <span class="ident">buf</span>: <span class="kw-2">*mut</span> <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">len</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">d2i_DSA_PUBKEY</span>(<span class="ident">k</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#162">DSA</a>, <span class="ident">pp</span>: <span class="kw-2">*mut</span> <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>, <span class="ident">length</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#162">DSA</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">d2i_EC_PUBKEY</span>(
-        <span class="ident">a</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#253">EC_KEY</a>,
-        <span class="ident">pp</span>: <span class="kw-2">*mut</span> <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
-        <span class="ident">length</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>,
-    ) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#253">EC_KEY</a>;
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+    <span class="kw">pub fn </span>d2i_PUBKEY(k: <span class="kw-2">*mut *mut </span><a href="../../../src/openssl_sys/types.rs.html#6">EVP_PKEY</a>, buf: <span class="kw-2">*mut *const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, len: <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/types.rs.html#6">EVP_PKEY</a>;
+    <span class="kw">pub fn </span>d2i_RSA_PUBKEY(k: <span class="kw-2">*mut *mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>, buf: <span class="kw-2">*mut *const </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, len: <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#191">RSA</a>;
+    <span class="kw">pub fn </span>d2i_DSA_PUBKEY(k: <span class="kw-2">*mut *mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#162">DSA</a>, pp: <span class="kw-2">*mut *const </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>, length: <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#162">DSA</a>;
+    <span class="kw">pub fn </span>d2i_EC_PUBKEY(
+        a: <span class="kw-2">*mut *mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#253">EC_KEY</a>,
+        pp: <span class="kw-2">*mut *const </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
+        length: <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>,
+    ) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#253">EC_KEY</a>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">d2i_ECPrivateKey</span>(
-        <span class="ident">k</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#253">EC_KEY</a>,
-        <span class="ident">pp</span>: <span class="kw-2">*mut</span> <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
-        <span class="ident">length</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>,
-    ) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#253">EC_KEY</a>;
+    <span class="kw">pub fn </span>d2i_ECPrivateKey(
+        k: <span class="kw-2">*mut *mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#253">EC_KEY</a>,
+        pp: <span class="kw-2">*mut *const </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
+        length: <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>,
+    ) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#253">EC_KEY</a>;
 }
 
-<span class="macro">const_ptr_api!</span> {
-    <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl102</span>, <span class="ident">libressl350</span>))]</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_ALGOR_get0</span>(
-            <span class="ident">paobj</span>: <span class="kw-2">*mut</span> <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl350</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#12">ASN1_OBJECT</a>,
-            <span class="ident">pptype</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-            <span class="ident">ppval</span>: <span class="kw-2">*mut</span> <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl350</span>))]</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-            <span class="ident">alg</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl350</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#318">X509_ALGOR</a>,
+<span class="macro">const_ptr_api! </span>{
+    <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+        <span class="attribute">#[cfg(any(ossl102, libressl350))]
+        </span><span class="kw">pub fn </span>X509_ALGOR_get0(
+            paobj: <span class="kw-2">*mut </span><span class="attribute">#[const_ptr_if(any(ossl110, libressl350))] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#12">ASN1_OBJECT</a>,
+            pptype: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
+            ppval: <span class="kw-2">*mut </span><span class="attribute">#[const_ptr_if(any(ossl110, libressl350))] </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+            alg: <span class="attribute">#[const_ptr_if(any(ossl110, libressl350))] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#318">X509_ALGOR</a>,
         );
     }
 }
 
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_gmtime_adj</span>(<span class="ident">time</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#10">ASN1_TIME</a>, <span class="ident">adj</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#10">ASN1_TIME</a>;
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+    <span class="kw">pub fn </span>X509_gmtime_adj(time: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#10">ASN1_TIME</a>, adj: <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#10">ASN1_TIME</a>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_to_X509_REQ</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, <span class="ident">pkey</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/types.rs.html#6">EVP_PKEY</a>, <span class="ident">md</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#92">EVP_MD</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>;
+    <span class="kw">pub fn </span>X509_to_X509_REQ(x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, pkey: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/types.rs.html#6">EVP_PKEY</a>, md: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#92">EVP_MD</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_ALGOR_free</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#318">X509_ALGOR</a>);
+    <span class="kw">pub fn </span>X509_ALGOR_free(x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#318">X509_ALGOR</a>);
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_REVOKED_new</span>() -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_REVOKED_free</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>);
+    <span class="kw">pub fn </span>X509_REVOKED_new() -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>;
+    <span class="kw">pub fn </span>X509_REVOKED_free(x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>);
 }
-<span class="macro">const_ptr_api!</span> {
-    <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl270</span>))]</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_REVOKED_dup</span>(<span class="ident">rev</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>;
+<span class="macro">const_ptr_api! </span>{
+    <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+        <span class="attribute">#[cfg(any(ossl110, libressl270))]
+        </span><span class="kw">pub fn </span>X509_REVOKED_dup(rev: <span class="attribute">#[const_ptr_if(ossl300)] </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>;
     }
 }
 
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">d2i_X509_REVOKED</span>(
-        <span class="ident">a</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>,
-        <span class="ident">pp</span>: <span class="kw-2">*mut</span> <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
-        <span class="ident">length</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>,
-    ) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>;
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+    <span class="kw">pub fn </span>d2i_X509_REVOKED(
+        a: <span class="kw-2">*mut *mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>,
+        pp: <span class="kw-2">*mut *const </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
+        length: <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>,
+    ) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>;
 }
-<span class="macro">const_ptr_api!</span> {
-    <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_X509_REVOKED</span>(<span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>, <span class="ident">buf</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
+<span class="macro">const_ptr_api! </span>{
+    <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+        <span class="kw">pub fn </span>i2d_X509_REVOKED(x: <span class="attribute">#[const_ptr_if(ossl300)] </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>, buf: <span class="kw-2">*mut *mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
     }
 }
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_CRL_new</span>() -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_CRL_free</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>);
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">d2i_X509_CRL</span>(
-        <span class="ident">a</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>,
-        <span class="ident">pp</span>: <span class="kw-2">*mut</span> <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
-        <span class="ident">length</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>,
-    ) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>;
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+    <span class="kw">pub fn </span>X509_CRL_new() -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>;
+    <span class="kw">pub fn </span>X509_CRL_free(x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>);
+    <span class="kw">pub fn </span>d2i_X509_CRL(
+        a: <span class="kw-2">*mut *mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>,
+        pp: <span class="kw-2">*mut *const </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
+        length: <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>,
+    ) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>;
 }
-<span class="macro">const_ptr_api!</span> {
-    <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_X509_CRL</span>(<span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>, <span class="ident">buf</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl270</span>))]</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_CRL_dup</span>(<span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>;
+<span class="macro">const_ptr_api! </span>{
+    <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+        <span class="kw">pub fn </span>i2d_X509_CRL(x: <span class="attribute">#[const_ptr_if(ossl300)] </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>, buf: <span class="kw-2">*mut *mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="attribute">#[cfg(any(ossl110, libressl270))]
+        </span><span class="kw">pub fn </span>X509_CRL_dup(x: <span class="attribute">#[const_ptr_if(ossl300)] </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>;
     }
 }
 
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_REQ_new</span>() -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_REQ_free</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>);
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">d2i_X509_REQ</span>(
-        <span class="ident">a</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>,
-        <span class="ident">pp</span>: <span class="kw-2">*mut</span> <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
-        <span class="ident">length</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>,
-    ) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>;
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+    <span class="kw">pub fn </span>X509_REQ_new() -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>;
+    <span class="kw">pub fn </span>X509_REQ_free(x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>);
+    <span class="kw">pub fn </span>d2i_X509_REQ(
+        a: <span class="kw-2">*mut *mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>,
+        pp: <span class="kw-2">*mut *const </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
+        length: <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>,
+    ) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>;
 }
-<span class="macro">const_ptr_api!</span> {
-    <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_X509_REQ</span>(<span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>, <span class="ident">buf</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
+<span class="macro">const_ptr_api! </span>{
+    <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+        <span class="kw">pub fn </span>i2d_X509_REQ(x: <span class="attribute">#[const_ptr_if(ossl300)] </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>, buf: <span class="kw-2">*mut *mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl102</span>, <span class="ident">libressl273</span>))]</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get0_signature</span>(
-            <span class="ident">psig</span>: <span class="kw-2">*mut</span> <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl273</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#9">ASN1_BIT_STRING</a>,
-            <span class="ident">palg</span>: <span class="kw-2">*mut</span> <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl273</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#318">X509_ALGOR</a>,
-            <span class="ident">x</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>,
+        <span class="attribute">#[cfg(any(ossl102, libressl273))]
+        </span><span class="kw">pub fn </span>X509_get0_signature(
+            psig: <span class="kw-2">*mut </span><span class="attribute">#[const_ptr_if(any(ossl110, libressl273))] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#9">ASN1_BIT_STRING</a>,
+            palg: <span class="kw-2">*mut </span><span class="attribute">#[const_ptr_if(any(ossl110, libressl273))] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#318">X509_ALGOR</a>,
+            x: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>,
         );
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl270</span>))]</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_REQ_dup</span>(<span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>;
+        <span class="attribute">#[cfg(any(ossl110, libressl270))]
+        </span><span class="kw">pub fn </span>X509_REQ_dup(x: <span class="attribute">#[const_ptr_if(ossl300)] </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>;
     }
 }
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl102</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get_signature_nid</span>(<span class="ident">x</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+    <span class="attribute">#[cfg(ossl102)]
+    </span><span class="kw">pub fn </span>X509_get_signature_nid(x: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_EXTENSION_free</span>(<span class="ident">ext</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>);
+    <span class="kw">pub fn </span>X509_EXTENSION_free(ext: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>);
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_NAME_ENTRY_free</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#10">X509_NAME_ENTRY</a>);
+    <span class="kw">pub fn </span>X509_NAME_ENTRY_free(x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#10">X509_NAME_ENTRY</a>);
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_NAME_new</span>() -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_NAME_free</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>);
+    <span class="kw">pub fn </span>X509_NAME_new() -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>;
+    <span class="kw">pub fn </span>X509_NAME_free(x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>);
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_new</span>() -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_free</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>);
+    <span class="kw">pub fn </span>X509_new() -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>;
+    <span class="kw">pub fn </span>X509_free(x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>);
 }
-<span class="macro">const_ptr_api!</span> {
-    <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_X509</span>(<span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, <span class="ident">buf</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl270</span>))]</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_NAME_dup</span>(<span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>;
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl270</span>))]</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_dup</span>(<span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>;
+<span class="macro">const_ptr_api! </span>{
+    <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+        <span class="kw">pub fn </span>i2d_X509(x: <span class="attribute">#[const_ptr_if(ossl300)] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, buf: <span class="kw-2">*mut *mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="attribute">#[cfg(any(ossl110, libressl270))]
+        </span><span class="kw">pub fn </span>X509_NAME_dup(x: <span class="attribute">#[const_ptr_if(ossl300)] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>;
+        <span class="attribute">#[cfg(any(ossl110, libressl270))]
+        </span><span class="kw">pub fn </span>X509_dup(x: <span class="attribute">#[const_ptr_if(ossl300)] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>;
     }
 }
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">d2i_X509</span>(<span class="ident">a</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, <span class="ident">pp</span>: <span class="kw-2">*mut</span> <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>, <span class="ident">length</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">d2i_X509_bio</span>(<span class="ident">b</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#18">BIO</a>, <span class="ident">a</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>;
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+    <span class="kw">pub fn </span>d2i_X509(a: <span class="kw-2">*mut *mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, pp: <span class="kw-2">*mut *const </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>, length: <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>;
+    <span class="kw">pub fn </span>d2i_X509_bio(b: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#18">BIO</a>, a: <span class="kw-2">*mut *mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get_pubkey</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/types.rs.html#6">EVP_PKEY</a>;
+    <span class="kw">pub fn </span>X509_get_pubkey(x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/types.rs.html#6">EVP_PKEY</a>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_set_version</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, <span class="ident">version</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get_version</span>(<span class="ident">x</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>) -&gt; <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_set_serialNumber</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, <span class="ident">sn</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#6">ASN1_INTEGER</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get_serialNumber</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#6">ASN1_INTEGER</a>;
+    <span class="kw">pub fn </span>X509_set_version(x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, version: <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="attribute">#[cfg(ossl110)]
+    </span><span class="kw">pub fn </span>X509_get_version(x: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>) -&gt; <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>;
+    <span class="kw">pub fn </span>X509_set_serialNumber(x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, sn: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#6">ASN1_INTEGER</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>X509_get_serialNumber(x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#6">ASN1_INTEGER</a>;
 }
-<span class="macro">const_ptr_api!</span> {
-    <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_set_issuer_name</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, <span class="ident">name</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
+<span class="macro">const_ptr_api! </span>{
+    <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+        <span class="kw">pub fn </span>X509_set_issuer_name(x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, name: <span class="attribute">#[const_ptr_if(ossl300)] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
     }
 }
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_issuer_name_hash</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">::X509</a>) -&gt; <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_ulong.html">c_ulong</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_subject_name_hash</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">::X509</a>) -&gt; <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_ulong.html">c_ulong</a>;
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+    <span class="kw">pub fn </span>X509_issuer_name_hash(x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">::X509</a>) -&gt; <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_ulong.html">c_ulong</a>;
+    <span class="kw">pub fn </span>X509_subject_name_hash(x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">::X509</a>) -&gt; <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_ulong.html">c_ulong</a>;
 }
-<span class="macro">const_ptr_api!</span> {
-    <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get_issuer_name</span>(<span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">::X509</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#330">::X509_NAME</a>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_set_subject_name</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, <span class="ident">name</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get_subject_name</span>(<span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">::X509</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#330">::X509_NAME</a>;
+<span class="macro">const_ptr_api! </span>{
+    <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+        <span class="kw">pub fn </span>X509_get_issuer_name(x: <span class="attribute">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">::X509</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#330">::X509_NAME</a>;
+        <span class="kw">pub fn </span>X509_set_subject_name(x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, name: <span class="attribute">#[const_ptr_if(ossl300)] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="kw">pub fn </span>X509_get_subject_name(x: <span class="attribute">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">::X509</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#330">::X509_NAME</a>;
     }
 }
-<span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl350</span>))]</span> {
-        <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_set1_notBefore</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">::X509</a>, <span class="ident">tm</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#10">::ASN1_TIME</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_set1_notAfter</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">::X509</a>, <span class="ident">tm</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#10">::ASN1_TIME</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
+<span class="macro">cfg_if! </span>{
+    <span class="kw">if </span><span class="attribute">#[cfg(any(ossl110, libressl350))] </span>{
+        <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+            <span class="kw">pub fn </span>X509_set1_notBefore(x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">::X509</a>, tm: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#10">::ASN1_TIME</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+            <span class="kw">pub fn </span>X509_set1_notAfter(x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">::X509</a>, tm: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#10">::ASN1_TIME</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
         }
-    } <span class="kw">else</span> {
-        <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_set_notBefore</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <span class="ident">::X509</span>, <span class="ident">tm</span>: <span class="kw-2">*const</span> <span class="ident">::ASN1_TIME</span>) -&gt; <span class="ident">c_int</span>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_set_notAfter</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <span class="ident">::X509</span>, <span class="ident">tm</span>: <span class="kw-2">*const</span> <span class="ident">::ASN1_TIME</span>) -&gt; <span class="ident">c_int</span>;
-        }
-    }
-}
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl350</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_REQ_get_version</span>(<span class="ident">req</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>) -&gt; <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_REQ_set_version</span>(<span class="ident">req</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>, <span class="ident">version</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl350</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_REQ_get_subject_name</span>(<span class="ident">req</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>;
-}
-<span class="macro">const_ptr_api!</span> {
-    <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_REQ_set_subject_name</span>(<span class="ident">req</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>, <span class="ident">name</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    }
-}
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_REQ_set_pubkey</span>(<span class="ident">req</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>, <span class="ident">pkey</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/types.rs.html#6">EVP_PKEY</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_REQ_get_pubkey</span>(<span class="ident">req</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/types.rs.html#6">EVP_PKEY</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_REQ_get_extensions</span>(<span class="ident">req</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#16">stack_st_X509_EXTENSION</a>;
-}
-<span class="macro">const_ptr_api!</span> {
-    <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_REQ_add_extensions</span>(<span class="ident">req</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>, <span class="ident">exts</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#16">stack_st_X509_EXTENSION</a>)
-            -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    }
-}
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_set_pubkey</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, <span class="ident">pkey</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/types.rs.html#6">EVP_PKEY</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_REQ_verify</span>(<span class="ident">req</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>, <span class="ident">pkey</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/types.rs.html#6">EVP_PKEY</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl273</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_getm_notBefore</span>(<span class="ident">x</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#10">ASN1_TIME</a>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl273</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_getm_notAfter</span>(<span class="ident">x</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#10">ASN1_TIME</a>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl273</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_up_ref</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl270</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_REVOKED_get0_serialNumber</span>(<span class="ident">req</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>) -&gt; <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#6">ASN1_INTEGER</a>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl270</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_REVOKED_get0_revocationDate</span>(<span class="ident">req</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>) -&gt; <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#10">ASN1_TIME</a>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl270</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_REVOKED_get0_extensions</span>(<span class="ident">r</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>) -&gt; <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#16">stack_st_X509_EXTENSION</a>;
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_REVOKED_set_serialNumber</span>(<span class="ident">r</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>, <span class="ident">serial</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#6">ASN1_INTEGER</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_REVOKED_set_revocationDate</span>(<span class="ident">r</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>, <span class="ident">tm</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#10">ASN1_TIME</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_CRL_sign</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>, <span class="ident">pkey</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/types.rs.html#6">EVP_PKEY</a>, <span class="ident">md</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#92">EVP_MD</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_CRL_digest</span>(
-        <span class="ident">x</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>,
-        <span class="ident">digest</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#92">EVP_MD</a>,
-        <span class="ident">md</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
-        <span class="ident">len</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_uint.html">c_uint</a>,
-    ) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_CRL_verify</span>(<span class="ident">crl</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>, <span class="ident">pkey</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/types.rs.html#6">EVP_PKEY</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_CRL_get0_by_cert</span>(
-        <span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>,
-        <span class="ident">ret</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>,
-        <span class="ident">cert</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>,
-    ) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-}
-<span class="macro">const_ptr_api!</span> {
-    <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_CRL_get0_by_serial</span>(
-            <span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>,
-            <span class="ident">ret</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>,
-            <span class="ident">serial</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#6">ASN1_INTEGER</a>,
-        ) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    }
-}
-
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl281</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_CRL_get_REVOKED</span>(<span class="ident">crl</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#96">stack_st_X509_REVOKED</a>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl281</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_CRL_get0_nextUpdate</span>(<span class="ident">x</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>) -&gt; <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#10">ASN1_TIME</a>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl281</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_CRL_get0_lastUpdate</span>(<span class="ident">x</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>) -&gt; <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#10">ASN1_TIME</a>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl281</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_CRL_get_issuer</span>(<span class="ident">x</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>;
-
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get0_extensions</span>(<span class="ident">req</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">::X509</a>) -&gt; <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#16">stack_st_X509_EXTENSION</a>;
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_CRL_set_version</span>(<span class="ident">crl</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>, <span class="ident">version</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-}
-<span class="macro">const_ptr_api!</span> {
-    <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_CRL_set_issuer_name</span>(<span class="ident">crl</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>, <span class="ident">name</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    }
-}
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_CRL_sort</span>(<span class="ident">crl</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl270</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_CRL_up_ref</span>(<span class="ident">crl</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_CRL_add0_revoked</span>(<span class="ident">crl</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>, <span class="ident">rev</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-}
-<span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl270</span>))]</span> {
-        <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_CRL_set1_lastUpdate</span>(<span class="ident">crl</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>, <span class="ident">tm</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#10">ASN1_TIME</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_CRL_set1_nextUpdate</span>(<span class="ident">crl</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>, <span class="ident">tm</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#10">ASN1_TIME</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-        }
-    } <span class="kw">else</span> {
-        <span class="comment">// libressl270 kept them, ossl110 &quot;#define&quot;s them to the variants above</span>
-        <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_CRL_set_lastUpdate</span>(<span class="ident">crl</span>: <span class="kw-2">*mut</span> <span class="ident">X509_CRL</span>, <span class="ident">tm</span>: <span class="kw-2">*const</span> <span class="ident">ASN1_TIME</span>) -&gt; <span class="ident">c_int</span>;
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_CRL_set_nextUpdate</span>(<span class="ident">crl</span>: <span class="kw-2">*mut</span> <span class="ident">X509_CRL</span>, <span class="ident">tm</span>: <span class="kw-2">*const</span> <span class="ident">ASN1_TIME</span>) -&gt; <span class="ident">c_int</span>;
+    } <span class="kw">else </span>{
+        <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+            <span class="kw">pub fn </span>X509_set_notBefore(x: <span class="kw-2">*mut </span>::X509, tm: <span class="kw-2">*const </span>::ASN1_TIME) -&gt; c_int;
+            <span class="kw">pub fn </span>X509_set_notAfter(x: <span class="kw-2">*mut </span>::X509, tm: <span class="kw-2">*const </span>::ASN1_TIME) -&gt; c_int;
         }
     }
 }
-
-<span class="macro">const_ptr_api!</span> {
-    <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_NAME_entry_count</span>(<span class="ident">n</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_NAME_get_index_by_NID</span>(<span class="ident">n</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl300</span>, <span class="ident">libressl280</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>, <span class="ident">nid</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>, <span class="ident">last_pos</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_NAME_get_entry</span>(<span class="ident">n</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>, <span class="ident">loc</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#10">X509_NAME_ENTRY</a>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_NAME_add_entry_by_NID</span>(
-            <span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>,
-            <span class="ident">field</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-            <span class="ident">ty</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-            <span class="ident">bytes</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
-            <span class="ident">len</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-            <span class="ident">loc</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-            <span class="ident">set</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-        ) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_X509_NAME</span>(<span class="ident">n</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>, <span class="ident">buf</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_NAME_ENTRY_get_object</span>(<span class="ident">ne</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#10">X509_NAME_ENTRY</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#12">ASN1_OBJECT</a>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_NAME_ENTRY_get_data</span>(<span class="ident">ne</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#10">X509_NAME_ENTRY</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#8">ASN1_STRING</a>;
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+    <span class="attribute">#[cfg(any(ossl110, libressl350))]
+    </span><span class="kw">pub fn </span>X509_REQ_get_version(req: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>) -&gt; <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>;
+    <span class="kw">pub fn </span>X509_REQ_set_version(req: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>, version: <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="attribute">#[cfg(any(ossl110, libressl350))]
+    </span><span class="kw">pub fn </span>X509_REQ_get_subject_name(req: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>;
+}
+<span class="macro">const_ptr_api! </span>{
+    <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+        <span class="kw">pub fn </span>X509_REQ_set_subject_name(req: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>, name: <span class="attribute">#[const_ptr_if(ossl300)] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
     }
 }
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_NAME_add_entry_by_txt</span>(
-        <span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>,
-        <span class="ident">field</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
-        <span class="ident">ty</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-        <span class="ident">bytes</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
-        <span class="ident">len</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-        <span class="ident">loc</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-        <span class="ident">set</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-    ) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">d2i_X509_NAME</span>(
-        <span class="ident">n</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>,
-        <span class="ident">pp</span>: <span class="kw-2">*mut</span> <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
-        <span class="ident">length</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>,
-    ) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>;
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+    <span class="kw">pub fn </span>X509_REQ_set_pubkey(req: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>, pkey: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/types.rs.html#6">EVP_PKEY</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>X509_REQ_get_pubkey(req: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/types.rs.html#6">EVP_PKEY</a>;
+    <span class="kw">pub fn </span>X509_REQ_get_extensions(req: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#16">stack_st_X509_EXTENSION</a>;
 }
+<span class="macro">const_ptr_api! </span>{
+    <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+        <span class="kw">pub fn </span>X509_REQ_add_extensions(req: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>, exts: <span class="attribute">#[const_ptr_if(ossl300)] </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#16">stack_st_X509_EXTENSION</a>)
+            -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    }
+}
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+    <span class="kw">pub fn </span>X509_set_pubkey(x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, pkey: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/types.rs.html#6">EVP_PKEY</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>X509_REQ_verify(req: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#100">X509_REQ</a>, pkey: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/types.rs.html#6">EVP_PKEY</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="attribute">#[cfg(any(ossl110, libressl273))]
+    </span><span class="kw">pub fn </span>X509_getm_notBefore(x: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#10">ASN1_TIME</a>;
+    <span class="attribute">#[cfg(any(ossl110, libressl273))]
+    </span><span class="kw">pub fn </span>X509_getm_notAfter(x: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#10">ASN1_TIME</a>;
+    <span class="attribute">#[cfg(any(ossl110, libressl273))]
+    </span><span class="kw">pub fn </span>X509_up_ref(x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
 
-<span class="comment">// &quot;raw&quot; X509_EXTENSION related functions</span>
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="comment">// in X509</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_delete_ext</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, <span class="ident">loc</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_add_ext</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, <span class="ident">ext</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>, <span class="ident">loc</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_add1_ext_i2d</span>(
-        <span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>,
-        <span class="ident">nid</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-        <span class="ident">value</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-        <span class="ident">crit</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-        <span class="ident">flags</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_ulong.html">c_ulong</a>,
-    ) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="comment">// in X509_CRL</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_CRL_delete_ext</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>, <span class="ident">loc</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_CRL_add_ext</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>, <span class="ident">ext</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>, <span class="ident">loc</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_CRL_add1_ext_i2d</span>(
-        <span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>,
-        <span class="ident">nid</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-        <span class="ident">value</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-        <span class="ident">crit</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-        <span class="ident">flags</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_ulong.html">c_ulong</a>,
-    ) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="comment">// in X509_REVOKED</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_REVOKED_delete_ext</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>, <span class="ident">loc</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_REVOKED_add_ext</span>(
-        <span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>,
-        <span class="ident">ext</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>,
-        <span class="ident">loc</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-    ) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_REVOKED_add1_ext_i2d</span>(
-        <span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>,
-        <span class="ident">nid</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-        <span class="ident">value</span>: <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
-        <span class="ident">crit</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-        <span class="ident">flags</span>: <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_ulong.html">c_ulong</a>,
-    ) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="comment">// X509_EXTENSION stack</span>
-    <span class="comment">// - these getters always used *const STACK</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509v3_get_ext_count</span>(<span class="ident">x</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#16">stack_st_X509_EXTENSION</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509v3_get_ext_by_NID</span>(
-        <span class="ident">x</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#16">stack_st_X509_EXTENSION</a>,
-        <span class="ident">nid</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-        <span class="ident">lastpos</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-    ) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509v3_get_ext_by_critical</span>(
-        <span class="ident">x</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#16">stack_st_X509_EXTENSION</a>,
-        <span class="ident">crit</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-        <span class="ident">lastpos</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-    ) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509v3_get_ext</span>(<span class="ident">x</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#16">stack_st_X509_EXTENSION</a>, <span class="ident">loc</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509v3_delete_ext</span>(<span class="ident">x</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#16">stack_st_X509_EXTENSION</a>, <span class="ident">loc</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509v3_add_ext</span>(
-        <span class="ident">x</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#16">stack_st_X509_EXTENSION</a>,
-        <span class="ident">ex</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>,
-        <span class="ident">loc</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-    ) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#16">stack_st_X509_EXTENSION</a>;
-    <span class="comment">// - X509V3_add1_i2d in x509v3.rs</span>
-    <span class="comment">// X509_EXTENSION itself</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_EXTENSION_create_by_NID</span>(
-        <span class="ident">ex</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>,
-        <span class="ident">nid</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-        <span class="ident">crit</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-        <span class="ident">data</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#13">ASN1_OCTET_STRING</a>,
-    ) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_EXTENSION_set_critical</span>(<span class="ident">ex</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>, <span class="ident">crit</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_EXTENSION_set_data</span>(<span class="ident">ex</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>, <span class="ident">data</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#13">ASN1_OCTET_STRING</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_EXTENSION_get_object</span>(<span class="ident">ext</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#12">ASN1_OBJECT</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_EXTENSION_get_data</span>(<span class="ident">ext</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#13">ASN1_OCTET_STRING</a>;
+    <span class="attribute">#[cfg(any(ossl110, libressl270))]
+    </span><span class="kw">pub fn </span>X509_REVOKED_get0_serialNumber(req: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>) -&gt; <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#6">ASN1_INTEGER</a>;
+    <span class="attribute">#[cfg(any(ossl110, libressl270))]
+    </span><span class="kw">pub fn </span>X509_REVOKED_get0_revocationDate(req: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>) -&gt; <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#10">ASN1_TIME</a>;
+    <span class="attribute">#[cfg(any(ossl110, libressl270))]
+    </span><span class="kw">pub fn </span>X509_REVOKED_get0_extensions(r: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>) -&gt; <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#16">stack_st_X509_EXTENSION</a>;
+
+    <span class="kw">pub fn </span>X509_REVOKED_set_serialNumber(r: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>, serial: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#6">ASN1_INTEGER</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>X509_REVOKED_set_revocationDate(r: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>, tm: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#10">ASN1_TIME</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+
+    <span class="kw">pub fn </span>X509_CRL_sign(x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>, pkey: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/types.rs.html#6">EVP_PKEY</a>, md: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#92">EVP_MD</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>X509_CRL_digest(
+        x: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>,
+        digest: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#92">EVP_MD</a>,
+        md: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
+        len: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_uint.html">c_uint</a>,
+    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>X509_CRL_verify(crl: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>, pkey: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/types.rs.html#6">EVP_PKEY</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>X509_CRL_get0_by_cert(
+        x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>,
+        ret: <span class="kw-2">*mut *mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>,
+        cert: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>,
+    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
 }
-<span class="macro">const_ptr_api!</span> {
-    <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-        <span class="comment">// in X509</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get_ext_count</span>(<span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get_ext_by_NID</span>(<span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, <span class="ident">nid</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>, <span class="ident">lastpos</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get_ext_by_OBJ</span>(<span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, <span class="ident">obj</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#12">ASN1_OBJECT</a>, <span class="ident">lastpos</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get_ext_by_critical</span>(<span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, <span class="ident">crit</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>, <span class="ident">lastpos</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get_ext</span>(<span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, <span class="ident">loc</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get_ext_d2i</span>(
-            <span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">::X509</a>,
-            <span class="ident">nid</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-            <span class="ident">crit</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-            <span class="ident">idx</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-        ) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>;
-        <span class="comment">// in X509_CRL</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_CRL_get_ext_count</span>(<span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_CRL_get_ext_by_NID</span>(<span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>, <span class="ident">nid</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>, <span class="ident">lastpos</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_CRL_get_ext_by_OBJ</span>(<span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>, <span class="ident">obj</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#12">ASN1_OBJECT</a>, <span class="ident">lastpos</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_CRL_get_ext_by_critical</span>(<span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>, <span class="ident">crit</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>, <span class="ident">lastpos</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_CRL_get_ext</span>(<span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>, <span class="ident">loc</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_CRL_get_ext_d2i</span>(
-            <span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">::X509_CRL</a>,
-            <span class="ident">nid</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-            <span class="ident">crit</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-            <span class="ident">idx</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-        ) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>;
-        <span class="comment">// in X509_REVOKED</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_REVOKED_get_ext_count</span>(<span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_REVOKED_get_ext_by_NID</span>(<span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>, <span class="ident">nid</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>, <span class="ident">lastpos</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_REVOKED_get_ext_by_OBJ</span>(<span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>, <span class="ident">obj</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#12">ASN1_OBJECT</a>, <span class="ident">lastpos</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_REVOKED_get_ext_by_critical</span>(<span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>, <span class="ident">crit</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>, <span class="ident">lastpos</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_REVOKED_get_ext</span>(<span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>, <span class="ident">loc</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_REVOKED_get_ext_d2i</span>(
-            <span class="ident">x</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#82">::X509_REVOKED</a>,
-            <span class="ident">nid</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-            <span class="ident">crit</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-            <span class="ident">idx</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>,
-        ) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>;
-        <span class="comment">// X509_EXTENSION stack</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509v3_get_ext_by_OBJ</span>(<span class="ident">x</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#16">stack_st_X509_EXTENSION</a>, <span class="ident">obj</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#12">ASN1_OBJECT</a>, <span class="ident">lastpos</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-        <span class="comment">// X509_EXTENSION itself</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_EXTENSION_create_by_OBJ</span>(<span class="ident">ex</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>, <span class="ident">obj</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#12">ASN1_OBJECT</a>, <span class="ident">crit</span>: <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>, <span class="ident">data</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#13">ASN1_OCTET_STRING</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_EXTENSION_set_object</span>(<span class="ident">ex</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>, <span class="ident">obj</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#12">ASN1_OBJECT</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_EXTENSION_get_critical</span>(<span class="ident">ex</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
+<span class="macro">const_ptr_api! </span>{
+    <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+        <span class="kw">pub fn </span>X509_CRL_get0_by_serial(
+            x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>,
+            ret: <span class="kw-2">*mut *mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>,
+            serial: <span class="attribute">#[const_ptr_if(ossl300)] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#6">ASN1_INTEGER</a>,
+        ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
     }
 }
 
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_verify_cert</span>(<span class="ident">ctx</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#368">X509_STORE_CTX</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-}
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+    <span class="attribute">#[cfg(any(ossl110, libressl281))]
+    </span><span class="kw">pub fn </span>X509_CRL_get_REVOKED(crl: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#96">stack_st_X509_REVOKED</a>;
+    <span class="attribute">#[cfg(any(ossl110, libressl281))]
+    </span><span class="kw">pub fn </span>X509_CRL_get0_nextUpdate(x: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>) -&gt; <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#10">ASN1_TIME</a>;
+    <span class="attribute">#[cfg(any(ossl110, libressl281))]
+    </span><span class="kw">pub fn </span>X509_CRL_get0_lastUpdate(x: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>) -&gt; <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#10">ASN1_TIME</a>;
+    <span class="attribute">#[cfg(any(ossl110, libressl281))]
+    </span><span class="kw">pub fn </span>X509_CRL_get_issuer(x: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>;
 
-<span class="macro">const_ptr_api!</span> {
-    <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl270</span>))]</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_STORE_get0_objects</span>(<span class="ident">ctx</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#334">X509_STORE</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#135">stack_st_X509_OBJECT</a>;
+    <span class="attribute">#[cfg(ossl110)]
+    </span><span class="kw">pub fn </span>X509_get0_extensions(req: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">::X509</a>) -&gt; <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#16">stack_st_X509_EXTENSION</a>;
+
+    <span class="kw">pub fn </span>X509_CRL_set_version(crl: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>, version: <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+}
+<span class="macro">const_ptr_api! </span>{
+    <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+        <span class="kw">pub fn </span>X509_CRL_set_issuer_name(crl: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>, name: <span class="attribute">#[const_ptr_if(ossl300)] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
     }
 }
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl270</span>))]</span>
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_OBJECT_get0_X509</span>(<span class="ident">x</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#418">X509_OBJECT</a>) -&gt; <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>;
-}
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+    <span class="kw">pub fn </span>X509_CRL_sort(crl: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
 
-<span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl350</span>))]</span> {
-        <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_OBJECT_free</span>(<span class="ident">a</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#418">X509_OBJECT</a>);
+    <span class="attribute">#[cfg(any(ossl110, libressl270))]
+    </span><span class="kw">pub fn </span>X509_CRL_up_ref(crl: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>X509_CRL_add0_revoked(crl: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>, rev: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+}
+<span class="macro">cfg_if! </span>{
+    <span class="kw">if </span><span class="attribute">#[cfg(any(ossl110, libressl270))] </span>{
+        <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+            <span class="kw">pub fn </span>X509_CRL_set1_lastUpdate(crl: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>, tm: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#10">ASN1_TIME</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+            <span class="kw">pub fn </span>X509_CRL_set1_nextUpdate(crl: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>, tm: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#10">ASN1_TIME</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
         }
-    } <span class="kw">else</span> {
-        <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_OBJECT_free_contents</span>(<span class="ident">a</span>: <span class="kw-2">*mut</span> <span class="ident">X509_OBJECT</span>);
+    } <span class="kw">else </span>{
+        <span class="comment">// libressl270 kept them, ossl110 &quot;#define&quot;s them to the variants above
+        </span><span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+            <span class="kw">pub fn </span>X509_CRL_set_lastUpdate(crl: <span class="kw-2">*mut </span>X509_CRL, tm: <span class="kw-2">*const </span>ASN1_TIME) -&gt; c_int;
+            <span class="kw">pub fn </span>X509_CRL_set_nextUpdate(crl: <span class="kw-2">*mut </span>X509_CRL, tm: <span class="kw-2">*const </span>ASN1_TIME) -&gt; c_int;
         }
     }
 }
 
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get_default_cert_file_env</span>() -&gt; <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get_default_cert_file</span>() -&gt; <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get_default_cert_dir_env</span>() -&gt; <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_get_default_cert_dir</span>() -&gt; <span class="kw-2">*const</span> <a class="ident" href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>;
+<span class="macro">const_ptr_api! </span>{
+    <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+        <span class="kw">pub fn </span>X509_NAME_entry_count(n: <span class="attribute">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="kw">pub fn </span>X509_NAME_get_index_by_NID(n: <span class="attribute">#[const_ptr_if(any(ossl300, libressl280))] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>, nid: <a href="../../../libc/unix/type.c_int.html">c_int</a>, last_pos: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="kw">pub fn </span>X509_NAME_get_entry(n: <span class="attribute">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>, loc: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#10">X509_NAME_ENTRY</a>;
+        <span class="kw">pub fn </span>X509_NAME_add_entry_by_NID(
+            x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>,
+            field: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+            ty: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+            bytes: <span class="attribute">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
+            len: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+            loc: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+            set: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+        ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="kw">pub fn </span>i2d_X509_NAME(n: <span class="attribute">#[const_ptr_if(ossl300)] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>, buf: <span class="kw-2">*mut *mut </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="kw">pub fn </span>X509_NAME_ENTRY_get_object(ne: <span class="attribute">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#10">X509_NAME_ENTRY</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#12">ASN1_OBJECT</a>;
+        <span class="kw">pub fn </span>X509_NAME_ENTRY_get_data(ne: <span class="attribute">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#10">X509_NAME_ENTRY</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#8">ASN1_STRING</a>;
+    }
+}
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+    <span class="kw">pub fn </span>X509_NAME_add_entry_by_txt(
+        x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>,
+        field: <span class="kw-2">*const </span><a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
+        ty: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+        bytes: <span class="kw-2">*const </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
+        len: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+        loc: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+        set: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>d2i_X509_NAME(
+        n: <span class="kw-2">*mut *mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>,
+        pp: <span class="kw-2">*mut *const </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
+        length: <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>,
+    ) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>;
 }
 
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_cmp</span>(<span class="ident">a</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, <span class="ident">b</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_NAME_cmp</span>(<span class="ident">a</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>, <span class="ident">b</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_issuer_and_serial_cmp</span>(<span class="ident">a</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, <span class="ident">b</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_issuer_name_cmp</span>(<span class="ident">a</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, <span class="ident">b</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_subject_name_cmp</span>(<span class="ident">a</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, <span class="ident">b</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_CRL_cmp</span>(<span class="ident">a</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>, <span class="ident">b</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_CRL_match</span>(<span class="ident">a</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>, <span class="ident">b</span>: <span class="kw-2">*const</span> <a class="ident" href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
+<span class="comment">// &quot;raw&quot; X509_EXTENSION related functions
+</span><span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+    <span class="comment">// in X509
+    </span><span class="kw">pub fn </span>X509_delete_ext(x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, loc: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>;
+    <span class="kw">pub fn </span>X509_add_ext(x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, ext: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>, loc: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>X509_add1_ext_i2d(
+        x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>,
+        nid: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+        value: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+        crit: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+        flags: <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_ulong.html">c_ulong</a>,
+    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="comment">// in X509_CRL
+    </span><span class="kw">pub fn </span>X509_CRL_delete_ext(x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>, loc: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>;
+    <span class="kw">pub fn </span>X509_CRL_add_ext(x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>, ext: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>, loc: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>X509_CRL_add1_ext_i2d(
+        x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>,
+        nid: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+        value: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+        crit: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+        flags: <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_ulong.html">c_ulong</a>,
+    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="comment">// in X509_REVOKED
+    </span><span class="kw">pub fn </span>X509_REVOKED_delete_ext(x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>, loc: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>;
+    <span class="kw">pub fn </span>X509_REVOKED_add_ext(
+        x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>,
+        ext: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>,
+        loc: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>X509_REVOKED_add1_ext_i2d(
+        x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>,
+        nid: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+        value: <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>,
+        crit: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+        flags: <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_ulong.html">c_ulong</a>,
+    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="comment">// X509_EXTENSION stack
+    // - these getters always used *const STACK
+    </span><span class="kw">pub fn </span>X509v3_get_ext_count(x: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#16">stack_st_X509_EXTENSION</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>X509v3_get_ext_by_NID(
+        x: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#16">stack_st_X509_EXTENSION</a>,
+        nid: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+        lastpos: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>X509v3_get_ext_by_critical(
+        x: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#16">stack_st_X509_EXTENSION</a>,
+        crit: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+        lastpos: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>X509v3_get_ext(x: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#16">stack_st_X509_EXTENSION</a>, loc: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>;
+    <span class="kw">pub fn </span>X509v3_delete_ext(x: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#16">stack_st_X509_EXTENSION</a>, loc: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>;
+    <span class="kw">pub fn </span>X509v3_add_ext(
+        x: <span class="kw-2">*mut *mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#16">stack_st_X509_EXTENSION</a>,
+        ex: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>,
+        loc: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+    ) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#16">stack_st_X509_EXTENSION</a>;
+    <span class="comment">// - X509V3_add1_i2d in x509v3.rs
+    // X509_EXTENSION itself
+    </span><span class="kw">pub fn </span>X509_EXTENSION_create_by_NID(
+        ex: <span class="kw-2">*mut *mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>,
+        nid: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+        crit: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+        data: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#13">ASN1_OCTET_STRING</a>,
+    ) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>;
+    <span class="kw">pub fn </span>X509_EXTENSION_set_critical(ex: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>, crit: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>X509_EXTENSION_set_data(ex: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>, data: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#13">ASN1_OCTET_STRING</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>X509_EXTENSION_get_object(ext: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#12">ASN1_OBJECT</a>;
+    <span class="kw">pub fn </span>X509_EXTENSION_get_data(ext: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#13">ASN1_OCTET_STRING</a>;
+}
+<span class="macro">const_ptr_api! </span>{
+    <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+        <span class="comment">// in X509
+        </span><span class="kw">pub fn </span>X509_get_ext_count(x: <span class="attribute">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="kw">pub fn </span>X509_get_ext_by_NID(x: <span class="attribute">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, nid: <a href="../../../libc/unix/type.c_int.html">c_int</a>, lastpos: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="kw">pub fn </span>X509_get_ext_by_OBJ(x: <span class="attribute">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, obj: <span class="attribute">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#12">ASN1_OBJECT</a>, lastpos: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="kw">pub fn </span>X509_get_ext_by_critical(x: <span class="attribute">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, crit: <a href="../../../libc/unix/type.c_int.html">c_int</a>, lastpos: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="kw">pub fn </span>X509_get_ext(x: <span class="attribute">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, loc: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>;
+        <span class="kw">pub fn </span>X509_get_ext_d2i(
+            x: <span class="attribute">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">::X509</a>,
+            nid: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+            crit: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
+            idx: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
+        ) -&gt; <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>;
+        <span class="comment">// in X509_CRL
+        </span><span class="kw">pub fn </span>X509_CRL_get_ext_count(x: <span class="attribute">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="kw">pub fn </span>X509_CRL_get_ext_by_NID(x: <span class="attribute">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>, nid: <a href="../../../libc/unix/type.c_int.html">c_int</a>, lastpos: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="kw">pub fn </span>X509_CRL_get_ext_by_OBJ(x: <span class="attribute">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>, obj: <span class="attribute">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#12">ASN1_OBJECT</a>, lastpos: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="kw">pub fn </span>X509_CRL_get_ext_by_critical(x: <span class="attribute">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>, crit: <a href="../../../libc/unix/type.c_int.html">c_int</a>, lastpos: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="kw">pub fn </span>X509_CRL_get_ext(x: <span class="attribute">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>, loc: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>;
+        <span class="kw">pub fn </span>X509_CRL_get_ext_d2i(
+            x: <span class="attribute">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">::X509_CRL</a>,
+            nid: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+            crit: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
+            idx: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
+        ) -&gt; <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>;
+        <span class="comment">// in X509_REVOKED
+        </span><span class="kw">pub fn </span>X509_REVOKED_get_ext_count(x: <span class="attribute">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="kw">pub fn </span>X509_REVOKED_get_ext_by_NID(x: <span class="attribute">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>, nid: <a href="../../../libc/unix/type.c_int.html">c_int</a>, lastpos: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="kw">pub fn </span>X509_REVOKED_get_ext_by_OBJ(x: <span class="attribute">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>, obj: <span class="attribute">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#12">ASN1_OBJECT</a>, lastpos: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="kw">pub fn </span>X509_REVOKED_get_ext_by_critical(x: <span class="attribute">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>, crit: <a href="../../../libc/unix/type.c_int.html">c_int</a>, lastpos: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="kw">pub fn </span>X509_REVOKED_get_ext(x: <span class="attribute">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#82">X509_REVOKED</a>, loc: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>;
+        <span class="kw">pub fn </span>X509_REVOKED_get_ext_d2i(
+            x: <span class="attribute">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#82">::X509_REVOKED</a>,
+            nid: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+            crit: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
+            idx: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_int.html">c_int</a>,
+        ) -&gt; <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>;
+        <span class="comment">// X509_EXTENSION stack
+        </span><span class="kw">pub fn </span>X509v3_get_ext_by_OBJ(x: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#16">stack_st_X509_EXTENSION</a>, obj: <span class="attribute">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#12">ASN1_OBJECT</a>, lastpos: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="comment">// X509_EXTENSION itself
+        </span><span class="kw">pub fn </span>X509_EXTENSION_create_by_OBJ(ex: <span class="kw-2">*mut *mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>, obj: <span class="attribute">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#12">ASN1_OBJECT</a>, crit: <a href="../../../libc/unix/type.c_int.html">c_int</a>, data: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#13">ASN1_OCTET_STRING</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>;
+        <span class="kw">pub fn </span>X509_EXTENSION_set_object(ex: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>, obj: <span class="attribute">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#12">ASN1_OBJECT</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+        <span class="kw">pub fn </span>X509_EXTENSION_get_critical(ex: <span class="attribute">#[const_ptr_if(any(ossl110, libressl280))] </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#14">X509_EXTENSION</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    }
 }
 
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">X509_print</span>(<span class="ident">bio</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#18">BIO</a>, <span class="ident">x509</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>) -&gt; <a class="ident" href="../../../libc/unix/type.c_int.html">c_int</a>;
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+    <span class="kw">pub fn </span>X509_verify_cert(ctx: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#368">X509_STORE_CTX</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+}
+
+<span class="macro">const_ptr_api! </span>{
+    <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+        <span class="attribute">#[cfg(any(ossl110, libressl270))]
+        </span><span class="kw">pub fn </span>X509_STORE_get0_objects(ctx: <span class="attribute">#[const_ptr_if(ossl300)] </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#334">X509_STORE</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#135">stack_st_X509_OBJECT</a>;
+    }
+}
+<span class="attribute">#[cfg(any(ossl110, libressl270))]
+</span><span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+    <span class="kw">pub fn </span>X509_OBJECT_get0_X509(x: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#418">X509_OBJECT</a>) -&gt; <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>;
+}
+
+<span class="macro">cfg_if! </span>{
+    <span class="kw">if </span><span class="attribute">#[cfg(any(ossl110, libressl350))] </span>{
+        <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+            <span class="kw">pub fn </span>X509_OBJECT_free(a: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#418">X509_OBJECT</a>);
+        }
+    } <span class="kw">else </span>{
+        <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+            <span class="kw">pub fn </span>X509_OBJECT_free_contents(a: <span class="kw-2">*mut </span>X509_OBJECT);
+        }
+    }
+}
+
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+    <span class="kw">pub fn </span>X509_get_default_cert_file_env() -&gt; <span class="kw-2">*const </span><a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>;
+    <span class="kw">pub fn </span>X509_get_default_cert_file() -&gt; <span class="kw-2">*const </span><a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>;
+    <span class="kw">pub fn </span>X509_get_default_cert_dir_env() -&gt; <span class="kw-2">*const </span><a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>;
+    <span class="kw">pub fn </span>X509_get_default_cert_dir() -&gt; <span class="kw-2">*const </span><a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>;
+}
+
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+    <span class="kw">pub fn </span>X509_cmp(a: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, b: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>X509_NAME_cmp(a: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>, b: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#330">X509_NAME</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>X509_issuer_and_serial_cmp(a: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, b: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>X509_issuer_name_cmp(a: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, b: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>X509_subject_name_cmp(a: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>, b: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>X509_CRL_cmp(a: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>, b: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>X509_CRL_match(a: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>, b: <span class="kw-2">*const </span><a href="../../../src/openssl_sys/handwritten/x509.rs.html#37">X509_CRL</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+}
+
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+    <span class="kw">pub fn </span>X509_print(bio: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#18">BIO</a>, x509: <span class="kw-2">*mut </span><a href="../../../src/openssl_sys/handwritten/types.rs.html#257">X509</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="openssl_sys" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="openssl_sys" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

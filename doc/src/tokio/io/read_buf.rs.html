@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/io/read_buf.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>read_buf.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/io/read_buf.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>read_buf.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -293,300 +293,300 @@
 <span id="293">293</span>
 <span id="294">294</span>
 <span id="295">295</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/maybe_uninit/union.MaybeUninit.html">std::mem::MaybeUninit</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/maybe_uninit/union.MaybeUninit.html">std::mem::MaybeUninit</a>;
 
-<span class="doccomment">/// A wrapper around a byte buffer that is incrementally filled and initialized.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This type is a sort of &quot;double cursor&quot;. It tracks three regions in the</span>
-<span class="doccomment">/// buffer: a region at the beginning of the buffer that has been logically</span>
-<span class="doccomment">/// filled with data, a region that has been initialized at some point but not</span>
-<span class="doccomment">/// yet logically filled, and a region at the end that may be uninitialized.</span>
-<span class="doccomment">/// The filled region is guaranteed to be a subset of the initialized region.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// In summary, the contents of the buffer can be visualized as:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```not_rust</span>
-<span class="doccomment">/// [             capacity              ]</span>
-<span class="doccomment">/// [ filled |         unfilled         ]</span>
-<span class="doccomment">/// [    initialized    | uninitialized ]</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// It is undefined behavior to de-initialize any bytes from the uninitialized</span>
-<span class="doccomment">/// region, since it is merely unknown whether this region is uninitialized or</span>
-<span class="doccomment">/// not, and if part of it turns out to be initialized, it must stay initialized.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ReadBuf</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">MaybeUninit</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>],
-    <span class="ident">filled</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="ident">initialized</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+<span class="doccomment">/// A wrapper around a byte buffer that is incrementally filled and initialized.
+///
+/// This type is a sort of &quot;double cursor&quot;. It tracks three regions in the
+/// buffer: a region at the beginning of the buffer that has been logically
+/// filled with data, a region that has been initialized at some point but not
+/// yet logically filled, and a region at the end that may be uninitialized.
+/// The filled region is guaranteed to be a subset of the initialized region.
+///
+/// In summary, the contents of the buffer can be visualized as:
+///
+/// ```not_rust
+/// [             capacity              ]
+/// [ filled |         unfilled         ]
+/// [    initialized    | uninitialized ]
+/// ```
+///
+/// It is undefined behavior to de-initialize any bytes from the uninitialized
+/// region, since it is merely unknown whether this region is uninitialized or
+/// not, and if part of it turns out to be initialized, it must stay initialized.
+</span><span class="kw">pub struct </span>ReadBuf&lt;<span class="lifetime">&#39;a</span>&gt; {
+    buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;],
+    filled: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    initialized: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">ReadBuf</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates a new `ReadBuf` from a fully initialized buffer.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">ReadBuf</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">initialized</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/io/read_buf.rs.html#32">buf</a>.<span class="ident">len</span>();
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../../src/tokio/io/read_buf.rs.html#283">slice_to_uninit_mut</a>(<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#32">buf</a>) };
-        <a class="ident" href="../../../src/tokio/io/read_buf.rs.html#23">ReadBuf</a> {
-            <a class="ident" href="../../../src/tokio/io/read_buf.rs.html#34">buf</a>,
-            <span class="ident">filled</span>: <span class="number">0</span>,
-            <a class="ident" href="../../../src/tokio/io/read_buf.rs.html#33">initialized</a>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ReadBuf&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// Creates a new `ReadBuf` from a fully initialized buffer.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>new(buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; ReadBuf&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>initialized = <a href="../../../src/tokio/io/read_buf.rs.html#32">buf</a>.len();
+        <span class="kw">let </span>buf = <span class="kw">unsafe </span>{ <a href="../../../src/tokio/io/read_buf.rs.html#283">slice_to_uninit_mut</a>(<a href="../../../src/tokio/io/read_buf.rs.html#32">buf</a>) };
+        <a href="../../../src/tokio/io/read_buf.rs.html#23">ReadBuf</a> {
+            <a href="../../../src/tokio/io/read_buf.rs.html#34">buf</a>,
+            filled: <span class="number">0</span>,
+            <a href="../../../src/tokio/io/read_buf.rs.html#33">initialized</a>,
         }
     }
 
-    <span class="doccomment">/// Creates a new `ReadBuf` from a fully uninitialized buffer.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Use `assume_init` if part of the buffer is known to be already initialized.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">uninit</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">MaybeUninit</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>]) -&gt; <span class="ident">ReadBuf</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/tokio/io/read_buf.rs.html#23">ReadBuf</a> {
-            <a class="ident" href="../../../src/tokio/io/read_buf.rs.html#46">buf</a>,
-            <span class="ident">filled</span>: <span class="number">0</span>,
-            <span class="ident">initialized</span>: <span class="number">0</span>,
+    <span class="doccomment">/// Creates a new `ReadBuf` from a fully uninitialized buffer.
+    ///
+    /// Use `assume_init` if part of the buffer is known to be already initialized.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>uninit(buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;]) -&gt; ReadBuf&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <a href="../../../src/tokio/io/read_buf.rs.html#23">ReadBuf</a> {
+            <a href="../../../src/tokio/io/read_buf.rs.html#46">buf</a>,
+            filled: <span class="number">0</span>,
+            initialized: <span class="number">0</span>,
         }
     }
 
-    <span class="doccomment">/// Returns the total capacity of the buffer.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">capacity</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/tokio/io/read_buf.rs.html#56">self</a>.<span class="ident">buf</span>.<span class="ident">len</span>()
+    <span class="doccomment">/// Returns the total capacity of the buffer.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>capacity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../../src/tokio/io/read_buf.rs.html#56">self</a>.buf.len()
     }
 
-    <span class="doccomment">/// Returns a shared reference to the filled portion of the buffer.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">filled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/io/read_buf.rs.html#62">self</a>.<span class="ident">buf</span>[..<a class="self" href="../../../src/tokio/io/read_buf.rs.html#62">self</a>.<span class="ident">filled</span>];
-        <span class="comment">// safety: filled describes how far into the buffer that the</span>
-        <span class="comment">// user has filled with bytes, so it&#39;s been initialized.</span>
-        <span class="kw">unsafe</span> { <a class="ident" href="../../../src/tokio/io/read_buf.rs.html#288">slice_assume_init</a>(<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#63">slice</a>) }
+    <span class="doccomment">/// Returns a shared reference to the filled portion of the buffer.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>filled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+        <span class="kw">let </span>slice = <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/io/read_buf.rs.html#62">self</a>.buf[..<a class="self" href="../../../src/tokio/io/read_buf.rs.html#62">self</a>.filled];
+        <span class="comment">// safety: filled describes how far into the buffer that the
+        // user has filled with bytes, so it&#39;s been initialized.
+        </span><span class="kw">unsafe </span>{ <a href="../../../src/tokio/io/read_buf.rs.html#288">slice_assume_init</a>(<a href="../../../src/tokio/io/read_buf.rs.html#63">slice</a>) }
     }
 
-    <span class="doccomment">/// Returns a mutable reference to the filled portion of the buffer.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">filled_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/tokio/io/read_buf.rs.html#71">self</a>.<span class="ident">buf</span>[..<a class="self" href="../../../src/tokio/io/read_buf.rs.html#71">self</a>.<span class="ident">filled</span>];
-        <span class="comment">// safety: filled describes how far into the buffer that the</span>
-        <span class="comment">// user has filled with bytes, so it&#39;s been initialized.</span>
-        <span class="kw">unsafe</span> { <a class="ident" href="../../../src/tokio/io/read_buf.rs.html#293">slice_assume_init_mut</a>(<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#72">slice</a>) }
+    <span class="doccomment">/// Returns a mutable reference to the filled portion of the buffer.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>filled_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+        <span class="kw">let </span>slice = <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/tokio/io/read_buf.rs.html#71">self</a>.buf[..<a class="self" href="../../../src/tokio/io/read_buf.rs.html#71">self</a>.filled];
+        <span class="comment">// safety: filled describes how far into the buffer that the
+        // user has filled with bytes, so it&#39;s been initialized.
+        </span><span class="kw">unsafe </span>{ <a href="../../../src/tokio/io/read_buf.rs.html#293">slice_assume_init_mut</a>(<a href="../../../src/tokio/io/read_buf.rs.html#72">slice</a>) }
     }
 
-    <span class="doccomment">/// Returns a new `ReadBuf` comprised of the unfilled section up to `n`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="ident">ReadBuf</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">max</span> <span class="op">=</span> <span class="ident">std::cmp::min</span>(<a class="self" href="../../../src/tokio/io/read_buf.rs.html#80">self</a>.<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#179">remaining</a>(), <a class="ident" href="../../../src/tokio/io/read_buf.rs.html#80">n</a>);
-        <span class="comment">// Safety: We don&#39;t set any of the `unfilled_mut` with `MaybeUninit::uninit`.</span>
-        <span class="kw">unsafe</span> { <span class="ident">ReadBuf::uninit</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/tokio/io/read_buf.rs.html#80">self</a>.<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#135">unfilled_mut</a>()[..<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#81">max</a>]) }
+    <span class="doccomment">/// Returns a new `ReadBuf` comprised of the unfilled section up to `n`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>take(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; ReadBuf&lt;<span class="lifetime">&#39;_</span>&gt; {
+        <span class="kw">let </span>max = std::cmp::min(<a class="self" href="../../../src/tokio/io/read_buf.rs.html#80">self</a>.<a href="../../../src/tokio/io/read_buf.rs.html#179">remaining</a>(), <a href="../../../src/tokio/io/read_buf.rs.html#80">n</a>);
+        <span class="comment">// Safety: We don&#39;t set any of the `unfilled_mut` with `MaybeUninit::uninit`.
+        </span><span class="kw">unsafe </span>{ ReadBuf::uninit(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/tokio/io/read_buf.rs.html#80">self</a>.<a href="../../../src/tokio/io/read_buf.rs.html#135">unfilled_mut</a>()[..<a href="../../../src/tokio/io/read_buf.rs.html#81">max</a>]) }
     }
 
-    <span class="doccomment">/// Returns a shared reference to the initialized portion of the buffer.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This includes the filled portion.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">initialized</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/io/read_buf.rs.html#90">self</a>.<span class="ident">buf</span>[..<a class="self" href="../../../src/tokio/io/read_buf.rs.html#90">self</a>.<span class="ident">initialized</span>];
-        <span class="comment">// safety: initialized describes how far into the buffer that the</span>
-        <span class="comment">// user has at some point initialized with bytes.</span>
-        <span class="kw">unsafe</span> { <a class="ident" href="../../../src/tokio/io/read_buf.rs.html#288">slice_assume_init</a>(<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#91">slice</a>) }
+    <span class="doccomment">/// Returns a shared reference to the initialized portion of the buffer.
+    ///
+    /// This includes the filled portion.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>initialized(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+        <span class="kw">let </span>slice = <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/io/read_buf.rs.html#90">self</a>.buf[..<a class="self" href="../../../src/tokio/io/read_buf.rs.html#90">self</a>.initialized];
+        <span class="comment">// safety: initialized describes how far into the buffer that the
+        // user has at some point initialized with bytes.
+        </span><span class="kw">unsafe </span>{ <a href="../../../src/tokio/io/read_buf.rs.html#288">slice_assume_init</a>(<a href="../../../src/tokio/io/read_buf.rs.html#91">slice</a>) }
     }
 
-    <span class="doccomment">/// Returns a mutable reference to the initialized portion of the buffer.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This includes the filled portion.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">initialized_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/tokio/io/read_buf.rs.html#101">self</a>.<span class="ident">buf</span>[..<a class="self" href="../../../src/tokio/io/read_buf.rs.html#101">self</a>.<span class="ident">initialized</span>];
-        <span class="comment">// safety: initialized describes how far into the buffer that the</span>
-        <span class="comment">// user has at some point initialized with bytes.</span>
-        <span class="kw">unsafe</span> { <a class="ident" href="../../../src/tokio/io/read_buf.rs.html#293">slice_assume_init_mut</a>(<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#102">slice</a>) }
+    <span class="doccomment">/// Returns a mutable reference to the initialized portion of the buffer.
+    ///
+    /// This includes the filled portion.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>initialized_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+        <span class="kw">let </span>slice = <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/tokio/io/read_buf.rs.html#101">self</a>.buf[..<a class="self" href="../../../src/tokio/io/read_buf.rs.html#101">self</a>.initialized];
+        <span class="comment">// safety: initialized describes how far into the buffer that the
+        // user has at some point initialized with bytes.
+        </span><span class="kw">unsafe </span>{ <a href="../../../src/tokio/io/read_buf.rs.html#293">slice_assume_init_mut</a>(<a href="../../../src/tokio/io/read_buf.rs.html#102">slice</a>) }
     }
 
-    <span class="doccomment">/// Returns a mutable reference to the entire buffer, without ensuring that it has been fully</span>
-    <span class="doccomment">/// initialized.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The elements between 0 and `self.filled().len()` are filled, and those between 0 and</span>
-    <span class="doccomment">/// `self.initialized().len()` are initialized (and so can be converted to a `&amp;mut [u8]`).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The caller of this method must ensure that these invariants are upheld. For example, if the</span>
-    <span class="doccomment">/// caller initializes some of the uninitialized section of the buffer, it must call</span>
-    <span class="doccomment">/// [`assume_init`](Self::assume_init) with the number of bytes initialized.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The caller must not de-initialize portions of the buffer that have already been initialized.</span>
-    <span class="doccomment">/// This includes any bytes in the region marked as uninitialized by `ReadBuf`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">inner_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> [<span class="ident">MaybeUninit</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>] {
-        <a class="self" href="../../../src/tokio/io/read_buf.rs.html#123">self</a>.<span class="ident">buf</span>
+    <span class="doccomment">/// Returns a mutable reference to the entire buffer, without ensuring that it has been fully
+    /// initialized.
+    ///
+    /// The elements between 0 and `self.filled().len()` are filled, and those between 0 and
+    /// `self.initialized().len()` are initialized (and so can be converted to a `&amp;mut [u8]`).
+    ///
+    /// The caller of this method must ensure that these invariants are upheld. For example, if the
+    /// caller initializes some of the uninitialized section of the buffer, it must call
+    /// [`assume_init`](Self::assume_init) with the number of bytes initialized.
+    ///
+    /// # Safety
+    ///
+    /// The caller must not de-initialize portions of the buffer that have already been initialized.
+    /// This includes any bytes in the region marked as uninitialized by `ReadBuf`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub unsafe fn </span>inner_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>[MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;] {
+        <a class="self" href="../../../src/tokio/io/read_buf.rs.html#123">self</a>.buf
     }
 
-    <span class="doccomment">/// Returns a mutable reference to the unfilled part of the buffer without ensuring that it has been fully</span>
-    <span class="doccomment">/// initialized.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The caller must not de-initialize portions of the buffer that have already been initialized.</span>
-    <span class="doccomment">/// This includes any bytes in the region marked as uninitialized by `ReadBuf`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unfilled_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> [<span class="ident">MaybeUninit</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>] {
-        <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/tokio/io/read_buf.rs.html#135">self</a>.<span class="ident">buf</span>[<a class="self" href="../../../src/tokio/io/read_buf.rs.html#135">self</a>.<span class="ident">filled</span>..]
+    <span class="doccomment">/// Returns a mutable reference to the unfilled part of the buffer without ensuring that it has been fully
+    /// initialized.
+    ///
+    /// # Safety
+    ///
+    /// The caller must not de-initialize portions of the buffer that have already been initialized.
+    /// This includes any bytes in the region marked as uninitialized by `ReadBuf`.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub unsafe fn </span>unfilled_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>[MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;] {
+        <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/tokio/io/read_buf.rs.html#135">self</a>.buf[<a class="self" href="../../../src/tokio/io/read_buf.rs.html#135">self</a>.filled..]
     }
 
-    <span class="doccomment">/// Returns a mutable reference to the unfilled part of the buffer, ensuring it is fully initialized.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Since `ReadBuf` tracks the region of the buffer that has been initialized, this is effectively &quot;free&quot; after</span>
-    <span class="doccomment">/// the first use.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">initialize_unfilled</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="../../../src/tokio/io/read_buf.rs.html#144">self</a>.<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#156">initialize_unfilled_to</a>(<a class="self" href="../../../src/tokio/io/read_buf.rs.html#144">self</a>.<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#179">remaining</a>())
+    <span class="doccomment">/// Returns a mutable reference to the unfilled part of the buffer, ensuring it is fully initialized.
+    ///
+    /// Since `ReadBuf` tracks the region of the buffer that has been initialized, this is effectively &quot;free&quot; after
+    /// the first use.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>initialize_unfilled(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+        <a class="self" href="../../../src/tokio/io/read_buf.rs.html#144">self</a>.<a href="../../../src/tokio/io/read_buf.rs.html#156">initialize_unfilled_to</a>(<a class="self" href="../../../src/tokio/io/read_buf.rs.html#144">self</a>.<a href="../../../src/tokio/io/read_buf.rs.html#179">remaining</a>())
     }
 
-    <span class="doccomment">/// Returns a mutable reference to the first `n` bytes of the unfilled part of the buffer, ensuring it is</span>
-    <span class="doccomment">/// fully initialized.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if `self.remaining()` is less than `n`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">initialize_unfilled_to</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.<span class="ident">remaining</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">n</span>, <span class="string">&quot;n overflows remaining&quot;</span>);
+    <span class="doccomment">/// Returns a mutable reference to the first `n` bytes of the unfilled part of the buffer, ensuring it is
+    /// fully initialized.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `self.remaining()` is less than `n`.
+    </span><span class="attribute">#[inline]
+    #[track_caller]
+    </span><span class="kw">pub fn </span>initialize_unfilled_to(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.remaining() &gt;= n, <span class="string">&quot;n overflows remaining&quot;</span>);
 
-        <span class="comment">// This can&#39;t overflow, otherwise the assert above would have failed.</span>
-        <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/io/read_buf.rs.html#156">self</a>.<span class="ident">filled</span> <span class="op">+</span> <a class="ident" href="../../../src/tokio/io/read_buf.rs.html#156">n</a>;
+        <span class="comment">// This can&#39;t overflow, otherwise the assert above would have failed.
+        </span><span class="kw">let </span>end = <a class="self" href="../../../src/tokio/io/read_buf.rs.html#156">self</a>.filled + <a href="../../../src/tokio/io/read_buf.rs.html#156">n</a>;
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">initialized</span> <span class="op">&lt;</span> <span class="ident">end</span> {
-            <span class="kw">unsafe</span> {
-                <a class="self" href="../../../src/tokio/io/read_buf.rs.html#156">self</a>.<span class="ident">buf</span>[<a class="self" href="../../../src/tokio/io/read_buf.rs.html#156">self</a>.<span class="ident">initialized</span>..<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#160">end</a>]
-                    .<span class="ident">as_mut_ptr</span>()
-                    .<span class="ident">write_bytes</span>(<span class="number">0</span>, <a class="ident" href="../../../src/tokio/io/read_buf.rs.html#160">end</a> <span class="op">-</span> <a class="self" href="../../../src/tokio/io/read_buf.rs.html#156">self</a>.<span class="ident">initialized</span>);
+        <span class="kw">if </span><span class="self">self</span>.initialized &lt; end {
+            <span class="kw">unsafe </span>{
+                <a class="self" href="../../../src/tokio/io/read_buf.rs.html#156">self</a>.buf[<a class="self" href="../../../src/tokio/io/read_buf.rs.html#156">self</a>.initialized..<a href="../../../src/tokio/io/read_buf.rs.html#160">end</a>]
+                    .as_mut_ptr()
+                    .write_bytes(<span class="number">0</span>, <a href="../../../src/tokio/io/read_buf.rs.html#160">end</a> - <a class="self" href="../../../src/tokio/io/read_buf.rs.html#156">self</a>.initialized);
             }
-            <a class="self" href="../../../src/tokio/io/read_buf.rs.html#156">self</a>.<span class="ident">initialized</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/io/read_buf.rs.html#160">end</a>;
+            <a class="self" href="../../../src/tokio/io/read_buf.rs.html#156">self</a>.initialized = <a href="../../../src/tokio/io/read_buf.rs.html#160">end</a>;
         }
 
-        <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/tokio/io/read_buf.rs.html#156">self</a>.<span class="ident">buf</span>[<a class="self" href="../../../src/tokio/io/read_buf.rs.html#156">self</a>.<span class="ident">filled</span>..<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#160">end</a>];
-        <span class="comment">// safety: just above, we checked that the end of the buf has</span>
-        <span class="comment">// been initialized to some value.</span>
-        <span class="kw">unsafe</span> { <a class="ident" href="../../../src/tokio/io/read_buf.rs.html#293">slice_assume_init_mut</a>(<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#171">slice</a>) }
+        <span class="kw">let </span>slice = <span class="kw-2">&amp;mut </span><a class="self" href="../../../src/tokio/io/read_buf.rs.html#156">self</a>.buf[<a class="self" href="../../../src/tokio/io/read_buf.rs.html#156">self</a>.filled..<a href="../../../src/tokio/io/read_buf.rs.html#160">end</a>];
+        <span class="comment">// safety: just above, we checked that the end of the buf has
+        // been initialized to some value.
+        </span><span class="kw">unsafe </span>{ <a href="../../../src/tokio/io/read_buf.rs.html#293">slice_assume_init_mut</a>(<a href="../../../src/tokio/io/read_buf.rs.html#171">slice</a>) }
     }
 
-    <span class="doccomment">/// Returns the number of bytes at the end of the slice that have not yet been filled.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remaining</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/tokio/io/read_buf.rs.html#179">self</a>.<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#56">capacity</a>() <span class="op">-</span> <a class="self" href="../../../src/tokio/io/read_buf.rs.html#179">self</a>.<span class="ident">filled</span>
+    <span class="doccomment">/// Returns the number of bytes at the end of the slice that have not yet been filled.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>remaining(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../../src/tokio/io/read_buf.rs.html#179">self</a>.<a href="../../../src/tokio/io/read_buf.rs.html#56">capacity</a>() - <a class="self" href="../../../src/tokio/io/read_buf.rs.html#179">self</a>.filled
     }
 
-    <span class="doccomment">/// Clears the buffer, resetting the filled region to empty.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The number of initialized bytes is not changed, and the contents of the buffer are not modified.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../../src/tokio/io/read_buf.rs.html#187">self</a>.<span class="ident">filled</span> <span class="op">=</span> <span class="number">0</span>;
+    <span class="doccomment">/// Clears the buffer, resetting the filled region to empty.
+    ///
+    /// The number of initialized bytes is not changed, and the contents of the buffer are not modified.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <a class="self" href="../../../src/tokio/io/read_buf.rs.html#187">self</a>.filled = <span class="number">0</span>;
     }
 
-    <span class="doccomment">/// Advances the size of the filled region of the buffer.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The number of initialized bytes is not changed.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if the filled region of the buffer would become larger than the initialized region.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">advance</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let</span> <span class="ident">new</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/io/read_buf.rs.html#200">self</a>.<span class="ident">filled</span>.<span class="ident">checked_add</span>(<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#200">n</a>).<span class="ident">expect</span>(<span class="string">&quot;filled overflow&quot;</span>);
-        <a class="self" href="../../../src/tokio/io/read_buf.rs.html#200">self</a>.<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#217">set_filled</a>(<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#201">new</a>);
+    <span class="doccomment">/// Advances the size of the filled region of the buffer.
+    ///
+    /// The number of initialized bytes is not changed.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the filled region of the buffer would become larger than the initialized region.
+    </span><span class="attribute">#[inline]
+    #[track_caller]
+    </span><span class="kw">pub fn </span>advance(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <span class="kw">let </span>new = <a class="self" href="../../../src/tokio/io/read_buf.rs.html#200">self</a>.filled.checked_add(<a href="../../../src/tokio/io/read_buf.rs.html#200">n</a>).expect(<span class="string">&quot;filled overflow&quot;</span>);
+        <a class="self" href="../../../src/tokio/io/read_buf.rs.html#200">self</a>.<a href="../../../src/tokio/io/read_buf.rs.html#217">set_filled</a>(<a href="../../../src/tokio/io/read_buf.rs.html#201">new</a>);
     }
 
-    <span class="doccomment">/// Sets the size of the filled region of the buffer.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The number of initialized bytes is not changed.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that this can be used to *shrink* the filled region of the buffer in addition to growing it (for</span>
-    <span class="doccomment">/// example, by a `AsyncRead` implementation that compresses data in-place).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if the filled region of the buffer would become larger than the initialized region.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_filled</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+    <span class="doccomment">/// Sets the size of the filled region of the buffer.
+    ///
+    /// The number of initialized bytes is not changed.
+    ///
+    /// Note that this can be used to *shrink* the filled region of the buffer in addition to growing it (for
+    /// example, by a `AsyncRead` implementation that compresses data in-place).
+    ///
+    /// # Panics
+    ///
+    /// Panics if the filled region of the buffer would become larger than the initialized region.
+    </span><span class="attribute">#[inline]
+    #[track_caller]
+    </span><span class="kw">pub fn </span>set_filled(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
-            <span class="ident">n</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">initialized</span>,
-            <span class="string">&quot;filled must not become larger than initialized&quot;</span>
-        );
-        <a class="self" href="../../../src/tokio/io/read_buf.rs.html#217">self</a>.<span class="ident">filled</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/io/read_buf.rs.html#217">n</a>;
+            n &lt;= <span class="self">self</span>.initialized,
+            <span class="string">&quot;filled must not become larger than initialized&quot;
+        </span>);
+        <a class="self" href="../../../src/tokio/io/read_buf.rs.html#217">self</a>.filled = <a href="../../../src/tokio/io/read_buf.rs.html#217">n</a>;
     }
 
-    <span class="doccomment">/// Asserts that the first `n` unfilled bytes of the buffer are initialized.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `ReadBuf` assumes that bytes are never de-initialized, so this method does nothing when called with fewer</span>
-    <span class="doccomment">/// bytes than are already known to be initialized.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The caller must ensure that `n` unfilled bytes of the buffer have already been initialized.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">assume_init</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">let</span> <span class="ident">new</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/io/read_buf.rs.html#234">self</a>.<span class="ident">filled</span> <span class="op">+</span> <a class="ident" href="../../../src/tokio/io/read_buf.rs.html#234">n</a>;
-        <span class="kw">if</span> <span class="ident">new</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">initialized</span> {
-            <a class="self" href="../../../src/tokio/io/read_buf.rs.html#234">self</a>.<span class="ident">initialized</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/io/read_buf.rs.html#235">new</a>;
+    <span class="doccomment">/// Asserts that the first `n` unfilled bytes of the buffer are initialized.
+    ///
+    /// `ReadBuf` assumes that bytes are never de-initialized, so this method does nothing when called with fewer
+    /// bytes than are already known to be initialized.
+    ///
+    /// # Safety
+    ///
+    /// The caller must ensure that `n` unfilled bytes of the buffer have already been initialized.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub unsafe fn </span>assume_init(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <span class="kw">let </span>new = <a class="self" href="../../../src/tokio/io/read_buf.rs.html#234">self</a>.filled + <a href="../../../src/tokio/io/read_buf.rs.html#234">n</a>;
+        <span class="kw">if </span>new &gt; <span class="self">self</span>.initialized {
+            <a class="self" href="../../../src/tokio/io/read_buf.rs.html#234">self</a>.initialized = <a href="../../../src/tokio/io/read_buf.rs.html#235">new</a>;
         }
     }
 
-    <span class="doccomment">/// Appends data to the buffer, advancing the written position and possibly also the initialized position.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if `self.remaining()` is less than `buf.len()`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">put_slice</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
+    <span class="doccomment">/// Appends data to the buffer, advancing the written position and possibly also the initialized position.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `self.remaining()` is less than `buf.len()`.
+    </span><span class="attribute">#[inline]
+    #[track_caller]
+    </span><span class="kw">pub fn </span>put_slice(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
-            <span class="self">self</span>.<span class="ident">remaining</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">buf</span>.<span class="ident">len</span>(),
-            <span class="string">&quot;buf.len() must fit in remaining()&quot;</span>
-        );
+            <span class="self">self</span>.remaining() &gt;= buf.len(),
+            <span class="string">&quot;buf.len() must fit in remaining()&quot;
+        </span>);
 
-        <span class="kw">let</span> <span class="ident">amt</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/io/read_buf.rs.html#248">buf</a>.<span class="ident">len</span>();
-        <span class="comment">// Cannot overflow, asserted above</span>
-        <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/io/read_buf.rs.html#248">self</a>.<span class="ident">filled</span> <span class="op">+</span> <a class="ident" href="../../../src/tokio/io/read_buf.rs.html#254">amt</a>;
+        <span class="kw">let </span>amt = <a href="../../../src/tokio/io/read_buf.rs.html#248">buf</a>.len();
+        <span class="comment">// Cannot overflow, asserted above
+        </span><span class="kw">let </span>end = <a class="self" href="../../../src/tokio/io/read_buf.rs.html#248">self</a>.filled + <a href="../../../src/tokio/io/read_buf.rs.html#254">amt</a>;
 
-        <span class="comment">// Safety: the length is asserted above</span>
-        <span class="kw">unsafe</span> {
-            <a class="self" href="../../../src/tokio/io/read_buf.rs.html#248">self</a>.<span class="ident">buf</span>[<a class="self" href="../../../src/tokio/io/read_buf.rs.html#248">self</a>.<span class="ident">filled</span>..<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#256">end</a>]
-                .<span class="ident">as_mut_ptr</span>()
-                .<span class="ident">cast</span>::<span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>()
-                .<span class="ident">copy_from_nonoverlapping</span>(<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#248">buf</a>.<span class="ident">as_ptr</span>(), <a class="ident" href="../../../src/tokio/io/read_buf.rs.html#254">amt</a>);
+        <span class="comment">// Safety: the length is asserted above
+        </span><span class="kw">unsafe </span>{
+            <a class="self" href="../../../src/tokio/io/read_buf.rs.html#248">self</a>.buf[<a class="self" href="../../../src/tokio/io/read_buf.rs.html#248">self</a>.filled..<a href="../../../src/tokio/io/read_buf.rs.html#256">end</a>]
+                .as_mut_ptr()
+                .cast::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;()
+                .copy_from_nonoverlapping(<a href="../../../src/tokio/io/read_buf.rs.html#248">buf</a>.as_ptr(), <a href="../../../src/tokio/io/read_buf.rs.html#254">amt</a>);
         }
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">initialized</span> <span class="op">&lt;</span> <span class="ident">end</span> {
-            <a class="self" href="../../../src/tokio/io/read_buf.rs.html#248">self</a>.<span class="ident">initialized</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/io/read_buf.rs.html#256">end</a>;
+        <span class="kw">if </span><span class="self">self</span>.initialized &lt; end {
+            <a class="self" href="../../../src/tokio/io/read_buf.rs.html#248">self</a>.initialized = <a href="../../../src/tokio/io/read_buf.rs.html#256">end</a>;
         }
-        <a class="self" href="../../../src/tokio/io/read_buf.rs.html#248">self</a>.<span class="ident">filled</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/io/read_buf.rs.html#256">end</a>;
+        <a class="self" href="../../../src/tokio/io/read_buf.rs.html#248">self</a>.filled = <a href="../../../src/tokio/io/read_buf.rs.html#256">end</a>;
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">ReadBuf</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/tokio/io/read_buf.rs.html#274">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;ReadBuf&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;filled&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/io/read_buf.rs.html#274">self</a>.<span class="ident">filled</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;initialized&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/io/read_buf.rs.html#274">self</a>.<span class="ident">initialized</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;capacity&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/io/read_buf.rs.html#274">self</a>.<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#56">capacity</a>())
-            .<span class="ident">finish</span>()
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>ReadBuf&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a href="../../../src/tokio/io/read_buf.rs.html#274">f</a>.debug_struct(<span class="string">&quot;ReadBuf&quot;</span>)
+            .field(<span class="string">&quot;filled&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/io/read_buf.rs.html#274">self</a>.filled)
+            .field(<span class="string">&quot;initialized&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/io/read_buf.rs.html#274">self</a>.initialized)
+            .field(<span class="string">&quot;capacity&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/tokio/io/read_buf.rs.html#274">self</a>.<a href="../../../src/tokio/io/read_buf.rs.html#56">capacity</a>())
+            .finish()
     }
 }
 
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">slice_to_uninit_mut</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="kw-2">&amp;mut</span> [<span class="ident">MaybeUninit</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>] {
-    <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#283">slice</a> <span class="kw">as</span> <span class="kw-2">*mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] <span class="kw">as</span> <span class="kw-2">*mut</span> [<span class="ident">MaybeUninit</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>])
+<span class="kw">unsafe fn </span>slice_to_uninit_mut(slice: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="kw-2">&amp;mut </span>[MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;] {
+    <span class="kw-2">&amp;mut *</span>(<a href="../../../src/tokio/io/read_buf.rs.html#283">slice</a> <span class="kw">as </span><span class="kw-2">*mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] <span class="kw">as </span><span class="kw-2">*mut </span>[MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;])
 }
 
-<span class="comment">// TODO: This could use `MaybeUninit::slice_assume_init` when it is stable.</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">slice_assume_init</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span>[<span class="ident">MaybeUninit</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>]) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-    <span class="kw-2">&amp;</span><span class="kw-2">*</span>(<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#288">slice</a> <span class="kw">as</span> <span class="kw-2">*const</span> [<span class="ident">MaybeUninit</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>] <span class="kw">as</span> <span class="kw-2">*const</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>])
+<span class="comment">// TODO: This could use `MaybeUninit::slice_assume_init` when it is stable.
+</span><span class="kw">unsafe fn </span>slice_assume_init(slice: <span class="kw-2">&amp;</span>[MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;]) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+    <span class="kw-2">&amp;*</span>(<a href="../../../src/tokio/io/read_buf.rs.html#288">slice</a> <span class="kw">as </span><span class="kw-2">*const </span>[MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;] <span class="kw">as </span><span class="kw-2">*const </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>])
 }
 
-<span class="comment">// TODO: This could use `MaybeUninit::slice_assume_init_mut` when it is stable.</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">slice_assume_init_mut</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">MaybeUninit</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>]) -&gt; <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-    <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#293">slice</a> <span class="kw">as</span> <span class="kw-2">*mut</span> [<span class="ident">MaybeUninit</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>] <span class="kw">as</span> <span class="kw-2">*mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>])
+<span class="comment">// TODO: This could use `MaybeUninit::slice_assume_init_mut` when it is stable.
+</span><span class="kw">unsafe fn </span>slice_assume_init_mut(slice: <span class="kw-2">&amp;mut </span>[MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;]) -&gt; <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
+    <span class="kw-2">&amp;mut *</span>(<a href="../../../src/tokio/io/read_buf.rs.html#293">slice</a> <span class="kw">as </span><span class="kw-2">*mut </span>[MaybeUninit&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;] <span class="kw">as </span><span class="kw-2">*mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>])
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

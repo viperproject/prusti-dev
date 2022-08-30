@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.24.2/src/fcntl.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>fcntl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../nix/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.25.0/src/fcntl.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>fcntl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../nix/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -882,903 +882,889 @@
 <span id="882">882</span>
 <span id="883">883</span>
 <span id="884">884</span>
-<span id="885">885</span>
-<span id="886">886</span>
-<span id="887">887</span>
-<span id="888">888</span>
-<span id="889">889</span>
-<span id="890">890</span>
-<span id="891">891</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../src/nix/errno.rs.html#776"><span class="kw">crate</span>::errno::Errno</a>;
-<span class="kw">use</span> <span class="ident">libc</span>::{<a class="self" href="../../libc/index.html">self</a>, <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>, <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>, <a class="ident" href="../../libc/unix/type.c_uint.html">c_uint</a>, <a class="ident" href="../../libc/unix/type.size_t.html">size_t</a>, <a class="ident" href="../../libc/unix/type.ssize_t.html">ssize_t</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">std::ffi::OsString</a>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/raw/index.html">std::os::raw</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStringExt.html">std::os::unix::ffi::OsStringExt</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">std::os::unix::io::RawFd</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../src/nix/errno.rs.html#1163"><span class="kw">crate</span>::errno::Errno</a>;
+<span class="kw">use </span>libc::{<a class="self" href="../../libc/index.html">self</a>, <a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>, <a href="../../libc/unix/type.c_int.html">c_int</a>, <a href="../../libc/unix/type.c_uint.html">c_uint</a>, <a href="../../libc/unix/type.size_t.html">size_t</a>, <a href="../../libc/unix/type.ssize_t.html">ssize_t</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">std::ffi::OsString</a>;
+<span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/raw/index.html">std::os::raw</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStringExt.html">std::os::unix::ffi::OsStringExt</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">std::os::unix::io::RawFd</a>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>; <span class="comment">// For splice and copy_file_range</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;fs&quot;</span>)]</span>
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <a class="ident" href="../../src/nix/lib.rs.html#184">NixPath</a>,
-    <span class="prelude-ty">Result</span>,
-    <a class="ident" href="../../src/nix/sys/stat.rs.html#25-44">sys::stat::Mode</a>
-};
+<span class="attribute">#[cfg(feature = <span class="string">&quot;fs&quot;</span>)]
+</span><span class="kw">use crate</span>::{<a href="../../src/nix/sys/stat.rs.html#33-52">sys::stat::Mode</a>, <a href="../../src/nix/lib.rs.html#182">NixPath</a>, <span class="prelude-ty">Result</span>};
+<span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>; <span class="comment">// For splice and copy_file_range
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
-    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
-    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
-    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
-    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>,
-    <span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;wasi&quot;</span>, <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;wasi&quot;</span>),
-    <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;uclibc&quot;</span>,
-    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>
-))]</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;fs&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::posix_fadvise</span>::{<a class="ident" href="../../src/nix/fcntl.rs.html#841-853">PosixFadviseAdvice</a>, <a class="ident" href="../../src/nix/fcntl.rs.html#857-862">posix_fadvise</a>};
+</span><span class="attribute">#[cfg(any(
+    target_os = <span class="string">&quot;linux&quot;</span>,
+    target_os = <span class="string">&quot;android&quot;</span>,
+    target_os = <span class="string">&quot;emscripten&quot;</span>,
+    target_os = <span class="string">&quot;fuchsia&quot;</span>,
+    target_os = <span class="string">&quot;wasi&quot;</span>,
+    target_env = <span class="string">&quot;uclibc&quot;</span>,
+    target_os = <span class="string">&quot;freebsd&quot;
+</span>))]
+#[cfg(feature = <span class="string">&quot;fs&quot;</span>)]
+</span><span class="kw">pub use </span><span class="self">self</span>::posix_fadvise::{<a href="../../src/nix/fcntl.rs.html#850-855">posix_fadvise</a>, <a href="../../src/nix/fcntl.rs.html#834-846">PosixFadviseAdvice</a>};
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;fs&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;process&quot;</span>))]</span>
-<a class="macro" href="../../src/nix/macros.rs.html#55-75">libc_bitflags!</a> {
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;fs&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;process&quot;</span>))))]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AtFlags</span>: <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
-        <span class="ident">AT_REMOVEDIR</span>;
-        <span class="ident">AT_SYMLINK_FOLLOW</span>;
-        <span class="ident">AT_SYMLINK_NOFOLLOW</span>;
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
-        <span class="ident">AT_NO_AUTOMOUNT</span>;
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
-        <span class="ident">AT_EMPTY_PATH</span>;
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>))]</span>
-        <span class="ident">AT_EACCESS</span>;
+<span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+#[cfg(any(feature = <span class="string">&quot;fs&quot;</span>, feature = <span class="string">&quot;process&quot;</span>))]
+</span><a class="macro" href="../../src/nix/macros.rs.html#55-75">libc_bitflags! </a>{
+    <span class="attribute">#[cfg_attr(docsrs, doc(cfg(any(feature = <span class="string">&quot;fs&quot;</span>, feature = <span class="string">&quot;process&quot;</span>))))]
+    </span><span class="kw">pub struct </span>AtFlags: <a href="../../libc/unix/type.c_int.html">c_int</a> {
+        AT_REMOVEDIR;
+        AT_SYMLINK_FOLLOW;
+        AT_SYMLINK_NOFOLLOW;
+        <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
+        </span>AT_NO_AUTOMOUNT;
+        <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
+        </span>AT_EMPTY_PATH;
+        <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;illumos&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>))]
+        </span>AT_EACCESS;
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;fs&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;term&quot;</span>))]</span>
-<a class="macro" href="../../src/nix/macros.rs.html#55-75">libc_bitflags!</a>(
-    <span class="doccomment">/// Configuration options for opened files.</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;fs&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;term&quot;</span>))))]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OFlag</span>: <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
-        <span class="doccomment">/// Mask for the access mode of the file.</span>
-        <span class="ident">O_ACCMODE</span>;
-        <span class="doccomment">/// Use alternate I/O semantics.</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>)]</span>
-        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
-        <span class="ident">O_ALT_IO</span>;
-        <span class="doccomment">/// Open the file in append-only mode.</span>
-        <span class="ident">O_APPEND</span>;
-        <span class="doccomment">/// Generate a signal when input or output becomes possible.</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>)))]</span>
-        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
-        <span class="ident">O_ASYNC</span>;
-        <span class="doccomment">/// Closes the file descriptor once an `execve` call is made.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Also sets the file offset to the beginning of the file.</span>
-        <span class="ident">O_CLOEXEC</span>;
-        <span class="doccomment">/// Create the file if it does not exist.</span>
-        <span class="ident">O_CREAT</span>;
-        <span class="doccomment">/// Try to minimize cache effects of the I/O for this file.</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>))]</span>
-        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
-        <span class="ident">O_DIRECT</span>;
-        <span class="doccomment">/// If the specified path isn&#39;t a directory, fail.</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>)))]</span>
-        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
-        <span class="ident">O_DIRECTORY</span>;
-        <span class="doccomment">/// Implicitly follow each `write()` with an `fdatasync()`.</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>))]</span>
-        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
-        <span class="ident">O_DSYNC</span>;
-        <span class="doccomment">/// Error out if a file was not created.</span>
-        <span class="ident">O_EXCL</span>;
-        <span class="doccomment">/// Open for execute only.</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>)]</span>
-        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
-        <span class="ident">O_EXEC</span>;
-        <span class="doccomment">/// Open with an exclusive file lock.</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
-        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
-        <span class="ident">O_EXLOCK</span>;
-        <span class="doccomment">/// Same as `O_SYNC`.</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
-                  <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">not</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>)),
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
-        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
-        <span class="ident">O_FSYNC</span>;
-        <span class="doccomment">/// Allow files whose sizes can&#39;t be represented in an `off_t` to be opened.</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
-        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
-        <span class="ident">O_LARGEFILE</span>;
-        <span class="doccomment">/// Do not update the file last access time during `read(2)`s.</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
-        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
-        <span class="ident">O_NOATIME</span>;
-        <span class="doccomment">/// Don&#39;t attach the device as the process&#39; controlling terminal.</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
-        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
-        <span class="ident">O_NOCTTY</span>;
-        <span class="doccomment">/// Same as `O_NONBLOCK`.</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
-        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
-        <span class="ident">O_NDELAY</span>;
-        <span class="doccomment">/// `open()` will fail if the given path is a symbolic link.</span>
-        <span class="ident">O_NOFOLLOW</span>;
-        <span class="doccomment">/// When possible, open the file in nonblocking mode.</span>
-        <span class="ident">O_NONBLOCK</span>;
-        <span class="doccomment">/// Don&#39;t deliver `SIGPIPE`.</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>)]</span>
-        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
-        <span class="ident">O_NOSIGPIPE</span>;
-        <span class="doccomment">/// Obtain a file descriptor for low-level access.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// The file itself is not opened and other file operations will fail.</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
-        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
-        <span class="ident">O_PATH</span>;
-        <span class="doccomment">/// Only allow reading.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This should not be combined with `O_WRONLY` or `O_RDWR`.</span>
-        <span class="ident">O_RDONLY</span>;
-        <span class="doccomment">/// Allow both reading and writing.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This should not be combined with `O_WRONLY` or `O_RDONLY`.</span>
-        <span class="ident">O_RDWR</span>;
-        <span class="doccomment">/// Similar to `O_DSYNC` but applies to `read`s instead.</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>))]</span>
-        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
-        <span class="ident">O_RSYNC</span>;
-        <span class="doccomment">/// Skip search permission checks.</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>)]</span>
-        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
-        <span class="ident">O_SEARCH</span>;
-        <span class="doccomment">/// Open with a shared file lock.</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
-        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
-        <span class="ident">O_SHLOCK</span>;
-        <span class="doccomment">/// Implicitly follow each `write()` with an `fsync()`.</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
-        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
-        <span class="ident">O_SYNC</span>;
-        <span class="doccomment">/// Create an unnamed temporary file.</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
-        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
-        <span class="ident">O_TMPFILE</span>;
-        <span class="doccomment">/// Truncate an existing regular file to 0 length if it allows writing.</span>
-        <span class="ident">O_TRUNC</span>;
-        <span class="doccomment">/// Restore default TTY attributes.</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>)]</span>
-        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>())))]</span>
-        <span class="ident">O_TTY_INIT</span>;
-        <span class="doccomment">/// Only allow writing.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This should not be combined with `O_RDONLY` or `O_RDWR`.</span>
-        <span class="ident">O_WRONLY</span>;
+<span class="attribute">#[cfg(any(feature = <span class="string">&quot;fs&quot;</span>, feature = <span class="string">&quot;term&quot;</span>))]
+</span><a class="macro" href="../../src/nix/macros.rs.html#55-75">libc_bitflags!</a>(
+    <span class="doccomment">/// Configuration options for opened files.
+    </span><span class="attribute">#[cfg_attr(docsrs, doc(cfg(any(feature = <span class="string">&quot;fs&quot;</span>, feature = <span class="string">&quot;term&quot;</span>))))]
+    </span><span class="kw">pub struct </span>OFlag: <a href="../../libc/unix/type.c_int.html">c_int</a> {
+        <span class="doccomment">/// Mask for the access mode of the file.
+        </span>O_ACCMODE;
+        <span class="doccomment">/// Use alternate I/O semantics.
+        </span><span class="attribute">#[cfg(target_os = <span class="string">&quot;netbsd&quot;</span>)]
+        #[cfg_attr(docsrs, doc(cfg(all())))]
+        </span>O_ALT_IO;
+        <span class="doccomment">/// Open the file in append-only mode.
+        </span>O_APPEND;
+        <span class="doccomment">/// Generate a signal when input or output becomes possible.
+        </span><span class="attribute">#[cfg(not(any(target_os = <span class="string">&quot;illumos&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>)))]
+        #[cfg_attr(docsrs, doc(cfg(all())))]
+        </span>O_ASYNC;
+        <span class="doccomment">/// Closes the file descriptor once an `execve` call is made.
+        ///
+        /// Also sets the file offset to the beginning of the file.
+        </span>O_CLOEXEC;
+        <span class="doccomment">/// Create the file if it does not exist.
+        </span>O_CREAT;
+        <span class="doccomment">/// Try to minimize cache effects of the I/O for this file.
+        </span><span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
+                  target_os = <span class="string">&quot;dragonfly&quot;</span>,
+                  target_os = <span class="string">&quot;freebsd&quot;</span>,
+                  target_os = <span class="string">&quot;linux&quot;</span>,
+                  target_os = <span class="string">&quot;netbsd&quot;</span>))]
+        #[cfg_attr(docsrs, doc(cfg(all())))]
+        </span>O_DIRECT;
+        <span class="doccomment">/// If the specified path isn&#39;t a directory, fail.
+        </span><span class="attribute">#[cfg(not(any(target_os = <span class="string">&quot;illumos&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>)))]
+        #[cfg_attr(docsrs, doc(cfg(all())))]
+        </span>O_DIRECTORY;
+        <span class="doccomment">/// Implicitly follow each `write()` with an `fdatasync()`.
+        </span><span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
+                  target_os = <span class="string">&quot;ios&quot;</span>,
+                  target_os = <span class="string">&quot;linux&quot;</span>,
+                  target_os = <span class="string">&quot;macos&quot;</span>,
+                  target_os = <span class="string">&quot;netbsd&quot;</span>,
+                  target_os = <span class="string">&quot;openbsd&quot;</span>))]
+        #[cfg_attr(docsrs, doc(cfg(all())))]
+        </span>O_DSYNC;
+        <span class="doccomment">/// Error out if a file was not created.
+        </span>O_EXCL;
+        <span class="doccomment">/// Open for execute only.
+        </span><span class="attribute">#[cfg(target_os = <span class="string">&quot;freebsd&quot;</span>)]
+        #[cfg_attr(docsrs, doc(cfg(all())))]
+        </span>O_EXEC;
+        <span class="doccomment">/// Open with an exclusive file lock.
+        </span><span class="attribute">#[cfg(any(target_os = <span class="string">&quot;dragonfly&quot;</span>,
+                  target_os = <span class="string">&quot;freebsd&quot;</span>,
+                  target_os = <span class="string">&quot;ios&quot;</span>,
+                  target_os = <span class="string">&quot;macos&quot;</span>,
+                  target_os = <span class="string">&quot;netbsd&quot;</span>,
+                  target_os = <span class="string">&quot;openbsd&quot;</span>,
+                  target_os = <span class="string">&quot;redox&quot;</span>))]
+        #[cfg_attr(docsrs, doc(cfg(all())))]
+        </span>O_EXLOCK;
+        <span class="doccomment">/// Same as `O_SYNC`.
+        </span><span class="attribute">#[cfg(any(target_os = <span class="string">&quot;dragonfly&quot;</span>,
+                  target_os = <span class="string">&quot;freebsd&quot;</span>,
+                  target_os = <span class="string">&quot;ios&quot;</span>,
+                  all(target_os = <span class="string">&quot;linux&quot;</span>, not(target_env = <span class="string">&quot;musl&quot;</span>)),
+                  target_os = <span class="string">&quot;macos&quot;</span>,
+                  target_os = <span class="string">&quot;netbsd&quot;</span>,
+                  target_os = <span class="string">&quot;openbsd&quot;</span>,
+                  target_os = <span class="string">&quot;redox&quot;</span>))]
+        #[cfg_attr(docsrs, doc(cfg(all())))]
+        </span>O_FSYNC;
+        <span class="doccomment">/// Allow files whose sizes can&#39;t be represented in an `off_t` to be opened.
+        </span><span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
+        #[cfg_attr(docsrs, doc(cfg(all())))]
+        </span>O_LARGEFILE;
+        <span class="doccomment">/// Do not update the file last access time during `read(2)`s.
+        </span><span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
+        #[cfg_attr(docsrs, doc(cfg(all())))]
+        </span>O_NOATIME;
+        <span class="doccomment">/// Don&#39;t attach the device as the process&#39; controlling terminal.
+        </span><span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+        #[cfg_attr(docsrs, doc(cfg(all())))]
+        </span>O_NOCTTY;
+        <span class="doccomment">/// Same as `O_NONBLOCK`.
+        </span><span class="attribute">#[cfg(not(any(target_os = <span class="string">&quot;redox&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>)))]
+        #[cfg_attr(docsrs, doc(cfg(all())))]
+        </span>O_NDELAY;
+        <span class="doccomment">/// `open()` will fail if the given path is a symbolic link.
+        </span>O_NOFOLLOW;
+        <span class="doccomment">/// When possible, open the file in nonblocking mode.
+        </span>O_NONBLOCK;
+        <span class="doccomment">/// Don&#39;t deliver `SIGPIPE`.
+        </span><span class="attribute">#[cfg(target_os = <span class="string">&quot;netbsd&quot;</span>)]
+        #[cfg_attr(docsrs, doc(cfg(all())))]
+        </span>O_NOSIGPIPE;
+        <span class="doccomment">/// Obtain a file descriptor for low-level access.
+        ///
+        /// The file itself is not opened and other file operations will fail.
+        </span><span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;redox&quot;</span>))]
+        #[cfg_attr(docsrs, doc(cfg(all())))]
+        </span>O_PATH;
+        <span class="doccomment">/// Only allow reading.
+        ///
+        /// This should not be combined with `O_WRONLY` or `O_RDWR`.
+        </span>O_RDONLY;
+        <span class="doccomment">/// Allow both reading and writing.
+        ///
+        /// This should not be combined with `O_WRONLY` or `O_RDONLY`.
+        </span>O_RDWR;
+        <span class="doccomment">/// Similar to `O_DSYNC` but applies to `read`s instead.
+        </span><span class="attribute">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;netbsd&quot;</span>, target_os = <span class="string">&quot;openbsd&quot;</span>))]
+        #[cfg_attr(docsrs, doc(cfg(all())))]
+        </span>O_RSYNC;
+        <span class="doccomment">/// Skip search permission checks.
+        </span><span class="attribute">#[cfg(target_os = <span class="string">&quot;netbsd&quot;</span>)]
+        #[cfg_attr(docsrs, doc(cfg(all())))]
+        </span>O_SEARCH;
+        <span class="doccomment">/// Open with a shared file lock.
+        </span><span class="attribute">#[cfg(any(target_os = <span class="string">&quot;dragonfly&quot;</span>,
+                  target_os = <span class="string">&quot;freebsd&quot;</span>,
+                  target_os = <span class="string">&quot;ios&quot;</span>,
+                  target_os = <span class="string">&quot;macos&quot;</span>,
+                  target_os = <span class="string">&quot;netbsd&quot;</span>,
+                  target_os = <span class="string">&quot;openbsd&quot;</span>,
+                  target_os = <span class="string">&quot;redox&quot;</span>))]
+        #[cfg_attr(docsrs, doc(cfg(all())))]
+        </span>O_SHLOCK;
+        <span class="doccomment">/// Implicitly follow each `write()` with an `fsync()`.
+        </span><span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+        #[cfg_attr(docsrs, doc(cfg(all())))]
+        </span>O_SYNC;
+        <span class="doccomment">/// Create an unnamed temporary file.
+        </span><span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
+        #[cfg_attr(docsrs, doc(cfg(all())))]
+        </span>O_TMPFILE;
+        <span class="doccomment">/// Truncate an existing regular file to 0 length if it allows writing.
+        </span>O_TRUNC;
+        <span class="doccomment">/// Restore default TTY attributes.
+        </span><span class="attribute">#[cfg(target_os = <span class="string">&quot;freebsd&quot;</span>)]
+        #[cfg_attr(docsrs, doc(cfg(all())))]
+        </span>O_TTY_INIT;
+        <span class="doccomment">/// Only allow writing.
+        ///
+        /// This should not be combined with `O_RDONLY` or `O_RDWR`.
+        </span>O_WRONLY;
     }
 );
 
-<span class="macro">feature!</span> {
-<span class="attribute">#![<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;fs&quot;</span>]</span>
+<span class="macro">feature! </span>{
+<span class="attribute">#![feature = <span class="string">&quot;fs&quot;</span>]
 
-<span class="comment">// The conversion is not identical on all operating systems.</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::useless_conversion</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">open</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../src/nix/lib.rs.html#184">NixPath</a><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">P</span>, <span class="ident">oflag</span>: <a class="ident" href="../../src/nix/fcntl.rs.html#48-193">OFlag</a>, <span class="ident">mode</span>: <a class="ident" href="../../src/nix/sys/stat.rs.html#25-44">Mode</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">with_nix_path</span>(<span class="op">|</span><span class="ident">cstr</span><span class="op">|</span> {
-        <span class="kw">unsafe</span> { <span class="ident">libc::open</span>(<span class="ident">cstr</span>.<span class="ident">as_ptr</span>(), <span class="ident">oflag</span>.<span class="ident">bits</span>(), <span class="ident">mode</span>.<span class="ident">bits</span>() <span class="kw">as</span> <span class="ident">c_uint</span>) }
+</span><span class="comment">// The conversion is not identical on all operating systems.
+</span><span class="attribute">#[allow(clippy::useless_conversion)]
+</span><span class="kw">pub fn </span>open&lt;P: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../../src/nix/lib.rs.html#182">NixPath</a>&gt;(path: <span class="kw-2">&amp;</span>P, oflag: <a href="../../src/nix/fcntl.rs.html#44-189">OFlag</a>, mode: <a href="../../src/nix/sys/stat.rs.html#33-52">Mode</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>&gt; {
+    <span class="kw">let </span>fd = path.with_nix_path(|cstr| {
+        <span class="kw">unsafe </span>{ libc::open(cstr.as_ptr(), oflag.bits(), mode.bits() <span class="kw">as </span>c_uint) }
     })<span class="question-mark">?</span>;
 
-    <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#201">fd</a>)
+    Errno::result(<a href="../../src/nix/fcntl.rs.html#197">fd</a>)
 }
 
-<span class="comment">// The conversion is not identical on all operating systems.</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::useless_conversion</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">openat</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../src/nix/lib.rs.html#184">NixPath</a><span class="op">&gt;</span>(
-    <span class="ident">dirfd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>,
-    <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">P</span>,
-    <span class="ident">oflag</span>: <a class="ident" href="../../src/nix/fcntl.rs.html#48-193">OFlag</a>,
-    <span class="ident">mode</span>: <a class="ident" href="../../src/nix/sys/stat.rs.html#25-44">Mode</a>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">with_nix_path</span>(<span class="op">|</span><span class="ident">cstr</span><span class="op">|</span> {
-        <span class="kw">unsafe</span> { <span class="ident">libc::openat</span>(<span class="ident">dirfd</span>, <span class="ident">cstr</span>.<span class="ident">as_ptr</span>(), <span class="ident">oflag</span>.<span class="ident">bits</span>(), <span class="ident">mode</span>.<span class="ident">bits</span>() <span class="kw">as</span> <span class="ident">c_uint</span>) }
+<span class="comment">// The conversion is not identical on all operating systems.
+</span><span class="attribute">#[allow(clippy::useless_conversion)]
+#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+</span><span class="kw">pub fn </span>openat&lt;P: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../../src/nix/lib.rs.html#182">NixPath</a>&gt;(
+    dirfd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>,
+    path: <span class="kw-2">&amp;</span>P,
+    oflag: <a href="../../src/nix/fcntl.rs.html#44-189">OFlag</a>,
+    mode: <a href="../../src/nix/sys/stat.rs.html#33-52">Mode</a>,
+) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>&gt; {
+    <span class="kw">let </span>fd = path.with_nix_path(|cstr| {
+        <span class="kw">unsafe </span>{ libc::openat(dirfd, cstr.as_ptr(), oflag.bits(), mode.bits() <span class="kw">as </span>c_uint) }
     })<span class="question-mark">?</span>;
-    <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#217">fd</a>)
+    Errno::result(<a href="../../src/nix/fcntl.rs.html#213">fd</a>)
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">renameat</span><span class="op">&lt;</span><span class="ident">P1</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../src/nix/lib.rs.html#184">NixPath</a>, <span class="ident">P2</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../src/nix/lib.rs.html#184">NixPath</a><span class="op">&gt;</span>(
-    <span class="ident">old_dirfd</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a><span class="op">&gt;</span>,
-    <span class="ident">old_path</span>: <span class="kw-2">&amp;</span><span class="ident">P1</span>,
-    <span class="ident">new_dirfd</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a><span class="op">&gt;</span>,
-    <span class="ident">new_path</span>: <span class="kw-2">&amp;</span><span class="ident">P2</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">old_path</span>.<span class="ident">with_nix_path</span>(<span class="op">|</span><span class="ident">old_cstr</span><span class="op">|</span> {
-        <span class="ident">new_path</span>.<span class="ident">with_nix_path</span>(<span class="op">|</span><span class="ident">new_cstr</span><span class="op">|</span> <span class="kw">unsafe</span> {
-            <span class="ident">libc::renameat</span>(
-                <span class="ident">at_rawfd</span>(<span class="ident">old_dirfd</span>),
-                <span class="ident">old_cstr</span>.<span class="ident">as_ptr</span>(),
-                <span class="ident">at_rawfd</span>(<span class="ident">new_dirfd</span>),
-                <span class="ident">new_cstr</span>.<span class="ident">as_ptr</span>(),
+<span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+</span><span class="kw">pub fn </span>renameat&lt;P1: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../../src/nix/lib.rs.html#182">NixPath</a>, P2: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../../src/nix/lib.rs.html#182">NixPath</a>&gt;(
+    old_dirfd: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>&gt;,
+    old_path: <span class="kw-2">&amp;</span>P1,
+    new_dirfd: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>&gt;,
+    new_path: <span class="kw-2">&amp;</span>P2,
+) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>res = old_path.with_nix_path(|old_cstr| {
+        new_path.with_nix_path(|new_cstr| <span class="kw">unsafe </span>{
+            libc::renameat(
+                at_rawfd(old_dirfd),
+                old_cstr.as_ptr(),
+                at_rawfd(new_dirfd),
+                new_cstr.as_ptr(),
             )
         })
-    })<span class="question-mark">?</span><span class="question-mark">?</span>;
-    <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#230">res</a>).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    })<span class="question-mark">??</span>;
+    Errno::result(<a href="../../src/nix/fcntl.rs.html#226">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
 }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(
-    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
-    <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;gnu&quot;</span>,
-))]</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;fs&quot;</span>)]</span>
-<a class="macro" href="../../src/nix/macros.rs.html#55-75">libc_bitflags!</a> {
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;fs&quot;</span>)))]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RenameFlags</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <span class="ident">RENAME_EXCHANGE</span>;
-        <span class="ident">RENAME_NOREPLACE</span>;
-        <span class="ident">RENAME_WHITEOUT</span>;
+<span class="attribute">#[cfg(all(target_os = <span class="string">&quot;linux&quot;</span>, target_env = <span class="string">&quot;gnu&quot;</span>,))]
+#[cfg(feature = <span class="string">&quot;fs&quot;</span>)]
+</span><a class="macro" href="../../src/nix/macros.rs.html#55-75">libc_bitflags! </a>{
+    <span class="attribute">#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;fs&quot;</span>)))]
+    </span><span class="kw">pub struct </span>RenameFlags: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
+        RENAME_EXCHANGE;
+        RENAME_NOREPLACE;
+        RENAME_WHITEOUT;
     }
 }
 
-<span class="macro">feature!</span> {
-<span class="attribute">#![<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;fs&quot;</span>]</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(
-    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
-    <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;gnu&quot;</span>,
-))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">renameat2</span><span class="op">&lt;</span><span class="ident">P1</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../src/nix/lib.rs.html#184">NixPath</a>, <span class="ident">P2</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../src/nix/lib.rs.html#184">NixPath</a><span class="op">&gt;</span>(
-    <span class="ident">old_dirfd</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a><span class="op">&gt;</span>,
-    <span class="ident">old_path</span>: <span class="kw-2">&amp;</span><span class="ident">P1</span>,
-    <span class="ident">new_dirfd</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a><span class="op">&gt;</span>,
-    <span class="ident">new_path</span>: <span class="kw-2">&amp;</span><span class="ident">P2</span>,
-    <span class="ident">flags</span>: <a class="ident" href="../../src/nix/fcntl.rs.html#249-256">RenameFlags</a>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">old_path</span>.<span class="ident">with_nix_path</span>(<span class="op">|</span><span class="ident">old_cstr</span><span class="op">|</span> {
-        <span class="ident">new_path</span>.<span class="ident">with_nix_path</span>(<span class="op">|</span><span class="ident">new_cstr</span><span class="op">|</span> <span class="kw">unsafe</span> {
-            <span class="ident">libc::renameat2</span>(
-                <span class="ident">at_rawfd</span>(<span class="ident">old_dirfd</span>),
-                <span class="ident">old_cstr</span>.<span class="ident">as_ptr</span>(),
-                <span class="ident">at_rawfd</span>(<span class="ident">new_dirfd</span>),
-                <span class="ident">new_cstr</span>.<span class="ident">as_ptr</span>(),
-                <span class="ident">flags</span>.<span class="ident">bits</span>(),
+<span class="macro">feature! </span>{
+<span class="attribute">#![feature = <span class="string">&quot;fs&quot;</span>]
+#[cfg(all(
+    target_os = <span class="string">&quot;linux&quot;</span>,
+    target_env = <span class="string">&quot;gnu&quot;</span>,
+))]
+</span><span class="kw">pub fn </span>renameat2&lt;P1: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../../src/nix/lib.rs.html#182">NixPath</a>, P2: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../../src/nix/lib.rs.html#182">NixPath</a>&gt;(
+    old_dirfd: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>&gt;,
+    old_path: <span class="kw-2">&amp;</span>P1,
+    new_dirfd: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>&gt;,
+    new_path: <span class="kw-2">&amp;</span>P2,
+    flags: <a href="../../src/nix/fcntl.rs.html#242-249">RenameFlags</a>,
+) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>res = old_path.with_nix_path(|old_cstr| {
+        new_path.with_nix_path(|new_cstr| <span class="kw">unsafe </span>{
+            libc::renameat2(
+                at_rawfd(old_dirfd),
+                old_cstr.as_ptr(),
+                at_rawfd(new_dirfd),
+                new_cstr.as_ptr(),
+                flags.bits(),
             )
         })
-    })<span class="question-mark">?</span><span class="question-mark">?</span>;
-    <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#271">res</a>).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    })<span class="question-mark">??</span>;
+    Errno::result(<a href="../../src/nix/fcntl.rs.html#264">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
 }
 
-<span class="kw">fn</span> <span class="ident">wrap_readlink_result</span>(<span class="kw-2">mut</span> <span class="ident">v</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>, <span class="ident">len</span>: <a class="ident" href="../../libc/unix/type.ssize_t.html">ssize_t</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a><span class="op">&gt;</span> {
-    <span class="kw">unsafe</span> { <a class="ident" href="../../src/nix/fcntl.rs.html#285">v</a>.<span class="ident">set_len</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#285">len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) }
-    <a class="ident" href="../../src/nix/fcntl.rs.html#285">v</a>.<span class="ident">shrink_to_fit</span>();
-    <span class="prelude-val">Ok</span>(<span class="ident">OsString::from_vec</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#285">v</a>.<span class="ident">to_vec</span>()))
+<span class="kw">fn </span>wrap_readlink_result(<span class="kw-2">mut </span>v: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, len: <a href="../../libc/unix/type.ssize_t.html">ssize_t</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>&gt; {
+    <span class="kw">unsafe </span>{ <a href="../../src/nix/fcntl.rs.html#278">v</a>.set_len(<a href="../../src/nix/fcntl.rs.html#278">len</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) }
+    <a href="../../src/nix/fcntl.rs.html#278">v</a>.shrink_to_fit();
+    <span class="prelude-val">Ok</span>(OsString::from_vec(<a href="../../src/nix/fcntl.rs.html#278">v</a>.to_vec()))
 }
 
-<span class="kw">fn</span> <span class="ident">readlink_maybe_at</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../src/nix/lib.rs.html#184">NixPath</a><span class="op">&gt;</span>(
-    <span class="ident">dirfd</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a><span class="op">&gt;</span>,
-    <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">P</span>,
-    <span class="ident">v</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../libc/unix/type.ssize_t.html">libc::ssize_t</a><span class="op">&gt;</span> {
-    <a class="ident" href="../../src/nix/fcntl.rs.html#293">path</a>.<a class="ident" href="../../src/nix/lib.rs.html#194-195">with_nix_path</a>(<span class="op">|</span><span class="ident">cstr</span><span class="op">|</span> <span class="kw">unsafe</span> {
-        <span class="kw">match</span> <a class="ident" href="../../src/nix/fcntl.rs.html#292">dirfd</a> {
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>)]</span>
-            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
-            <span class="prelude-val">Some</span>(<span class="ident">dirfd</span>) =&gt; <span class="ident">libc::readlinkat</span>(
-                <a class="ident" href="../../src/nix/fcntl.rs.html#301">dirfd</a>,
-                <a class="ident" href="../../src/nix/fcntl.rs.html#296">cstr</a>.<span class="ident">as_ptr</span>(),
-                <a class="ident" href="../../src/nix/fcntl.rs.html#294">v</a>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
-                <a class="ident" href="../../src/nix/fcntl.rs.html#294">v</a>.<span class="ident">capacity</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.size_t.html">size_t</a>,
+<span class="kw">fn </span>readlink_maybe_at&lt;P: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../../src/nix/lib.rs.html#182">NixPath</a>&gt;(
+    dirfd: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>&gt;,
+    path: <span class="kw-2">&amp;</span>P,
+    v: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../libc/unix/type.ssize_t.html">libc::ssize_t</a>&gt; {
+    <a href="../../src/nix/fcntl.rs.html#286">path</a>.<a href="../../src/nix/lib.rs.html#192-194">with_nix_path</a>(|cstr| <span class="kw">unsafe </span>{
+        <span class="kw">match </span><a href="../../src/nix/fcntl.rs.html#285">dirfd</a> {
+            <span class="attribute">#[cfg(target_os = <span class="string">&quot;redox&quot;</span>)]
+            </span><span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
+            <span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+            </span><span class="prelude-val">Some</span>(dirfd) =&gt; libc::readlinkat(
+                <a href="../../src/nix/fcntl.rs.html#294">dirfd</a>,
+                <a href="../../src/nix/fcntl.rs.html#289">cstr</a>.as_ptr(),
+                <a href="../../src/nix/fcntl.rs.html#287">v</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
+                <a href="../../src/nix/fcntl.rs.html#287">v</a>.capacity() <span class="kw">as </span><a href="../../libc/unix/type.size_t.html">size_t</a>,
             ),
-            <span class="prelude-val">None</span> =&gt; <span class="ident">libc::readlink</span>(
-                <a class="ident" href="../../src/nix/fcntl.rs.html#296">cstr</a>.<span class="ident">as_ptr</span>(),
-                <a class="ident" href="../../src/nix/fcntl.rs.html#294">v</a>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
-                <a class="ident" href="../../src/nix/fcntl.rs.html#294">v</a>.<span class="ident">capacity</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.size_t.html">size_t</a>,
+            <span class="prelude-val">None </span>=&gt; libc::readlink(
+                <a href="../../src/nix/fcntl.rs.html#289">cstr</a>.as_ptr(),
+                <a href="../../src/nix/fcntl.rs.html#287">v</a>.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
+                <a href="../../src/nix/fcntl.rs.html#287">v</a>.capacity() <span class="kw">as </span><a href="../../libc/unix/type.size_t.html">size_t</a>,
             ),
         }
     })
 }
 
-<span class="kw">fn</span> <span class="ident">inner_readlink</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../src/nix/lib.rs.html#184">NixPath</a><span class="op">&gt;</span>(<span class="ident">dirfd</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a><span class="op">&gt;</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">P</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<a class="ident" href="../../libc/unix/linux_like/constant.PATH_MAX.html">libc::PATH_MAX</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-    <span class="comment">// simple case: result is strictly less than `PATH_MAX`</span>
-    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">readlink_maybe_at</span>(<span class="ident">dirfd</span>, <span class="ident">path</span>, <span class="kw-2">&amp;mut</span> <span class="ident">v</span>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">Errno::result</span>(<span class="ident">res</span>)<span class="question-mark">?</span>;
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">len</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span>);
-    <span class="kw">if</span> (<span class="ident">len</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;</span> <span class="ident">v</span>.<span class="ident">capacity</span>() {
-        <span class="kw">return</span> <a class="ident" href="../../src/nix/fcntl.rs.html#285">wrap_readlink_result</a>(<a class="ident" href="../../src/nix/fcntl.rs.html#317">v</a>, <a class="ident" href="../../src/nix/fcntl.rs.html#319">res</a>);
+<span class="kw">fn </span>inner_readlink&lt;P: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../../src/nix/lib.rs.html#182">NixPath</a>&gt;(dirfd: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>&gt;, path: <span class="kw-2">&amp;</span>P) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>v = Vec::with_capacity(<a href="../../libc/unix/linux_like/constant.PATH_MAX.html">libc::PATH_MAX</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+    <span class="comment">// simple case: result is strictly less than `PATH_MAX`
+    </span><span class="kw">let </span>res = readlink_maybe_at(dirfd, path, <span class="kw-2">&amp;mut </span>v)<span class="question-mark">?</span>;
+    <span class="kw">let </span>len = Errno::result(res)<span class="question-mark">?</span>;
+    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(len &gt;= <span class="number">0</span>);
+    <span class="kw">if </span>(len <span class="kw">as </span>usize) &lt; v.capacity() {
+        <span class="kw">return </span><a href="../../src/nix/fcntl.rs.html#278">wrap_readlink_result</a>(<a href="../../src/nix/fcntl.rs.html#310">v</a>, <a href="../../src/nix/fcntl.rs.html#312">res</a>);
     }
-    <span class="comment">// Uh oh, the result is too long...</span>
-    <span class="comment">// Let&#39;s try to ask lstat how many bytes to allocate.</span>
-    <span class="kw">let</span> <span class="ident">reported_size</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/nix/fcntl.rs.html#316">dirfd</a> {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>)]</span>
-        <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
-        <span class="prelude-val">Some</span>(<span class="ident">dirfd</span>) =&gt; {
-            <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">path</span>.<span class="ident">is_empty</span>() { <span class="ident">AtFlags::AT_EMPTY_PATH</span> } <span class="kw">else</span> { <span class="ident">AtFlags::empty</span>() };
-            <a class="ident" href="../../src/nix/sys/stat.rs.html#137"><span class="kw">super</span>::sys::stat::fstatat</a>(<a class="ident" href="../../src/nix/fcntl.rs.html#331">dirfd</a>, <a class="ident" href="../../src/nix/fcntl.rs.html#316">path</a>, <a class="ident" href="../../src/nix/fcntl.rs.html#332">flags</a> <span class="op">|</span> <span class="ident">AtFlags::AT_SYMLINK_NOFOLLOW</span>)
+    <span class="comment">// Uh oh, the result is too long...
+    // Let&#39;s try to ask lstat how many bytes to allocate.
+    </span><span class="kw">let </span>reported_size = <span class="kw">match </span><a href="../../src/nix/fcntl.rs.html#309">dirfd</a> {
+        <span class="attribute">#[cfg(target_os = <span class="string">&quot;redox&quot;</span>)]
+        </span><span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
+        <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
+        </span><span class="prelude-val">Some</span>(dirfd) =&gt; {
+            <span class="kw">let </span>flags = <span class="kw">if </span>path.is_empty() { AtFlags::AT_EMPTY_PATH } <span class="kw">else </span>{ AtFlags::empty() };
+            <a href="../../src/nix/sys/stat.rs.html#249"><span class="kw">super</span>::sys::stat::fstatat</a>(<a href="../../src/nix/fcntl.rs.html#324">dirfd</a>, <a href="../../src/nix/fcntl.rs.html#309">path</a>, <a href="../../src/nix/fcntl.rs.html#325">flags</a> | AtFlags::AT_SYMLINK_NOFOLLOW)
         },
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>)))]</span>
-        <span class="prelude-val">Some</span>(<span class="ident">dirfd</span>) =&gt; <span class="ident"><span class="kw">super</span>::sys::stat::fstatat</span>(<span class="ident">dirfd</span>, <span class="ident">path</span>, <span class="ident">AtFlags::AT_SYMLINK_NOFOLLOW</span>),
-        <span class="prelude-val">None</span> =&gt; <a class="ident" href="../../src/nix/sys/stat.rs.html#113"><span class="kw">super</span>::sys::stat::lstat</a>(<a class="ident" href="../../src/nix/fcntl.rs.html#316">path</a>)
+        <span class="attribute">#[cfg(not(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;redox&quot;</span>)))]
+        </span><span class="prelude-val">Some</span>(dirfd) =&gt; <span class="kw">super</span>::sys::stat::fstatat(dirfd, path, AtFlags::AT_SYMLINK_NOFOLLOW),
+        <span class="prelude-val">None </span>=&gt; <a href="../../src/nix/sys/stat.rs.html#225"><span class="kw">super</span>::sys::stat::lstat</a>(<a href="../../src/nix/fcntl.rs.html#309">path</a>)
     }
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <a class="ident" href="../../src/nix/fcntl.rs.html#339">x</a>.<span class="ident">st_size</span>)
-        .<span class="ident">unwrap_or</span>(<span class="number">0</span>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">try_size</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">reported_size</span> <span class="op">&gt;</span> <span class="number">0</span> {
-        <span class="comment">// Note: even if `lstat`&#39;s apparently valid answer turns out to be</span>
-        <span class="comment">// wrong, we will still read the full symlink no matter what.</span>
-        <a class="ident" href="../../src/nix/fcntl.rs.html#327">reported_size</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">+</span> <span class="number">1</span>
-    } <span class="kw">else</span> {
-        <span class="comment">// If lstat doesn&#39;t cooperate, or reports an error, be a little less</span>
-        <span class="comment">// precise.</span>
-        (<a class="ident" href="../../libc/unix/linux_like/constant.PATH_MAX.html">libc::PATH_MAX</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">max</a>(<span class="number">128</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span>
-    };
-    <span class="kw">loop</span> {
-        <a class="ident" href="../../src/nix/fcntl.rs.html#317">v</a>.<span class="ident">reserve_exact</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#341">try_size</a>);
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">readlink_maybe_at</span>(<span class="ident">dirfd</span>, <span class="ident">path</span>, <span class="kw-2">&amp;mut</span> <span class="ident">v</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">Errno::result</span>(<span class="ident">res</span>)<span class="question-mark">?</span>;
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">len</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span>);
-        <span class="kw">if</span> (<span class="ident">len</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;</span> <span class="ident">v</span>.<span class="ident">capacity</span>() {
-            <span class="kw">break</span> <a class="ident" href="../../src/nix/fcntl.rs.html#285">wrap_readlink_result</a>(<a class="ident" href="../../src/nix/fcntl.rs.html#317">v</a>, <a class="ident" href="../../src/nix/fcntl.rs.html#352">res</a>);
-        } <span class="kw">else</span> {
-            <span class="comment">// Ugh! Still not big enough!</span>
-            <span class="kw">match</span> <a class="ident" href="../../src/nix/fcntl.rs.html#341">try_size</a>.<span class="ident">checked_shl</span>(<span class="number">1</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">next_size</span>) =&gt; <a class="ident" href="../../src/nix/fcntl.rs.html#341">try_size</a> <span class="op">=</span> <a class="ident" href="../../src/nix/fcntl.rs.html#360">next_size</a>,
-                <span class="comment">// It&#39;s absurd that this would happen, but handle it sanely</span>
-                <span class="comment">// anyway.</span>
-                <span class="prelude-val">None</span> =&gt; <span class="kw">break</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/nix/errno.rs.html#813">Errno::ENAMETOOLONG</a>),
+        .map(|x| <a href="../../src/nix/fcntl.rs.html#332">x</a>.st_size)
+        .unwrap_or(<span class="number">0</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>try_size = <span class="kw">if </span>reported_size &gt; <span class="number">0 </span>{
+        <span class="comment">// Note: even if `lstat`&#39;s apparently valid answer turns out to be
+        // wrong, we will still read the full symlink no matter what.
+        </span><a href="../../src/nix/fcntl.rs.html#320">reported_size</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> + <span class="number">1
+    </span>} <span class="kw">else </span>{
+        <span class="comment">// If lstat doesn&#39;t cooperate, or reports an error, be a little less
+        // precise.
+        </span>(<a href="../../libc/unix/linux_like/constant.PATH_MAX.html">libc::PATH_MAX</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>).<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">max</a>(<span class="number">128</span>) &lt;&lt; <span class="number">1
+    </span>};
+    <span class="kw">loop </span>{
+        <a href="../../src/nix/fcntl.rs.html#310">v</a>.reserve_exact(<a href="../../src/nix/fcntl.rs.html#334">try_size</a>);
+        <span class="kw">let </span>res = readlink_maybe_at(dirfd, path, <span class="kw-2">&amp;mut </span>v)<span class="question-mark">?</span>;
+        <span class="kw">let </span>len = Errno::result(res)<span class="question-mark">?</span>;
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(len &gt;= <span class="number">0</span>);
+        <span class="kw">if </span>(len <span class="kw">as </span>usize) &lt; v.capacity() {
+            <span class="kw">break </span><a href="../../src/nix/fcntl.rs.html#278">wrap_readlink_result</a>(<a href="../../src/nix/fcntl.rs.html#310">v</a>, <a href="../../src/nix/fcntl.rs.html#345">res</a>);
+        } <span class="kw">else </span>{
+            <span class="comment">// Ugh! Still not big enough!
+            </span><span class="kw">match </span><a href="../../src/nix/fcntl.rs.html#334">try_size</a>.checked_shl(<span class="number">1</span>) {
+                <span class="prelude-val">Some</span>(next_size) =&gt; <a href="../../src/nix/fcntl.rs.html#334">try_size</a> = <a href="../../src/nix/fcntl.rs.html#353">next_size</a>,
+                <span class="comment">// It&#39;s absurd that this would happen, but handle it sanely
+                // anyway.
+                </span><span class="prelude-val">None </span>=&gt; <span class="kw">break </span><span class="prelude-val">Err</span>(<a href="../../src/nix/errno.rs.html#1200">Errno::ENAMETOOLONG</a>),
             }
         }
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">readlink</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../src/nix/lib.rs.html#184">NixPath</a><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">P</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a><span class="op">&gt;</span> {
-    <a class="ident" href="../../src/nix/fcntl.rs.html#316">inner_readlink</a>(<span class="prelude-val">None</span>, <a class="ident" href="../../src/nix/fcntl.rs.html#369">path</a>)
+<span class="kw">pub fn </span>readlink&lt;P: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../../src/nix/lib.rs.html#182">NixPath</a>&gt;(path: <span class="kw-2">&amp;</span>P) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>&gt; {
+    <a href="../../src/nix/fcntl.rs.html#309">inner_readlink</a>(<span class="prelude-val">None</span>, <a href="../../src/nix/fcntl.rs.html#362">path</a>)
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">readlinkat</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../src/nix/lib.rs.html#184">NixPath</a><span class="op">&gt;</span>(<span class="ident">dirfd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">P</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a><span class="op">&gt;</span> {
-    <a class="ident" href="../../src/nix/fcntl.rs.html#316">inner_readlink</a>(<span class="prelude-val">Some</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#374">dirfd</a>), <a class="ident" href="../../src/nix/fcntl.rs.html#374">path</a>)
+<span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+</span><span class="kw">pub fn </span>readlinkat&lt;P: <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> + <a href="../../src/nix/lib.rs.html#182">NixPath</a>&gt;(dirfd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, path: <span class="kw-2">&amp;</span>P) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>&gt; {
+    <a href="../../src/nix/fcntl.rs.html#309">inner_readlink</a>(<span class="prelude-val">Some</span>(<a href="../../src/nix/fcntl.rs.html#367">dirfd</a>), <a href="../../src/nix/fcntl.rs.html#367">path</a>)
 }
 
-<span class="doccomment">/// Computes the raw fd consumed by a function of the form `*at`.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">at_rawfd</span>(<span class="ident">fd</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/raw/type.c_int.html">raw::c_int</a> {
-    <span class="kw">match</span> <a class="ident" href="../../src/nix/fcntl.rs.html#380">fd</a> {
-        <span class="prelude-val">None</span> =&gt; <span class="ident">libc::AT_FDCWD</span>,
-        <span class="prelude-val">Some</span>(<span class="ident">fd</span>) =&gt; <a class="ident" href="../../src/nix/fcntl.rs.html#383">fd</a>,
+<span class="doccomment">/// Computes the raw fd consumed by a function of the form `*at`.
+</span><span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>at_rawfd(fd: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/raw/type.c_int.html">raw::c_int</a> {
+    <span class="kw">match </span><a href="../../src/nix/fcntl.rs.html#373">fd</a> {
+        <span class="prelude-val">None </span>=&gt; libc::AT_FDCWD,
+        <span class="prelude-val">Some</span>(fd) =&gt; <a href="../../src/nix/fcntl.rs.html#376">fd</a>,
     }
 }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;fs&quot;</span>)]</span>
-<a class="macro" href="../../src/nix/macros.rs.html#55-75">libc_bitflags!</a>(
-    <span class="doccomment">/// Additional flags for file sealing, which allows for limiting operations on a file.</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;fs&quot;</span>)))]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SealFlag</span>: <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
-        <span class="doccomment">/// Prevents further calls to `fcntl()` with `F_ADD_SEALS`.</span>
-        <span class="ident">F_SEAL_SEAL</span>;
-        <span class="doccomment">/// The file cannot be reduced in size.</span>
-        <span class="ident">F_SEAL_SHRINK</span>;
-        <span class="doccomment">/// The size of the file cannot be increased.</span>
-        <span class="ident">F_SEAL_GROW</span>;
-        <span class="doccomment">/// The file contents cannot be modified.</span>
-        <span class="ident">F_SEAL_WRITE</span>;
-    }
-);
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;fs&quot;</span>)]</span>
-<a class="macro" href="../../src/nix/macros.rs.html#55-75">libc_bitflags!</a>(
-    <span class="doccomment">/// Additional configuration flags for `fcntl`&#39;s `F_SETFD`.</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;fs&quot;</span>)))]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FdFlag</span>: <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
-        <span class="doccomment">/// The file descriptor will automatically be closed during a successful `execve(2)`.</span>
-        <span class="ident">FD_CLOEXEC</span>;
+<span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;freebsd&quot;</span>))]
+#[cfg(feature = <span class="string">&quot;fs&quot;</span>)]
+</span><a class="macro" href="../../src/nix/macros.rs.html#55-75">libc_bitflags!</a>(
+    <span class="doccomment">/// Additional flags for file sealing, which allows for limiting operations on a file.
+    </span><span class="attribute">#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;fs&quot;</span>)))]
+    </span><span class="kw">pub struct </span>SealFlag: <a href="../../libc/unix/type.c_int.html">c_int</a> {
+        <span class="doccomment">/// Prevents further calls to `fcntl()` with `F_ADD_SEALS`.
+        </span>F_SEAL_SEAL;
+        <span class="doccomment">/// The file cannot be reduced in size.
+        </span>F_SEAL_SHRINK;
+        <span class="doccomment">/// The size of the file cannot be increased.
+        </span>F_SEAL_GROW;
+        <span class="doccomment">/// The file contents cannot be modified.
+        </span>F_SEAL_WRITE;
     }
 );
 
-<span class="macro">feature!</span> {
-<span class="attribute">#![<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;fs&quot;</span>]</span>
+<span class="attribute">#[cfg(feature = <span class="string">&quot;fs&quot;</span>)]
+</span><a class="macro" href="../../src/nix/macros.rs.html#55-75">libc_bitflags!</a>(
+    <span class="doccomment">/// Additional configuration flags for `fcntl`&#39;s `F_SETFD`.
+    </span><span class="attribute">#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;fs&quot;</span>)))]
+    </span><span class="kw">pub struct </span>FdFlag: <a href="../../libc/unix/type.c_int.html">c_int</a> {
+        <span class="doccomment">/// The file descriptor will automatically be closed during a successful `execve(2)`.
+        </span>FD_CLOEXEC;
+    }
+);
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">FcntlArg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">F_DUPFD</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>),
-    <span class="ident">F_DUPFD_CLOEXEC</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>),
-    <span class="ident">F_GETFD</span>,
-    <span class="ident">F_SETFD</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#406-413">FdFlag</a>), <span class="comment">// FD_FLAGS</span>
-    <span class="ident">F_GETFL</span>,
-    <span class="ident">F_SETFL</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#48-193">OFlag</a>), <span class="comment">// O_NONBLOCK</span>
-    <span class="ident">F_SETLK</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.flock.html">libc::flock</a>),
-    <span class="ident">F_SETLKW</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.flock.html">libc::flock</a>),
-    <span class="ident">F_GETLK</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.flock.html">libc::flock</a>),
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>))]</span>
-    <span class="ident">F_OFD_SETLK</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.flock.html">libc::flock</a>),
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>))]</span>
-    <span class="ident">F_OFD_SETLKW</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.flock.html">libc::flock</a>),
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>))]</span>
-    <span class="ident">F_OFD_GETLK</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.flock.html">libc::flock</a>),
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
-    <span class="ident">F_ADD_SEALS</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#390-403">SealFlag</a>),
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
-    <span class="ident">F_GET_SEALS</span>,
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>))]</span>
-    <span class="ident">F_FULLFSYNC</span>,
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>))]</span>
-    <span class="ident">F_GETPIPE_SZ</span>,
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>))]</span>
-    <span class="ident">F_SETPIPE_SZ</span>(<a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>),
-    <span class="comment">// TODO: Rest of flags</span>
-}
+<span class="macro">feature! </span>{
+<span class="attribute">#![feature = <span class="string">&quot;fs&quot;</span>]
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">FcntlArg</span> {
-    <span class="ident">F_DUPFD</span>(<span class="ident">RawFd</span>),
-    <span class="ident">F_DUPFD_CLOEXEC</span>(<span class="ident">RawFd</span>),
-    <span class="ident">F_GETFD</span>,
-    <span class="ident">F_SETFD</span>(<span class="ident">FdFlag</span>), <span class="comment">// FD_FLAGS</span>
-    <span class="ident">F_GETFL</span>,
-    <span class="ident">F_SETFL</span>(<span class="ident">OFlag</span>), <span class="comment">// O_NONBLOCK</span>
-}
-<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../src/nix/fcntl.rs.html#421"><span class="self">self</span>::FcntlArg</a>::<span class="kw-2">*</span>;
+#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+#[derive(Debug, Eq, Hash, PartialEq)]
+#[non_exhaustive]
+</span><span class="kw">pub enum </span>FcntlArg&lt;<span class="lifetime">&#39;a</span>&gt; {
+    F_DUPFD(<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>),
+    F_DUPFD_CLOEXEC(<a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>),
+    F_GETFD,
+    F_SETFD(<a href="../../src/nix/fcntl.rs.html#399-406">FdFlag</a>), <span class="comment">// FD_FLAGS
+    </span>F_GETFL,
+    F_SETFL(<a href="../../src/nix/fcntl.rs.html#44-189">OFlag</a>), <span class="comment">// O_NONBLOCK
+    </span>F_SETLK(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.flock.html">libc::flock</a>),
+    F_SETLKW(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.flock.html">libc::flock</a>),
+    F_GETLK(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.flock.html">libc::flock</a>),
+    <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>))]
+    </span>F_OFD_SETLK(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.flock.html">libc::flock</a>),
+    <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>))]
+    </span>F_OFD_SETLKW(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.flock.html">libc::flock</a>),
+    <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>))]
+    </span>F_OFD_GETLK(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.flock.html">libc::flock</a>),
+    <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;freebsd&quot;</span>))]
+    </span>F_ADD_SEALS(<a href="../../src/nix/fcntl.rs.html#383-396">SealFlag</a>),
+    <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;freebsd&quot;</span>))]
+    </span>F_GET_SEALS,
+    <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;macos&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>))]
+    </span>F_FULLFSYNC,
+    <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>))]
+    </span>F_GETPIPE_SZ,
+    <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>))]
+    </span>F_SETPIPE_SZ(<a href="../../libc/unix/type.c_int.html">c_int</a>),
+    <span class="comment">// TODO: Rest of flags
+</span>}
 
-<span class="comment">// TODO: Figure out how to handle value fcntl returns</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fcntl</span>(<span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <span class="ident">arg</span>: <a class="ident" href="../../src/nix/fcntl.rs.html#421">FcntlArg</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../libc/unix/type.c_int.html">c_int</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-        <span class="kw">match</span> <a class="ident" href="../../src/nix/fcntl.rs.html#464">arg</a> {
-            <a class="ident" href="../../src/nix/fcntl.rs.html#422">F_DUPFD</a>(<span class="ident">rawfd</span>) =&gt; <span class="ident">libc::fcntl</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#464">fd</a>, <span class="ident">libc::F_DUPFD</span>, <a class="ident" href="../../src/nix/fcntl.rs.html#467">rawfd</a>),
-            <a class="ident" href="../../src/nix/fcntl.rs.html#423">F_DUPFD_CLOEXEC</a>(<span class="ident">rawfd</span>) =&gt; <span class="ident">libc::fcntl</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#464">fd</a>, <span class="ident">libc::F_DUPFD_CLOEXEC</span>, <a class="ident" href="../../src/nix/fcntl.rs.html#468">rawfd</a>),
-            <a class="ident" href="../../src/nix/fcntl.rs.html#424">F_GETFD</a> =&gt; <span class="ident">libc::fcntl</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#464">fd</a>, <span class="ident">libc::F_GETFD</span>),
-            <a class="ident" href="../../src/nix/fcntl.rs.html#425">F_SETFD</a>(<span class="ident">flag</span>) =&gt; <span class="ident">libc::fcntl</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#464">fd</a>, <span class="ident">libc::F_SETFD</span>, <a class="ident" href="../../src/nix/fcntl.rs.html#470">flag</a>.<a class="ident" href="../../src/nix/fcntl.rs.html#406-413">bits</a>()),
-            <a class="ident" href="../../src/nix/fcntl.rs.html#426">F_GETFL</a> =&gt; <span class="ident">libc::fcntl</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#464">fd</a>, <span class="ident">libc::F_GETFL</span>),
-            <a class="ident" href="../../src/nix/fcntl.rs.html#427">F_SETFL</a>(<span class="ident">flag</span>) =&gt; <span class="ident">libc::fcntl</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#464">fd</a>, <span class="ident">libc::F_SETFL</span>, <a class="ident" href="../../src/nix/fcntl.rs.html#472">flag</a>.<a class="ident" href="../../src/nix/fcntl.rs.html#48-193">bits</a>()),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
-            <a class="ident" href="../../src/nix/fcntl.rs.html#428">F_SETLK</a>(<span class="ident">flock</span>) =&gt; <span class="ident">libc::fcntl</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#464">fd</a>, <span class="ident">libc::F_SETLK</span>, <a class="ident" href="../../src/nix/fcntl.rs.html#474">flock</a>),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
-            <a class="ident" href="../../src/nix/fcntl.rs.html#429">F_SETLKW</a>(<span class="ident">flock</span>) =&gt; <span class="ident">libc::fcntl</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#464">fd</a>, <span class="ident">libc::F_SETLKW</span>, <a class="ident" href="../../src/nix/fcntl.rs.html#476">flock</a>),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
-            <a class="ident" href="../../src/nix/fcntl.rs.html#430">F_GETLK</a>(<span class="ident">flock</span>) =&gt; <span class="ident">libc::fcntl</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#464">fd</a>, <span class="ident">libc::F_GETLK</span>, <a class="ident" href="../../src/nix/fcntl.rs.html#478">flock</a>),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
-            <a class="ident" href="../../src/nix/fcntl.rs.html#432">F_OFD_SETLK</a>(<span class="ident">flock</span>) =&gt; <span class="ident">libc::fcntl</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#464">fd</a>, <span class="ident">libc::F_OFD_SETLK</span>, <a class="ident" href="../../src/nix/fcntl.rs.html#480">flock</a>),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
-            <a class="ident" href="../../src/nix/fcntl.rs.html#434">F_OFD_SETLKW</a>(<span class="ident">flock</span>) =&gt; <span class="ident">libc::fcntl</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#464">fd</a>, <span class="ident">libc::F_OFD_SETLKW</span>, <a class="ident" href="../../src/nix/fcntl.rs.html#482">flock</a>),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
-            <a class="ident" href="../../src/nix/fcntl.rs.html#436">F_OFD_GETLK</a>(<span class="ident">flock</span>) =&gt; <span class="ident">libc::fcntl</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#464">fd</a>, <span class="ident">libc::F_OFD_GETLK</span>, <a class="ident" href="../../src/nix/fcntl.rs.html#484">flock</a>),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
-            <a class="ident" href="../../src/nix/fcntl.rs.html#438">F_ADD_SEALS</a>(<span class="ident">flag</span>) =&gt; <span class="ident">libc::fcntl</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#464">fd</a>, <span class="ident">libc::F_ADD_SEALS</span>, <a class="ident" href="../../src/nix/fcntl.rs.html#486">flag</a>.<a class="ident" href="../../src/nix/fcntl.rs.html#390-403">bits</a>()),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
-            <a class="ident" href="../../src/nix/fcntl.rs.html#440">F_GET_SEALS</a> =&gt; <span class="ident">libc::fcntl</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#464">fd</a>, <span class="ident">libc::F_GET_SEALS</span>),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>))]</span>
-            <span class="ident">F_FULLFSYNC</span> =&gt; <span class="ident">libc::fcntl</span>(<span class="ident">fd</span>, <span class="ident">libc::F_FULLFSYNC</span>),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>))]</span>
-            <a class="ident" href="../../src/nix/fcntl.rs.html#444">F_GETPIPE_SZ</a> =&gt; <span class="ident">libc::fcntl</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#464">fd</a>, <span class="ident">libc::F_GETPIPE_SZ</span>),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>))]</span>
-            <a class="ident" href="../../src/nix/fcntl.rs.html#446">F_SETPIPE_SZ</a>(<span class="ident">size</span>) =&gt; <span class="ident">libc::fcntl</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#464">fd</a>, <span class="ident">libc::F_SETPIPE_SZ</span>, <a class="ident" href="../../src/nix/fcntl.rs.html#494">size</a>),
+<span class="attribute">#[cfg(target_os = <span class="string">&quot;redox&quot;</span>)]
+#[derive(Debug, Clone, Copy, Eq, Hash, PartialEq)]
+#[non_exhaustive]
+</span><span class="kw">pub enum </span>FcntlArg {
+    F_DUPFD(RawFd),
+    F_DUPFD_CLOEXEC(RawFd),
+    F_GETFD,
+    F_SETFD(FdFlag), <span class="comment">// FD_FLAGS
+    </span>F_GETFL,
+    F_SETFL(OFlag), <span class="comment">// O_NONBLOCK
+</span>}
+<span class="kw">pub use </span><a href="../../src/nix/fcntl.rs.html#414"><span class="self">self</span>::FcntlArg</a>::<span class="kw-2">*</span>;
+
+<span class="comment">// TODO: Figure out how to handle value fcntl returns
+</span><span class="kw">pub fn </span>fcntl(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, arg: <a href="../../src/nix/fcntl.rs.html#414">FcntlArg</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../libc/unix/type.c_int.html">c_int</a>&gt; {
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{
+        <span class="kw">match </span><a href="../../src/nix/fcntl.rs.html#457">arg</a> {
+            <a href="../../src/nix/fcntl.rs.html#415">F_DUPFD</a>(rawfd) =&gt; libc::fcntl(<a href="../../src/nix/fcntl.rs.html#457">fd</a>, libc::F_DUPFD, <a href="../../src/nix/fcntl.rs.html#460">rawfd</a>),
+            <a href="../../src/nix/fcntl.rs.html#416">F_DUPFD_CLOEXEC</a>(rawfd) =&gt; libc::fcntl(<a href="../../src/nix/fcntl.rs.html#457">fd</a>, libc::F_DUPFD_CLOEXEC, <a href="../../src/nix/fcntl.rs.html#461">rawfd</a>),
+            <a href="../../src/nix/fcntl.rs.html#417">F_GETFD</a> =&gt; libc::fcntl(<a href="../../src/nix/fcntl.rs.html#457">fd</a>, libc::F_GETFD),
+            <a href="../../src/nix/fcntl.rs.html#418">F_SETFD</a>(flag) =&gt; libc::fcntl(<a href="../../src/nix/fcntl.rs.html#457">fd</a>, libc::F_SETFD, <a href="../../src/nix/fcntl.rs.html#463">flag</a>.<a href="../../src/nix/fcntl.rs.html#399-406">bits</a>()),
+            <a href="../../src/nix/fcntl.rs.html#419">F_GETFL</a> =&gt; libc::fcntl(<a href="../../src/nix/fcntl.rs.html#457">fd</a>, libc::F_GETFL),
+            <a href="../../src/nix/fcntl.rs.html#420">F_SETFL</a>(flag) =&gt; libc::fcntl(<a href="../../src/nix/fcntl.rs.html#457">fd</a>, libc::F_SETFL, <a href="../../src/nix/fcntl.rs.html#465">flag</a>.<a href="../../src/nix/fcntl.rs.html#44-189">bits</a>()),
+            <span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+            </span><a href="../../src/nix/fcntl.rs.html#421">F_SETLK</a>(flock) =&gt; libc::fcntl(<a href="../../src/nix/fcntl.rs.html#457">fd</a>, libc::F_SETLK, <a href="../../src/nix/fcntl.rs.html#467">flock</a>),
+            <span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+            </span><a href="../../src/nix/fcntl.rs.html#422">F_SETLKW</a>(flock) =&gt; libc::fcntl(<a href="../../src/nix/fcntl.rs.html#457">fd</a>, libc::F_SETLKW, <a href="../../src/nix/fcntl.rs.html#469">flock</a>),
+            <span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+            </span><a href="../../src/nix/fcntl.rs.html#423">F_GETLK</a>(flock) =&gt; libc::fcntl(<a href="../../src/nix/fcntl.rs.html#457">fd</a>, libc::F_GETLK, <a href="../../src/nix/fcntl.rs.html#471">flock</a>),
+            <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
+            </span><a href="../../src/nix/fcntl.rs.html#425">F_OFD_SETLK</a>(flock) =&gt; libc::fcntl(<a href="../../src/nix/fcntl.rs.html#457">fd</a>, libc::F_OFD_SETLK, <a href="../../src/nix/fcntl.rs.html#473">flock</a>),
+            <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
+            </span><a href="../../src/nix/fcntl.rs.html#427">F_OFD_SETLKW</a>(flock) =&gt; libc::fcntl(<a href="../../src/nix/fcntl.rs.html#457">fd</a>, libc::F_OFD_SETLKW, <a href="../../src/nix/fcntl.rs.html#475">flock</a>),
+            <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
+            </span><a href="../../src/nix/fcntl.rs.html#429">F_OFD_GETLK</a>(flock) =&gt; libc::fcntl(<a href="../../src/nix/fcntl.rs.html#457">fd</a>, libc::F_OFD_GETLK, <a href="../../src/nix/fcntl.rs.html#477">flock</a>),
+            <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;freebsd&quot;</span>))]
+            </span><a href="../../src/nix/fcntl.rs.html#431">F_ADD_SEALS</a>(flag) =&gt; libc::fcntl(<a href="../../src/nix/fcntl.rs.html#457">fd</a>, libc::F_ADD_SEALS, <a href="../../src/nix/fcntl.rs.html#479">flag</a>.<a href="../../src/nix/fcntl.rs.html#383-396">bits</a>()),
+            <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;freebsd&quot;</span>))]
+            </span><a href="../../src/nix/fcntl.rs.html#433">F_GET_SEALS</a> =&gt; libc::fcntl(<a href="../../src/nix/fcntl.rs.html#457">fd</a>, libc::F_GET_SEALS),
+            <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;macos&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>))]
+            </span>F_FULLFSYNC =&gt; libc::fcntl(fd, libc::F_FULLFSYNC),
+            <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>))]
+            </span><a href="../../src/nix/fcntl.rs.html#437">F_GETPIPE_SZ</a> =&gt; libc::fcntl(<a href="../../src/nix/fcntl.rs.html#457">fd</a>, libc::F_GETPIPE_SZ),
+            <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>))]
+            </span><a href="../../src/nix/fcntl.rs.html#439">F_SETPIPE_SZ</a>(size) =&gt; libc::fcntl(<a href="../../src/nix/fcntl.rs.html#457">fd</a>, libc::F_SETPIPE_SZ, <a href="../../src/nix/fcntl.rs.html#487">size</a>),
         }
     };
 
-    <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#465">res</a>)
+    Errno::result(<a href="../../src/nix/fcntl.rs.html#458">res</a>)
 }
 
-<span class="comment">// TODO: convert to libc_enum</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">FlockArg</span> {
-    <span class="ident">LockShared</span>,
-    <span class="ident">LockExclusive</span>,
-    <span class="ident">Unlock</span>,
-    <span class="ident">LockSharedNonblock</span>,
-    <span class="ident">LockExclusiveNonblock</span>,
-    <span class="ident">UnlockNonblock</span>,
+<span class="comment">// TODO: convert to libc_enum
+</span><span class="attribute">#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[non_exhaustive]
+</span><span class="kw">pub enum </span>FlockArg {
+    LockShared,
+    LockExclusive,
+    Unlock,
+    LockSharedNonblock,
+    LockExclusiveNonblock,
+    UnlockNonblock,
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">flock</span>(<span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <span class="ident">arg</span>: <a class="ident" href="../../src/nix/fcntl.rs.html#504">FlockArg</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">use</span> <a class="ident" href="../../src/nix/fcntl.rs.html#504"><span class="self">self</span>::FlockArg</a>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+</span><span class="kw">pub fn </span>flock(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, arg: <a href="../../src/nix/fcntl.rs.html#497">FlockArg</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">use </span><a href="../../src/nix/fcntl.rs.html#497"><span class="self">self</span>::FlockArg</a>::<span class="kw-2">*</span>;
 
-    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-        <span class="kw">match</span> <a class="ident" href="../../src/nix/fcntl.rs.html#514">arg</a> {
-            <a class="ident" href="../../src/nix/fcntl.rs.html#505">LockShared</a> =&gt; <span class="ident">libc::flock</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#514">fd</a>, <span class="ident">libc::LOCK_SH</span>),
-            <a class="ident" href="../../src/nix/fcntl.rs.html#506">LockExclusive</a> =&gt; <span class="ident">libc::flock</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#514">fd</a>, <span class="ident">libc::LOCK_EX</span>),
-            <a class="ident" href="../../src/nix/fcntl.rs.html#507">Unlock</a> =&gt; <span class="ident">libc::flock</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#514">fd</a>, <span class="ident">libc::LOCK_UN</span>),
-            <a class="ident" href="../../src/nix/fcntl.rs.html#508">LockSharedNonblock</a> =&gt; <span class="ident">libc::flock</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#514">fd</a>, <span class="ident">libc::LOCK_SH</span> <span class="op">|</span> <span class="ident">libc::LOCK_NB</span>),
-            <a class="ident" href="../../src/nix/fcntl.rs.html#509">LockExclusiveNonblock</a> =&gt; <span class="ident">libc::flock</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#514">fd</a>, <span class="ident">libc::LOCK_EX</span> <span class="op">|</span> <span class="ident">libc::LOCK_NB</span>),
-            <a class="ident" href="../../src/nix/fcntl.rs.html#510">UnlockNonblock</a> =&gt; <span class="ident">libc::flock</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#514">fd</a>, <span class="ident">libc::LOCK_UN</span> <span class="op">|</span> <span class="ident">libc::LOCK_NB</span>),
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{
+        <span class="kw">match </span><a href="../../src/nix/fcntl.rs.html#507">arg</a> {
+            <a href="../../src/nix/fcntl.rs.html#498">LockShared</a> =&gt; libc::flock(<a href="../../src/nix/fcntl.rs.html#507">fd</a>, libc::LOCK_SH),
+            <a href="../../src/nix/fcntl.rs.html#499">LockExclusive</a> =&gt; libc::flock(<a href="../../src/nix/fcntl.rs.html#507">fd</a>, libc::LOCK_EX),
+            <a href="../../src/nix/fcntl.rs.html#500">Unlock</a> =&gt; libc::flock(<a href="../../src/nix/fcntl.rs.html#507">fd</a>, libc::LOCK_UN),
+            <a href="../../src/nix/fcntl.rs.html#501">LockSharedNonblock</a> =&gt; libc::flock(<a href="../../src/nix/fcntl.rs.html#507">fd</a>, libc::LOCK_SH | libc::LOCK_NB),
+            <a href="../../src/nix/fcntl.rs.html#502">LockExclusiveNonblock</a> =&gt; libc::flock(<a href="../../src/nix/fcntl.rs.html#507">fd</a>, libc::LOCK_EX | libc::LOCK_NB),
+            <a href="../../src/nix/fcntl.rs.html#503">UnlockNonblock</a> =&gt; libc::flock(<a href="../../src/nix/fcntl.rs.html#507">fd</a>, libc::LOCK_UN | libc::LOCK_NB),
         }
     };
 
-    <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#517">res</a>).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+    Errno::result(<a href="../../src/nix/fcntl.rs.html#510">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
 }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;zerocopy&quot;</span>)]</span>
-<a class="macro" href="../../src/nix/macros.rs.html#55-75">libc_bitflags!</a> {
-    <span class="doccomment">/// Additional flags to `splice` and friends.</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;zerocopy&quot;</span>)))]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SpliceFFlags</span>: <a class="ident" href="../../libc/unix/type.c_uint.html">c_uint</a> {
-        <span class="doccomment">/// Request that pages be moved instead of copied.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Not applicable to `vmsplice`.</span>
-        <span class="ident">SPLICE_F_MOVE</span>;
-        <span class="doccomment">/// Do not block on I/O.</span>
-        <span class="ident">SPLICE_F_NONBLOCK</span>;
-        <span class="doccomment">/// Hint that more data will be coming in a subsequent splice.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Not applicable to `vmsplice`.</span>
-        <span class="ident">SPLICE_F_MORE</span>;
-        <span class="doccomment">/// Gift the user pages to the kernel.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Not applicable to `splice`.</span>
-        <span class="ident">SPLICE_F_GIFT</span>;
+<span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
+#[cfg(feature = <span class="string">&quot;zerocopy&quot;</span>)]
+</span><span class="macro">libc_bitflags! </span>{
+    <span class="doccomment">/// Additional flags to `splice` and friends.
+    </span><span class="attribute">#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;zerocopy&quot;</span>)))]
+    </span><span class="kw">pub struct </span>SpliceFFlags: c_uint {
+        <span class="doccomment">/// Request that pages be moved instead of copied.
+        ///
+        /// Not applicable to `vmsplice`.
+        </span>SPLICE_F_MOVE;
+        <span class="doccomment">/// Do not block on I/O.
+        </span>SPLICE_F_NONBLOCK;
+        <span class="doccomment">/// Hint that more data will be coming in a subsequent splice.
+        ///
+        /// Not applicable to `vmsplice`.
+        </span>SPLICE_F_MORE;
+        <span class="doccomment">/// Gift the user pages to the kernel.
+        ///
+        /// Not applicable to `splice`.
+        </span>SPLICE_F_GIFT;
     }
 }
 
-<span class="macro">feature!</span> {
-<span class="attribute">#![<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;zerocopy&quot;</span>]</span>
+<span class="macro">feature! </span>{
+<span class="attribute">#![feature = <span class="string">&quot;zerocopy&quot;</span>]
 
-<span class="doccomment">/// Copy a range of data from one file to another</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The `copy_file_range` system call performs an in-kernel copy between</span>
-<span class="doccomment">/// file descriptors `fd_in` and `fd_out` without the additional cost of</span>
-<span class="doccomment">/// transferring data from the kernel to user space and then back into the</span>
-<span class="doccomment">/// kernel. It copies up to `len` bytes of data from file descriptor `fd_in` to</span>
-<span class="doccomment">/// file descriptor `fd_out`, overwriting any data that exists within the</span>
-<span class="doccomment">/// requested range of the target file.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If the `off_in` and/or `off_out` arguments are used, the values</span>
-<span class="doccomment">/// will be mutated to reflect the new position within the file after</span>
-<span class="doccomment">/// copying. If they are not used, the relevant filedescriptors will be seeked</span>
-<span class="doccomment">/// to the new position.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// On successful completion the number of bytes actually copied will be</span>
-<span class="doccomment">/// returned.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">copy_file_range</span>(
-    <span class="ident">fd_in</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>,
-    <span class="ident">off_in</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <a class="ident" href="../../libc/unix/linux_like/linux/type.loff_t.html">libc::loff_t</a><span class="op">&gt;</span>,
-    <span class="ident">fd_out</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>,
-    <span class="ident">off_out</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <a class="ident" href="../../libc/unix/linux_like/linux/type.loff_t.html">libc::loff_t</a><span class="op">&gt;</span>,
-    <span class="ident">len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">off_in</span> <span class="op">=</span> <a class="ident" href="../../src/nix/fcntl.rs.html#577">off_in</a>
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">offset</span><span class="op">|</span> <a class="ident" href="../../src/nix/fcntl.rs.html#583">offset</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libc/unix/linux_like/linux/type.loff_t.html">libc::loff_t</a>)
-        .<span class="ident">unwrap_or</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">ptr::null_mut</a>());
-    <span class="kw">let</span> <span class="ident">off_out</span> <span class="op">=</span> <a class="ident" href="../../src/nix/fcntl.rs.html#579">off_out</a>
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">offset</span><span class="op">|</span> <a class="ident" href="../../src/nix/fcntl.rs.html#586">offset</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libc/unix/linux_like/linux/type.loff_t.html">libc::loff_t</a>)
-        .<span class="ident">unwrap_or</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">ptr::null_mut</a>());
+</span><span class="doccomment">/// Copy a range of data from one file to another
+///
+/// The `copy_file_range` system call performs an in-kernel copy between
+/// file descriptors `fd_in` and `fd_out` without the additional cost of
+/// transferring data from the kernel to user space and then back into the
+/// kernel. It copies up to `len` bytes of data from file descriptor `fd_in` to
+/// file descriptor `fd_out`, overwriting any data that exists within the
+/// requested range of the target file.
+///
+/// If the `off_in` and/or `off_out` arguments are used, the values
+/// will be mutated to reflect the new position within the file after
+/// copying. If they are not used, the relevant filedescriptors will be seeked
+/// to the new position.
+///
+/// On successful completion the number of bytes actually copied will be
+/// returned.
+</span><span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
+</span><span class="kw">pub fn </span>copy_file_range(
+    fd_in: RawFd,
+    off_in: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>libc::loff_t&gt;,
+    fd_out: RawFd,
+    off_out: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>libc::loff_t&gt;,
+    len: usize,
+) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
+    <span class="kw">let </span>off_in = off_in
+        .map(|offset| offset <span class="kw">as </span><span class="kw-2">*mut </span>libc::loff_t)
+        .unwrap_or(ptr::null_mut());
+    <span class="kw">let </span>off_out = off_out
+        .map(|offset| offset <span class="kw">as </span><span class="kw-2">*mut </span>libc::loff_t)
+        .unwrap_or(ptr::null_mut());
 
-    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-        <span class="ident">libc::syscall</span>(
-            <span class="ident">libc::SYS_copy_file_range</span>,
-            <a class="ident" href="../../src/nix/fcntl.rs.html#576">fd_in</a>,
-            <a class="ident" href="../../src/nix/fcntl.rs.html#582">off_in</a>,
-            <a class="ident" href="../../src/nix/fcntl.rs.html#578">fd_out</a>,
-            <a class="ident" href="../../src/nix/fcntl.rs.html#585">off_out</a>,
-            <a class="ident" href="../../src/nix/fcntl.rs.html#580">len</a>,
+    <span class="kw">let </span>ret = <span class="kw">unsafe </span>{
+        libc::syscall(
+            libc::SYS_copy_file_range,
+            fd_in,
+            off_in,
+            fd_out,
+            off_out,
+            len,
             <span class="number">0</span>,
         )
     };
-    <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#589">ret</a>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <a class="ident" href="../../src/nix/fcntl.rs.html#600">r</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+    Errno::result(ret).map(|r| r <span class="kw">as </span>usize)
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">splice</span>(
-    <span class="ident">fd_in</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>,
-    <span class="ident">off_in</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <a class="ident" href="../../libc/unix/linux_like/linux/type.loff_t.html">libc::loff_t</a><span class="op">&gt;</span>,
-    <span class="ident">fd_out</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>,
-    <span class="ident">off_out</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <a class="ident" href="../../libc/unix/linux_like/linux/type.loff_t.html">libc::loff_t</a><span class="op">&gt;</span>,
-    <span class="ident">len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="ident">flags</span>: <a class="ident" href="../../src/nix/fcntl.rs.html#534-553">SpliceFFlags</a>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">off_in</span> <span class="op">=</span> <a class="ident" href="../../src/nix/fcntl.rs.html#606">off_in</a>
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">offset</span><span class="op">|</span> <a class="ident" href="../../src/nix/fcntl.rs.html#613">offset</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libc/unix/linux_like/linux/type.loff_t.html">libc::loff_t</a>)
-        .<span class="ident">unwrap_or</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">ptr::null_mut</a>());
-    <span class="kw">let</span> <span class="ident">off_out</span> <span class="op">=</span> <a class="ident" href="../../src/nix/fcntl.rs.html#608">off_out</a>
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">offset</span><span class="op">|</span> <a class="ident" href="../../src/nix/fcntl.rs.html#616">offset</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libc/unix/linux_like/linux/type.loff_t.html">libc::loff_t</a>)
-        .<span class="ident">unwrap_or</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">ptr::null_mut</a>());
+<span class="attribute">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>))]
+</span><span class="kw">pub fn </span>splice(
+    fd_in: RawFd,
+    off_in: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>libc::loff_t&gt;,
+    fd_out: RawFd,
+    off_out: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>libc::loff_t&gt;,
+    len: usize,
+    flags: SpliceFFlags,
+) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
+    <span class="kw">let </span>off_in = off_in
+        .map(|offset| offset <span class="kw">as </span><span class="kw-2">*mut </span>libc::loff_t)
+        .unwrap_or(ptr::null_mut());
+    <span class="kw">let </span>off_out = off_out
+        .map(|offset| offset <span class="kw">as </span><span class="kw-2">*mut </span>libc::loff_t)
+        .unwrap_or(ptr::null_mut());
 
-    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::splice</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#605">fd_in</a>, <a class="ident" href="../../src/nix/fcntl.rs.html#612">off_in</a>, <a class="ident" href="../../src/nix/fcntl.rs.html#607">fd_out</a>, <a class="ident" href="../../src/nix/fcntl.rs.html#615">off_out</a>, <a class="ident" href="../../src/nix/fcntl.rs.html#609">len</a>, <a class="ident" href="../../src/nix/fcntl.rs.html#610">flags</a>.<a class="ident" href="../../src/nix/fcntl.rs.html#534-553">bits</a>()) };
-    <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#619">ret</a>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <a class="ident" href="../../src/nix/fcntl.rs.html#620">r</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+    <span class="kw">let </span>ret = <span class="kw">unsafe </span>{ libc::splice(fd_in, off_in, fd_out, off_out, len, flags.bits()) };
+    Errno::result(ret).map(|r| r <span class="kw">as </span>usize)
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tee</span>(<span class="ident">fd_in</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <span class="ident">fd_out</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <span class="ident">len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">flags</span>: <a class="ident" href="../../src/nix/fcntl.rs.html#534-553">SpliceFFlags</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::tee</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#624">fd_in</a>, <a class="ident" href="../../src/nix/fcntl.rs.html#624">fd_out</a>, <a class="ident" href="../../src/nix/fcntl.rs.html#624">len</a>, <a class="ident" href="../../src/nix/fcntl.rs.html#624">flags</a>.<a class="ident" href="../../src/nix/fcntl.rs.html#534-553">bits</a>()) };
-    <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#625">ret</a>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <a class="ident" href="../../src/nix/fcntl.rs.html#626">r</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+<span class="attribute">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>))]
+</span><span class="kw">pub fn </span>tee(fd_in: RawFd, fd_out: RawFd, len: usize, flags: SpliceFFlags) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
+    <span class="kw">let </span>ret = <span class="kw">unsafe </span>{ libc::tee(fd_in, fd_out, len, flags.bits()) };
+    Errno::result(ret).map(|r| r <span class="kw">as </span>usize)
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">vmsplice</span>(
-    <span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>,
-    <span class="ident">iov</span>: <span class="kw-2">&amp;</span>[<span class="ident">std::io::IoSlice</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>],
-    <span class="ident">flags</span>: <a class="ident" href="../../src/nix/fcntl.rs.html#534-553">SpliceFFlags</a>
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>
+<span class="attribute">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>))]
+</span><span class="kw">pub fn </span>vmsplice(
+    fd: RawFd,
+    iov: <span class="kw-2">&amp;</span>[std::io::IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
+    flags: SpliceFFlags
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt;
 {
-    <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-        <span class="ident">libc::vmsplice</span>(
-            <a class="ident" href="../../src/nix/fcntl.rs.html#631">fd</a>,
-            <a class="ident" href="../../src/nix/fcntl.rs.html#632">iov</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../libc/unix/struct.iovec.html">libc::iovec</a>,
-            <a class="ident" href="../../src/nix/fcntl.rs.html#632">iov</a>.<span class="ident">len</span>(),
-            <a class="ident" href="../../src/nix/fcntl.rs.html#633">flags</a>.<a class="ident" href="../../src/nix/fcntl.rs.html#534-553">bits</a>(),
+    <span class="kw">let </span>ret = <span class="kw">unsafe </span>{
+        libc::vmsplice(
+            fd,
+            iov.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>libc::iovec,
+            iov.len(),
+            flags.bits(),
         )
     };
-    <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#636">ret</a>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <a class="ident" href="../../src/nix/fcntl.rs.html#644">r</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+    Errno::result(ret).map(|r| r <span class="kw">as </span>usize)
 }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;fs&quot;</span>)]</span>
-<a class="macro" href="../../src/nix/macros.rs.html#55-75">libc_bitflags!</a>(
-    <span class="doccomment">/// Mode argument flags for fallocate determining operation performed on a given range.</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;fs&quot;</span>)))]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FallocateFlags</span>: <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a> {
-        <span class="doccomment">/// File size is not changed.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// offset + len can be greater than file size.</span>
-        <span class="ident">FALLOC_FL_KEEP_SIZE</span>;
-        <span class="doccomment">/// Deallocates space by creating a hole.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Must be ORed with FALLOC_FL_KEEP_SIZE. Byte range starts at offset and continues for len bytes.</span>
-        <span class="ident">FALLOC_FL_PUNCH_HOLE</span>;
-        <span class="doccomment">/// Removes byte range from a file without leaving a hole.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Byte range to collapse starts at offset and continues for len bytes.</span>
-        <span class="ident">FALLOC_FL_COLLAPSE_RANGE</span>;
-        <span class="doccomment">/// Zeroes space in specified byte range.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Byte range starts at offset and continues for len bytes.</span>
-        <span class="ident">FALLOC_FL_ZERO_RANGE</span>;
-        <span class="doccomment">/// Increases file space by inserting a hole within the file size.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Does not overwrite existing data. Hole starts at offset and continues for len bytes.</span>
-        <span class="ident">FALLOC_FL_INSERT_RANGE</span>;
-        <span class="doccomment">/// Shared file data extants are made private to the file.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Gaurantees that a subsequent write will not fail due to lack of space.</span>
-        <span class="ident">FALLOC_FL_UNSHARE_RANGE</span>;
+<span class="attribute">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>))]
+#[cfg(feature = <span class="string">&quot;fs&quot;</span>)]
+</span><a class="macro" href="../../src/nix/macros.rs.html#55-75">libc_bitflags!</a>(
+    <span class="doccomment">/// Mode argument flags for fallocate determining operation performed on a given range.
+    </span><span class="attribute">#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;fs&quot;</span>)))]
+    </span><span class="kw">pub struct </span>FallocateFlags: <a href="../../libc/unix/type.c_int.html">c_int</a> {
+        <span class="doccomment">/// File size is not changed.
+        ///
+        /// offset + len can be greater than file size.
+        </span>FALLOC_FL_KEEP_SIZE;
+        <span class="doccomment">/// Deallocates space by creating a hole.
+        ///
+        /// Must be ORed with FALLOC_FL_KEEP_SIZE. Byte range starts at offset and continues for len bytes.
+        </span>FALLOC_FL_PUNCH_HOLE;
+        <span class="doccomment">/// Removes byte range from a file without leaving a hole.
+        ///
+        /// Byte range to collapse starts at offset and continues for len bytes.
+        </span>FALLOC_FL_COLLAPSE_RANGE;
+        <span class="doccomment">/// Zeroes space in specified byte range.
+        ///
+        /// Byte range starts at offset and continues for len bytes.
+        </span>FALLOC_FL_ZERO_RANGE;
+        <span class="doccomment">/// Increases file space by inserting a hole within the file size.
+        ///
+        /// Does not overwrite existing data. Hole starts at offset and continues for len bytes.
+        </span>FALLOC_FL_INSERT_RANGE;
+        <span class="doccomment">/// Shared file data extants are made private to the file.
+        ///
+        /// Gaurantees that a subsequent write will not fail due to lack of space.
+        </span>FALLOC_FL_UNSHARE_RANGE;
     }
 );
 
-<span class="macro">feature!</span> {
-<span class="attribute">#![<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;fs&quot;</span>]</span>
+<span class="macro">feature! </span>{
+<span class="attribute">#![feature = <span class="string">&quot;fs&quot;</span>]
 
-<span class="doccomment">/// Manipulates file space.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Allows the caller to directly manipulate the allocated disk space for the</span>
-<span class="doccomment">/// file referred to by fd.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;fs&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fallocate</span>(
-    <span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>,
-    <span class="ident">mode</span>: <a class="ident" href="../../src/nix/fcntl.rs.html#650-679">FallocateFlags</a>,
-    <span class="ident">offset</span>: <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">libc::off_t</a>,
-    <span class="ident">len</span>: <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">libc::off_t</a>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::fallocate</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#691">fd</a>, <a class="ident" href="../../src/nix/fcntl.rs.html#692">mode</a>.<a class="ident" href="../../src/nix/fcntl.rs.html#650-679">bits</a>(), <a class="ident" href="../../src/nix/fcntl.rs.html#693">offset</a>, <a class="ident" href="../../src/nix/fcntl.rs.html#694">len</a>) };
-    <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#696">res</a>).<span class="ident">map</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
+</span><span class="doccomment">/// Manipulates file space.
+///
+/// Allows the caller to directly manipulate the allocated disk space for the
+/// file referred to by fd.
+</span><span class="attribute">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>))]
+#[cfg(feature = <span class="string">&quot;fs&quot;</span>)]
+</span><span class="kw">pub fn </span>fallocate(
+    fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>,
+    mode: <a href="../../src/nix/fcntl.rs.html#643-672">FallocateFlags</a>,
+    offset: <a href="../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">libc::off_t</a>,
+    len: <a href="../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">libc::off_t</a>,
+) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::fallocate(<a href="../../src/nix/fcntl.rs.html#684">fd</a>, <a href="../../src/nix/fcntl.rs.html#685">mode</a>.<a href="../../src/nix/fcntl.rs.html#643-672">bits</a>(), <a href="../../src/nix/fcntl.rs.html#686">offset</a>, <a href="../../src/nix/fcntl.rs.html#687">len</a>) };
+    Errno::result(<a href="../../src/nix/fcntl.rs.html#689">res</a>).map(<a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>)
 }
 
-<span class="doccomment">/// Argument to [`fspacectl`] describing the range to zero.  The first member is</span>
-<span class="doccomment">/// the file offset, and the second is the length of the region.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SpacectlRange</span>(<span class="kw">pub</span> <span class="ident">libc::off_t</span>, <span class="kw">pub</span> <span class="ident">libc::off_t</span>);
+<span class="doccomment">/// Argument to [`fspacectl`] describing the range to zero.  The first member is
+/// the file offset, and the second is the length of the region.
+</span><span class="attribute">#[cfg(any(target_os = <span class="string">&quot;freebsd&quot;</span>))]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+</span><span class="kw">pub struct </span>SpacectlRange(<span class="kw">pub </span>libc::off_t, <span class="kw">pub </span>libc::off_t);
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>))]</span>
-<span class="kw">impl</span> <span class="ident">SpacectlRange</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="number">1</span> <span class="op">==</span> <span class="number">0</span>
-    }
+<span class="attribute">#[cfg(any(target_os = <span class="string">&quot;freebsd&quot;</span>))]
+</span><span class="kw">impl </span>SpacectlRange {
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.<span class="number">1 </span>== <span class="number">0
+    </span>}
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">libc::off_t</span> {
-        <span class="self">self</span>.<span class="number">1</span>
-    }
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; libc::off_t {
+        <span class="self">self</span>.<span class="number">1
+    </span>}
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">offset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">libc::off_t</span> {
-        <span class="self">self</span>.<span class="number">0</span>
-    }
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>offset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; libc::off_t {
+        <span class="self">self</span>.<span class="number">0
+    </span>}
 }
 
-<span class="doccomment">/// Punch holes in a file.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `fspacectl` instructs the file system to deallocate a portion of a file.</span>
-<span class="doccomment">/// After a successful operation, this region of the file will return all zeroes</span>
-<span class="doccomment">/// if read.  If the file system supports deallocation, then it may free the</span>
-<span class="doccomment">/// underlying storage, too.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Arguments</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// - `fd`      -   File to operate on</span>
-<span class="doccomment">/// - `range.0` -   File offset at which to begin deallocation</span>
-<span class="doccomment">/// - `range.1` -   Length of the region to deallocate</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Returns</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The operation may deallocate less than the entire requested region.  On</span>
-<span class="doccomment">/// success, it returns the region that still remains to be deallocated.  The</span>
-<span class="doccomment">/// caller should loop until the returned region is empty.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="comment">// no_run because it fails to link until FreeBSD 14.0</span>
-<span class="doccomment">/// ```no_run</span>
-<span class="doccomment">/// # use std::io::Write;</span>
-<span class="doccomment">/// # use std::os::unix::fs::FileExt;</span>
-<span class="doccomment">/// # use std::os::unix::io::AsRawFd;</span>
-<span class="doccomment">/// # use nix::fcntl::*;</span>
-<span class="doccomment">/// # use tempfile::tempfile;</span>
-<span class="doccomment">/// const INITIAL: &amp;[u8] = b&quot;0123456789abcdef&quot;;</span>
-<span class="doccomment">/// let mut f = tempfile().unwrap();</span>
-<span class="doccomment">/// f.write_all(INITIAL).unwrap();</span>
-<span class="doccomment">/// let mut range = SpacectlRange(3, 6);</span>
-<span class="doccomment">/// while (!range.is_empty()) {</span>
-<span class="doccomment">///     range = fspacectl(f.as_raw_fd(), range).unwrap();</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// let mut buf = vec![0; INITIAL.len()];</span>
-<span class="doccomment">/// f.read_exact_at(&amp;mut buf, 0).unwrap();</span>
-<span class="doccomment">/// assert_eq!(buf, b&quot;012\0\0\0\0\0\09abcdef&quot;);</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fspacectl</span>(<span class="ident">fd</span>: <span class="ident">RawFd</span>, <span class="ident">range</span>: <span class="ident">SpacectlRange</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SpacectlRange</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rqsr</span> <span class="op">=</span> <span class="ident">libc::spacectl_range</span>{<span class="ident">r_offset</span>: <span class="ident">range</span>.<span class="number">0</span>, <span class="ident">r_len</span>: <span class="ident">range</span>.<span class="number">1</span>};
-    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::fspacectl</span>(
-            <span class="ident">fd</span>,
-            <span class="ident">libc::SPACECTL_DEALLOC</span>, <span class="comment">// Only one command is supported ATM</span>
-            <span class="kw-2">&amp;</span><span class="ident">rqsr</span>,
-            <span class="number">0</span>,                      <span class="comment">// No flags are currently supported</span>
-            <span class="kw-2">&amp;mut</span> <span class="ident">rqsr</span>
+<span class="doccomment">/// Punch holes in a file.
+///
+/// `fspacectl` instructs the file system to deallocate a portion of a file.
+/// After a successful operation, this region of the file will return all zeroes
+/// if read.  If the file system supports deallocation, then it may free the
+/// underlying storage, too.
+///
+/// # Arguments
+///
+/// - `fd`      -   File to operate on
+/// - `range.0` -   File offset at which to begin deallocation
+/// - `range.1` -   Length of the region to deallocate
+///
+/// # Returns
+///
+/// The operation may deallocate less than the entire requested region.  On
+/// success, it returns the region that still remains to be deallocated.  The
+/// caller should loop until the returned region is empty.
+///
+/// # Example
+///
+</span><span class="attribute">#[cfg_attr(fbsd14, doc = <span class="string">&quot; ```&quot;</span>)]
+#[cfg_attr(not(fbsd14), doc = <span class="string">&quot; ```no_run&quot;</span>)]
+</span><span class="doccomment">/// # use std::io::Write;
+/// # use std::os::unix::fs::FileExt;
+/// # use std::os::unix::io::AsRawFd;
+/// # use nix::fcntl::*;
+/// # use tempfile::tempfile;
+/// const INITIAL: &amp;[u8] = b&quot;0123456789abcdef&quot;;
+/// let mut f = tempfile().unwrap();
+/// f.write_all(INITIAL).unwrap();
+/// let mut range = SpacectlRange(3, 6);
+/// while (!range.is_empty()) {
+///     range = fspacectl(f.as_raw_fd(), range).unwrap();
+/// }
+/// let mut buf = vec![0; INITIAL.len()];
+/// f.read_exact_at(&amp;mut buf, 0).unwrap();
+/// assert_eq!(buf, b&quot;012\0\0\0\0\0\09abcdef&quot;);
+/// ```
+</span><span class="attribute">#[cfg(target_os = <span class="string">&quot;freebsd&quot;</span>)]
+</span><span class="kw">pub fn </span>fspacectl(fd: RawFd, range: SpacectlRange) -&gt; <span class="prelude-ty">Result</span>&lt;SpacectlRange&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>rqsr = libc::spacectl_range{r_offset: range.<span class="number">0</span>, r_len: range.<span class="number">1</span>};
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::fspacectl(
+            fd,
+            libc::SPACECTL_DEALLOC, <span class="comment">// Only one command is supported ATM
+            </span><span class="kw-2">&amp;</span>rqsr,
+            <span class="number">0</span>,                      <span class="comment">// No flags are currently supported
+            </span><span class="kw-2">&amp;mut </span>rqsr
     )};
-    <span class="ident">Errno::result</span>(<span class="ident">res</span>).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">SpacectlRange</span>(<span class="ident">rqsr</span>.<span class="ident">r_offset</span>, <span class="ident">rqsr</span>.<span class="ident">r_len</span>))
+    Errno::result(res).map(|<span class="kw">_</span>| SpacectlRange(rqsr.r_offset, rqsr.r_len))
 }
 
-<span class="doccomment">/// Like [`fspacectl`], but will never return incomplete.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Arguments</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// - `fd`      -   File to operate on</span>
-<span class="doccomment">/// - `offset`  -   File offset at which to begin deallocation</span>
-<span class="doccomment">/// - `len`     -   Length of the region to deallocate</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Returns</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Returns `()` on success.  On failure, the region may or may not be partially</span>
-<span class="doccomment">/// deallocated.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="comment">// no_run because it fails to link until FreeBSD 14.0</span>
-<span class="doccomment">/// ```no_run</span>
-<span class="doccomment">/// # use std::io::Write;</span>
-<span class="doccomment">/// # use std::os::unix::fs::FileExt;</span>
-<span class="doccomment">/// # use std::os::unix::io::AsRawFd;</span>
-<span class="doccomment">/// # use nix::fcntl::*;</span>
-<span class="doccomment">/// # use tempfile::tempfile;</span>
-<span class="doccomment">/// const INITIAL: &amp;[u8] = b&quot;0123456789abcdef&quot;;</span>
-<span class="doccomment">/// let mut f = tempfile().unwrap();</span>
-<span class="doccomment">/// f.write_all(INITIAL).unwrap();</span>
-<span class="doccomment">/// fspacectl_all(f.as_raw_fd(), 3, 6).unwrap();</span>
-<span class="doccomment">/// let mut buf = vec![0; INITIAL.len()];</span>
-<span class="doccomment">/// f.read_exact_at(&amp;mut buf, 0).unwrap();</span>
-<span class="doccomment">/// assert_eq!(buf, b&quot;012\0\0\0\0\0\09abcdef&quot;);</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fspacectl_all</span>(<span class="ident">fd</span>: <span class="ident">RawFd</span>, <span class="ident">offset</span>: <span class="ident">libc::off_t</span>, <span class="ident">len</span>: <span class="ident">libc::off_t</span>)
-    -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
+<span class="doccomment">/// Like [`fspacectl`], but will never return incomplete.
+///
+/// # Arguments
+///
+/// - `fd`      -   File to operate on
+/// - `offset`  -   File offset at which to begin deallocation
+/// - `len`     -   Length of the region to deallocate
+///
+/// # Returns
+///
+/// Returns `()` on success.  On failure, the region may or may not be partially
+/// deallocated.
+///
+/// # Example
+///
+</span><span class="attribute">#[cfg_attr(fbsd14, doc = <span class="string">&quot; ```&quot;</span>)]
+#[cfg_attr(not(fbsd14), doc = <span class="string">&quot; ```no_run&quot;</span>)]
+</span><span class="doccomment">/// # use std::io::Write;
+/// # use std::os::unix::fs::FileExt;
+/// # use std::os::unix::io::AsRawFd;
+/// # use nix::fcntl::*;
+/// # use tempfile::tempfile;
+/// const INITIAL: &amp;[u8] = b&quot;0123456789abcdef&quot;;
+/// let mut f = tempfile().unwrap();
+/// f.write_all(INITIAL).unwrap();
+/// fspacectl_all(f.as_raw_fd(), 3, 6).unwrap();
+/// let mut buf = vec![0; INITIAL.len()];
+/// f.read_exact_at(&amp;mut buf, 0).unwrap();
+/// assert_eq!(buf, b&quot;012\0\0\0\0\0\09abcdef&quot;);
+/// ```
+</span><span class="attribute">#[cfg(target_os = <span class="string">&quot;freebsd&quot;</span>)]
+</span><span class="kw">pub fn </span>fspacectl_all(fd: RawFd, offset: libc::off_t, len: libc::off_t)
+    -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
 {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rqsr</span> <span class="op">=</span> <span class="ident">libc::spacectl_range</span>{<span class="ident">r_offset</span>: <span class="ident">offset</span>, <span class="ident">r_len</span>: <span class="ident">len</span>};
-    <span class="kw">while</span> <span class="ident">rqsr</span>.<span class="ident">r_len</span> <span class="op">&gt;</span> <span class="number">0</span> {
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::fspacectl</span>(
-                <span class="ident">fd</span>,
-                <span class="ident">libc::SPACECTL_DEALLOC</span>, <span class="comment">// Only one command is supported ATM</span>
-                <span class="kw-2">&amp;</span><span class="ident">rqsr</span>,
-                <span class="number">0</span>,                      <span class="comment">// No flags are currently supported</span>
-                <span class="kw-2">&amp;mut</span> <span class="ident">rqsr</span>
+    <span class="kw">let </span><span class="kw-2">mut </span>rqsr = libc::spacectl_range{r_offset: offset, r_len: len};
+    <span class="kw">while </span>rqsr.r_len &gt; <span class="number">0 </span>{
+        <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::fspacectl(
+                fd,
+                libc::SPACECTL_DEALLOC, <span class="comment">// Only one command is supported ATM
+                </span><span class="kw-2">&amp;</span>rqsr,
+                <span class="number">0</span>,                      <span class="comment">// No flags are currently supported
+                </span><span class="kw-2">&amp;mut </span>rqsr
         )};
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">Errno::result</span>(<span class="ident">res</span>) {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>);
+        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = Errno::result(res) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(e);
         }
     }
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
-    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
-    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
-    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
-    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>,
-    <span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;wasi&quot;</span>, <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;wasi&quot;</span>),
-    <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;uclibc&quot;</span>,
-    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>
-))]</span>
-<span class="kw">mod</span> <span class="ident">posix_fadvise</span> {
-    <span class="kw">use</span> <a class="ident" href="../../src/nix/errno.rs.html#776"><span class="kw">crate</span>::errno::Errno</a>;
-    <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">std::os::unix::io::RawFd</a>;
-    <span class="kw">use</span> <a class="ident" href="../../src/nix/lib.rs.html#169"><span class="kw">crate</span>::Result</a>;
+<span class="attribute">#[cfg(any(
+    target_os = <span class="string">&quot;linux&quot;</span>,
+    target_os = <span class="string">&quot;android&quot;</span>,
+    target_os = <span class="string">&quot;emscripten&quot;</span>,
+    target_os = <span class="string">&quot;fuchsia&quot;</span>,
+    target_os = <span class="string">&quot;wasi&quot;</span>,
+    target_env = <span class="string">&quot;uclibc&quot;</span>,
+    target_os = <span class="string">&quot;freebsd&quot;
+</span>))]
+</span><span class="kw">mod </span>posix_fadvise {
+    <span class="kw">use </span><a href="../../src/nix/errno.rs.html#1163"><span class="kw">crate</span>::errno::Errno</a>;
+    <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">std::os::unix::io::RawFd</a>;
+    <span class="kw">use </span><a href="../../src/nix/lib.rs.html#167"><span class="kw">crate</span>::Result</a>;
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;fs&quot;</span>)]</span>
-    <a class="macro" href="../../src/nix/macros.rs.html#100-328">libc_enum!</a> {
-        <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">i32</span>)]</span>
-        <span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;fs&quot;</span>)))]</span>
-        <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PosixFadviseAdvice</span> {
-            <span class="ident">POSIX_FADV_NORMAL</span>,
-            <span class="ident">POSIX_FADV_SEQUENTIAL</span>,
-            <span class="ident">POSIX_FADV_RANDOM</span>,
-            <span class="ident">POSIX_FADV_NOREUSE</span>,
-            <span class="ident">POSIX_FADV_WILLNEED</span>,
-            <span class="ident">POSIX_FADV_DONTNEED</span>,
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;fs&quot;</span>)]
+    </span><a class="macro" href="../../src/nix/macros.rs.html#100-328">libc_enum! </a>{
+        <span class="attribute">#[repr(i32)]
+        #[non_exhaustive]
+        #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;fs&quot;</span>)))]
+        </span><span class="kw">pub enum </span>PosixFadviseAdvice {
+            POSIX_FADV_NORMAL,
+            POSIX_FADV_SEQUENTIAL,
+            POSIX_FADV_RANDOM,
+            POSIX_FADV_NOREUSE,
+            POSIX_FADV_WILLNEED,
+            POSIX_FADV_DONTNEED,
         }
     }
 
-    <span class="macro">feature!</span> {
-    <span class="attribute">#![<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;fs&quot;</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">posix_fadvise</span>(
-        <span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>,
-        <span class="ident">offset</span>: <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">libc::off_t</a>,
-        <span class="ident">len</span>: <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">libc::off_t</a>,
-        <span class="ident">advice</span>: <a class="ident" href="../../src/nix/fcntl.rs.html#841-853">PosixFadviseAdvice</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::posix_fadvise</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#858">fd</a>, <a class="ident" href="../../src/nix/fcntl.rs.html#859">offset</a>, <a class="ident" href="../../src/nix/fcntl.rs.html#860">len</a>, <a class="ident" href="../../src/nix/fcntl.rs.html#861">advice</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">libc::c_int</a>) };
+    <span class="macro">feature! </span>{
+    <span class="attribute">#![feature = <span class="string">&quot;fs&quot;</span>]
+    </span><span class="kw">pub fn </span>posix_fadvise(
+        fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>,
+        offset: <a href="../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">libc::off_t</a>,
+        len: <a href="../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">libc::off_t</a>,
+        advice: <a href="../../src/nix/fcntl.rs.html#834-846">PosixFadviseAdvice</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::posix_fadvise(<a href="../../src/nix/fcntl.rs.html#851">fd</a>, <a href="../../src/nix/fcntl.rs.html#852">offset</a>, <a href="../../src/nix/fcntl.rs.html#853">len</a>, <a href="../../src/nix/fcntl.rs.html#854">advice</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">libc::c_int</a>) };
 
-        <span class="kw">if</span> <span class="ident">res</span> <span class="op">==</span> <span class="number">0</span> {
+        <span class="kw">if </span>res == <span class="number">0 </span>{
             <span class="prelude-val">Ok</span>(())
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">Errno::from_i32</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#863">res</a>))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(Errno::from_i32(<a href="../../src/nix/fcntl.rs.html#856">res</a>))
         }
     }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
-    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
-    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
-    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>,
-    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
-    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>,
-    <span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;wasi&quot;</span>, <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;wasi&quot;</span>),
-    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>
-))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">posix_fallocate</span>(<span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <span class="ident">offset</span>: <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">libc::off_t</a>, <span class="ident">len</span>: <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">libc::off_t</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::posix_fallocate</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#883">fd</a>, <a class="ident" href="../../src/nix/fcntl.rs.html#883">offset</a>, <a class="ident" href="../../src/nix/fcntl.rs.html#883">len</a>) };
-    <span class="kw">match</span> <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#884">res</a>) {
-        <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#886">err</a>),
+<span class="attribute">#[cfg(any(
+    target_os = <span class="string">&quot;linux&quot;</span>,
+    target_os = <span class="string">&quot;android&quot;</span>,
+    target_os = <span class="string">&quot;dragonfly&quot;</span>,
+    target_os = <span class="string">&quot;emscripten&quot;</span>,
+    target_os = <span class="string">&quot;fuchsia&quot;</span>,
+    target_os = <span class="string">&quot;wasi&quot;</span>,
+    target_os = <span class="string">&quot;freebsd&quot;
+</span>))]
+</span><span class="kw">pub fn </span>posix_fallocate(fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, offset: <a href="../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">libc::off_t</a>, len: <a href="../../libc/unix/linux_like/linux/gnu/b64/type.off_t.html">libc::off_t</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::posix_fallocate(<a href="../../src/nix/fcntl.rs.html#876">fd</a>, <a href="../../src/nix/fcntl.rs.html#876">offset</a>, <a href="../../src/nix/fcntl.rs.html#876">len</a>) };
+    <span class="kw">match </span>Errno::result(<a href="../../src/nix/fcntl.rs.html#877">res</a>) {
+        <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a href="../../src/nix/fcntl.rs.html#879">err</a>),
         <span class="prelude-val">Ok</span>(<span class="number">0</span>) =&gt; <span class="prelude-val">Ok</span>(()),
-        <span class="prelude-val">Ok</span>(<span class="ident">errno</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">Errno::from_i32</span>(<a class="ident" href="../../src/nix/fcntl.rs.html#888">errno</a>)),
+        <span class="prelude-val">Ok</span>(errno) =&gt; <span class="prelude-val">Err</span>(Errno::from_i32(<a href="../../src/nix/fcntl.rs.html#881">errno</a>)),
     }
 }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="nix" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="nix" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>
