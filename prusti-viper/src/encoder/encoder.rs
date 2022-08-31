@@ -804,21 +804,4 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         let field = strct.field(self.encode_struct_field(field_name, ty)?);
         self.encode_value_expr(field, ty)
     }
-    /*
-    pub fn add_discriminant_info(
-        &self,
-        enum_id: String,
-        discr_id: String,
-        proc_def_id: ProcedureDefId,
-    ) {
-        self.discriminants_info
-            .borrow_mut()
-            .entry((proc_def_id, enum_id))
-            .or_default()
-            .push(discr_id);
-    }
-
-    pub fn discriminants_info(&self) -> FxHashMap<(ProcedureDefId, String), Vec<String>> {
-        self.discriminants_info.borrow().clone()
-    }*/
 }

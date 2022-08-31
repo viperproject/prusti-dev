@@ -54,13 +54,14 @@ impl ViperBackendConfig {
                 verifier_args.extend(vec![
                     "--assertTimeout".to_string(),
                     config::assert_timeout().to_string(),
-                    "--z3ConfigArgs".to_string(),
+                    "--proverConfigArgs".to_string(),
+                    // model.partial changes the default case of functions in counterexamples
+                    // to #unspecified
                     format!(
                         "smt.qi.eager_threshold={} model.partial={}",
                         config::smt_qi_eager_threshold(),
                         config::counterexample()
                     ),
-                    //model.partial changes the default case of functions in counterexamples to #unspecified
                     "--logLevel".to_string(),
                     "ERROR".to_string(),
                 ]);
