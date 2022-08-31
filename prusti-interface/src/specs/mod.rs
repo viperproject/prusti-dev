@@ -1,19 +1,22 @@
-use prusti_rustc_interface::ast::ast;
-use prusti_rustc_interface::errors::MultiSpan;
-use prusti_rustc_interface::hir::intravisit;
-use prusti_rustc_interface::middle::{hir::map::Map, ty::TyCtxt};
-use prusti_rustc_interface::span::Span;
-use prusti_rustc_interface::hir::FnRetTy;
 use crate::{
     environment::Environment,
     utils::{
-        has_abstract_predicate_attr, has_extern_spec_attr, has_prusti_attr, read_prusti_attr,
-        read_prusti_attrs, has_to_model_fn_attr
+        has_abstract_predicate_attr, has_extern_spec_attr, has_prusti_attr, has_to_model_fn_attr,
+        read_prusti_attr, read_prusti_attrs,
     },
     PrustiError,
 };
 use log::debug;
-use prusti_rustc_interface::hir::def_id::{DefId, LocalDefId};
+use prusti_rustc_interface::{
+    ast::ast,
+    errors::MultiSpan,
+    hir::{
+        def_id::{DefId, LocalDefId},
+        intravisit, FnRetTy,
+    },
+    middle::{hir::map::Map, ty::TyCtxt},
+    span::Span,
+};
 use std::{collections::HashMap, convert::TryInto, fmt::Debug};
 
 pub mod checker;
@@ -423,7 +426,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             }
 
             //collect counterexamples type flag
-            if has_prusti_attr(attrs, "counterexample_print"){
+            if has_prusti_attr(attrs, "counterexample_print") {
                 let self_id = fn_decl.inputs[0].hir_id;
                 let name = read_prusti_attr("counterexample_print", attrs);
                 let hir = self.env.query.hir();
@@ -468,20 +471,20 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             }
 
             // Collect model type flag
-            if  has_to_model_fn_attr(attrs){
-                if let FnRetTy::Return(ty) = fn_decl.output{
-                    if let Some(node) = self.env.query.hir().find(ty.hir_id){
-                        if let Some(model_ty_id) = get_type_id_from_ty_node(node).and_then(|x| x.as_local()){
-                            if let Some(attr) = read_prusti_attr("type_models_to_model_fn", attrs){
+            if has_to_model_fn_attr(attrs) {
+                if let FnRetTy::Return(ty) = fn_decl.output {
+                    if let Some(node) = self.env.query.hir().find(ty.hir_id) {
+                        if let Some(model_ty_id) =
+                            get_type_id_from_ty_node(node).and_then(|x| x.as_local())
+                        {
+                            if let Some(attr) = read_prusti_attr("type_models_to_model_fn", attrs) {
                                 let self_id = fn_decl.inputs[0].hir_id;
                                 let hir = self.env.query.hir();
                                 let impl_id = hir.get_parent_node(hir.get_parent_node(self_id));
                                 let type_id = get_type_id_from_impl_node(hir.get(impl_id)).unwrap();
                                 if let Some(local_id) = type_id.as_local() {
-                                    self.type_specs
-                                    .entry(local_id)
-                                    .or_default()
-                                    .has_model = Some((attr, model_ty_id));
+                                    self.type_specs.entry(local_id).or_default().has_model =
+                                        Some((attr, model_ty_id));
                                 }
                             }
                         }
@@ -528,7 +531,10 @@ fn get_type_id_from_impl_node(node: prusti_rustc_interface::hir::Node) -> Option
 
 fn get_type_id_from_ty_node(node: prusti_rustc_interface::hir::Node) -> Option<DefId> {
     if let prusti_rustc_interface::hir::Node::Ty(ty) = node {
-        if let prusti_rustc_interface::hir::TyKind::Path(prusti_rustc_interface::hir::QPath::Resolved(_, path)) = ty.kind{
+        if let prusti_rustc_interface::hir::TyKind::Path(
+            prusti_rustc_interface::hir::QPath::Resolved(_, path),
+        ) = ty.kind
+        {
             if let prusti_rustc_interface::hir::def::Res::Def(_, def_id) = path.res {
                 return Some(def_id);
             }

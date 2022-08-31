@@ -255,7 +255,7 @@ pub struct TypeSpecification {
     pub invariant: SpecificationItem<Vec<DefId>>,
     pub trusted: SpecificationItem<bool>,
     pub has_model: Option<(String, LocalDefId)>,
-    pub counterexample_print: Vec<(Option<String>, LocalDefId)>
+    pub counterexample_print: Vec<(Option<String>, LocalDefId)>,
 }
 
 impl TypeSpecification {
