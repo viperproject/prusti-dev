@@ -151,7 +151,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         let predecessor = predecessors[0];
 
         // identify closure aggregate assign (the invariant body)
-        let closure_assigns = mir.basic_blocks()[invariant_block]
+        let closure_assigns = mir.basic_blocks[invariant_block]
             .statements
             .iter()
             .enumerate()
@@ -301,7 +301,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_poly::Expr> {
         // identify closure aggregate assign (the invariant body)
-        let closure_assigns = mir.basic_blocks()[invariant_block]
+        let closure_assigns = mir.basic_blocks[invariant_block]
             .statements
             .iter()
             .enumerate()

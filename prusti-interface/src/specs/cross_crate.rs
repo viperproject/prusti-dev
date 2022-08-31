@@ -7,19 +7,17 @@ use rustc_hash::FxHashMap;
 use std::{fs, io, path};
 
 use crate::{
-    environment::{Environment, body::CrossCrateBodies},
-    specs::typed::DefSpecificationMap, PrustiError,
+    environment::{body::CrossCrateBodies, Environment},
+    specs::typed::DefSpecificationMap,
+    PrustiError,
 };
 
-use super::{encoder::DefSpecsEncoder, decoder::DefSpecsDecoder};
+use super::{decoder::DefSpecsDecoder, encoder::DefSpecsEncoder};
 
 pub struct CrossCrateSpecs;
 
 impl CrossCrateSpecs {
-    pub fn import_export_cross_crate(
-        env: &mut Environment,
-        def_spec: &mut DefSpecificationMap,
-    ) {
+    pub fn import_export_cross_crate(env: &mut Environment, def_spec: &mut DefSpecificationMap) {
         Self::export_specs(env, def_spec);
         Self::import_specs(env, def_spec);
     }
@@ -27,8 +25,12 @@ impl CrossCrateSpecs {
     fn export_specs(env: &Environment, def_spec: &DefSpecificationMap) {
         let outputs = env.tcx().output_filenames(());
         // If we run `rustc` without the `--out-dir` flag set, then don't export specs
-        if outputs.out_directory.to_string_lossy() == "" { return; }
-        let target_filename = outputs.out_directory.join(&format!("lib{}.specs", env.name.local_crate_filename()));
+        if outputs.out_directory.to_string_lossy() == "" {
+            return;
+        }
+        let target_filename = outputs
+            .out_directory
+            .join(&format!("lib{}.specs", env.name.local_crate_filename()));
         if let Err(e) = Self::write_into_file(env, def_spec, &target_filename) {
             PrustiError::internal(
                 format!(
@@ -42,10 +44,7 @@ impl CrossCrateSpecs {
         }
     }
 
-    fn import_specs(
-        env: &mut Environment,
-        def_spec: &mut DefSpecificationMap,
-    ) {
+    fn import_specs(env: &mut Environment, def_spec: &mut DefSpecificationMap) {
         let cstore = CStore::from_tcx(env.tcx());
         // TODO: atm one needs to write `extern crate extern_spec_lib` to import the specs
         // from a crate which is not used in the current crate (e.g. an `#[extern_spec]` only crate)

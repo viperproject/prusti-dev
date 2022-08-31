@@ -1,15 +1,15 @@
 //! Module for verifying user-provided specifications after macro expansion
 
 mod common;
-mod type_model_checks;
 mod predicate_checks;
+mod type_model_checks;
 mod version_checks;
 
-use common::*;
-use type_model_checks::{IllegalModelUsagesChecker, ModelDefinedOnTypeWithoutFields};
-use predicate_checks::IllegalPredicateUsagesChecker;
-use version_checks::MismatchedVersionsChecker;
 use crate::environment::Environment;
+use common::*;
+use predicate_checks::IllegalPredicateUsagesChecker;
+use type_model_checks::{IllegalModelUsagesChecker, ModelDefinedOnTypeWithoutFields};
+use version_checks::MismatchedVersionsChecker;
 
 /// Checker visitor for the specifications.
 /// Checks are implemented in various [SpecCheckerStrategy]s
@@ -31,7 +31,7 @@ impl<'tcx> SpecChecker<'tcx> {
                 Box::new(IllegalPredicateUsagesChecker {}),
                 Box::new(IllegalModelUsagesChecker {}),
                 Box::new(ModelDefinedOnTypeWithoutFields {}),
-            ]
+            ],
         }
     }
 

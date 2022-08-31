@@ -87,7 +87,7 @@ impl<'mir, 'tcx: 'mir> PointwiseState<'mir, 'tcx, DefinitelyAccessibleState<'tcx
             .map(|line_index| source_file.get_line(line_index).unwrap().to_string())
             .collect();
         let mut first_location_on_line: FxHashMap<usize, mir::Location> = FxHashMap::default();
-        for (block, block_data) in self.mir.basic_blocks().iter_enumerated() {
+        for (block, block_data) in self.mir.basic_blocks.iter_enumerated() {
             for statement_index in 0..=block_data.statements.len() {
                 let location = mir::Location {
                     block,

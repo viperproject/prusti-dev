@@ -12,16 +12,16 @@ use crate::{
     },
     PrustiError,
 };
-use log::{debug};
+use log::debug;
 use prusti_rustc_interface::hir::def_id::{DefId, LocalDefId};
 use std::{collections::HashMap, convert::TryInto, fmt::Debug};
 
 pub mod checker;
+pub mod cross_crate;
 pub mod decoder;
 pub mod encoder;
 pub mod external;
 pub mod typed;
-pub mod cross_crate;
 
 use typed::SpecIdRef;
 
@@ -125,9 +125,9 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                     SpecIdRef::Pledge { lhs, rhs } => {
                         spec.add_pledge(typed::Pledge {
                             reference: None, // FIXME: Currently only `result` is supported.
-                            lhs: lhs
-                                .as_ref()
-                                .map(|spec_id| self.spec_functions.get(spec_id).unwrap().to_def_id()),
+                            lhs: lhs.as_ref().map(|spec_id| {
+                                self.spec_functions.get(spec_id).unwrap().to_def_id()
+                            }),
                             rhs: self.spec_functions.get(rhs).unwrap().to_def_id(),
                         });
                     }

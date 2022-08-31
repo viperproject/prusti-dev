@@ -8,37 +8,42 @@
 
 use prusti_rustc_interface::middle::ty::TyCtxt;
 
+pub mod body;
 pub mod borrowck;
 mod collect_closure_defs_visitor;
 mod collect_prusti_spec_visitor;
 pub mod debug_utils;
+mod diagnostic;
 mod dump_borrowck_info;
 mod loops;
 mod loops_utils;
 pub mod mir_analyses;
 pub mod mir_body;
-pub mod body;
 pub mod mir_dump;
 pub mod mir_sets;
 pub mod mir_storage;
 pub mod mir_utils;
+mod name;
 pub mod polonius_info;
 mod procedure;
-mod traits;
 mod query;
-mod diagnostic;
-mod name;
+mod traits;
 
-use self::{collect_prusti_spec_visitor::CollectPrustiSpecVisitor, collect_closure_defs_visitor::CollectClosureDefsVisitor};
 pub use self::{
+    body::EnvBody,
+    diagnostic::EnvDiagnostic,
     loops::{PlaceAccess, PlaceAccessKind, ProcedureLoops},
     loops_utils::*,
-    body::EnvBody, diagnostic::EnvDiagnostic, name::EnvName,
-    query::EnvQuery,
+    name::EnvName,
     procedure::{
         get_loop_invariant, is_ghost_begin_marker, is_ghost_end_marker, is_loop_invariant_block,
         is_marked_specification_block, BasicBlockIndex, Procedure,
     },
+    query::EnvQuery,
+};
+use self::{
+    collect_closure_defs_visitor::CollectClosureDefsVisitor,
+    collect_prusti_spec_visitor::CollectPrustiSpecVisitor,
 };
 use crate::data::ProcedureDefId;
 
@@ -88,7 +93,9 @@ impl<'tcx> Environment<'tcx> {
         visitor.visit_all_item_likes();
 
         let mut cl_visitor = CollectClosureDefsVisitor::new(self);
-        self.query.hir().visit_all_item_likes_in_crate(&mut cl_visitor);
+        self.query
+            .hir()
+            .visit_all_item_likes_in_crate(&mut cl_visitor);
 
         let mut result: Vec<_> = visitor.get_annotated_procedures();
         result.extend(cl_visitor.get_closure_defs());
@@ -98,7 +105,12 @@ impl<'tcx> Environment<'tcx> {
     /// Compare the current version of the `prusti` crate to the given other version
     pub fn compare_prusti_version(&self, other: &str) -> std::cmp::Ordering {
         version_compare::compare(self.prusti_version, other)
-            .unwrap_or_else(|_| panic!("Failed to compare Prusti version '{}' with other version '{other}'!", self.prusti_version))
+            .unwrap_or_else(|_| {
+                panic!(
+                    "Failed to compare Prusti version '{}' with other version '{other}'!",
+                    self.prusti_version
+                )
+            })
             .ord()
             .unwrap()
     }
@@ -112,7 +124,12 @@ impl<'tcx> Environment<'tcx> {
     pub fn compare_to_curr_specs_version(other: &str) -> std::cmp::Ordering {
         let compiled_specs_version = prusti_specs::SPECS_VERSION;
         version_compare::compare(compiled_specs_version, other)
-            .unwrap_or_else(|_| panic!("Failed to compare `prusti-specs` version '{}' with found version '{other}'!", prusti_specs::SPECS_VERSION))
+            .unwrap_or_else(|_| {
+                panic!(
+                    "Failed to compare `prusti-specs` version '{}' with found version '{other}'!",
+                    prusti_specs::SPECS_VERSION
+                )
+            })
             .ord()
             .unwrap()
     }

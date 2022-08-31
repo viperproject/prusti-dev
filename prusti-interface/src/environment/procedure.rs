@@ -4,20 +4,21 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use super::body::MirBody;
-use super::{loops, EnvName, EnvQuery};
-use crate::data::ProcedureDefId;
-use prusti_rustc_interface::middle::mir::{self, Body, Rvalue, AggregateKind};
-use prusti_rustc_interface::middle::mir::{BasicBlock, BasicBlockData};
-use prusti_rustc_interface::middle::ty::{Ty, TyCtxt};
-use std::collections::{HashSet, HashMap};
-use prusti_rustc_interface::span::Span;
-use log::{trace, debug};
-use prusti_rustc_interface::middle::mir::StatementKind;
-use prusti_rustc_interface::hir::def_id;
-use crate::environment::mir_utils::RealEdges;
-use crate::environment::debug_utils::to_text::ToText;
-use crate::environment::Environment;
+use super::{body::MirBody, loops, EnvName, EnvQuery};
+use crate::{
+    data::ProcedureDefId,
+    environment::{debug_utils::to_text::ToText, mir_utils::RealEdges, Environment},
+};
+use log::{debug, trace};
+use prusti_rustc_interface::{
+    hir::def_id,
+    middle::{
+        mir::{self, AggregateKind, BasicBlock, BasicBlockData, Body, Rvalue, StatementKind},
+        ty::{Ty, TyCtxt},
+    },
+    span::Span,
+};
+use std::collections::{HashMap, HashSet};
 
 /// Index of a Basic Block
 pub type BasicBlockIndex = mir::BasicBlock;
@@ -39,7 +40,9 @@ impl<'tcx> Procedure<'tcx> {
     /// identifier of a procedure
     pub fn new(env: &Environment<'tcx>, proc_def_id: ProcedureDefId) -> Self {
         trace!("Encoding procedure {:?}", proc_def_id);
-        let mir = env.body.get_impure_fn_body_identity(proc_def_id.expect_local());
+        let mir = env
+            .body
+            .get_impure_fn_body_identity(proc_def_id.expect_local());
         let real_edges = RealEdges::new(&mir);
         let reachable_basic_blocks = build_reachable_basic_blocks(&mir, &real_edges);
         let nonspec_basic_blocks = build_nonspec_basic_blocks(env.query, &mir, &real_edges);
@@ -74,14 +77,19 @@ impl<'tcx> Procedure<'tcx> {
         // }
         // types.into_iter().collect()
         unimplemented!();
-
     }
 
-    pub fn get_lifetime_of_var(&self, var: mir::Local) -> Option<String>{
-        fn get_lifetime_if_matches(local: mir::Local, var: mir::Local, mir: &Body) -> Option<String>{
+    pub fn get_lifetime_of_var(&self, var: mir::Local) -> Option<String> {
+        fn get_lifetime_if_matches(
+            local: mir::Local,
+            var: mir::Local,
+            mir: &Body,
+        ) -> Option<String> {
             if local == var {
                 let ty_kind = mir.local_decls[local].ty.kind();
-                if let prusti_rustc_interface::middle::ty::TyKind::Ref(region, _ty, _mutability) = ty_kind {
+                if let prusti_rustc_interface::middle::ty::TyKind::Ref(region, _ty, _mutability) =
+                    ty_kind
+                {
                     return Some(region.to_text());
                 }
             }
@@ -101,12 +109,14 @@ impl<'tcx> Procedure<'tcx> {
         None
     }
 
-    pub fn get_var_of_lifetime(&self, lft: &str) -> Option<mir::Local>{
+    pub fn get_var_of_lifetime(&self, lft: &str) -> Option<mir::Local> {
         let mir = self.get_mir();
         for local in mir.vars_and_temps_iter() {
-            if let prusti_rustc_interface::middle::ty::TyKind::Ref(region, _, _) = &mir.local_decls[local].ty.kind() {
+            if let prusti_rustc_interface::middle::ty::TyKind::Ref(region, _, _) =
+                &mir.local_decls[local].ty.kind()
+            {
                 if region.to_text() == lft {
-                    return Some(local)
+                    return Some(local);
                 }
             }
         }
@@ -150,7 +160,7 @@ impl<'tcx> Procedure<'tcx> {
 
     /// Get the first CFG block
     pub fn get_first_cfg_block(&self) -> BasicBlock {
-        self.mir.basic_blocks().indices().next().unwrap()
+        self.mir.basic_blocks.indices().next().unwrap()
     }
 
     /// Iterate over all CFG basic blocks
@@ -193,7 +203,7 @@ impl<'tcx> Procedure<'tcx> {
 fn build_reachable_basic_blocks(mir: &Body, real_edges: &RealEdges) -> HashSet<BasicBlock> {
     let mut reachable_basic_blocks: HashSet<BasicBlock> = HashSet::new();
     let mut visited: HashSet<BasicBlock> = HashSet::new();
-    let mut to_visit: Vec<BasicBlock> = vec![mir.basic_blocks().indices().next().unwrap()];
+    let mut to_visit: Vec<BasicBlock> = vec![mir.basic_blocks.indices().next().unwrap()];
 
     while !to_visit.is_empty() {
         let source = to_visit.pop().unwrap();
@@ -221,7 +231,11 @@ fn is_spec_closure(env_query: EnvQuery, def_id: def_id::DefId) -> bool {
 
 pub fn is_marked_specification_block(env_query: EnvQuery, bb_data: &BasicBlockData) -> bool {
     for stmt in &bb_data.statements {
-        if let StatementKind::Assign(box (_, Rvalue::Aggregate(box AggregateKind::Closure(def_id, _), _))) = &stmt.kind {
+        if let StatementKind::Assign(box (
+            _,
+            Rvalue::Aggregate(box AggregateKind::Closure(def_id, _), _),
+        )) = &stmt.kind
+        {
             if is_spec_closure(env_query, def_id.to_def_id()) {
                 return true;
             }
@@ -230,11 +244,26 @@ pub fn is_marked_specification_block(env_query: EnvQuery, bb_data: &BasicBlockDa
     false
 }
 
-pub fn get_loop_invariant<'tcx>(env_query: EnvQuery, bb_data: &BasicBlockData<'tcx>) -> Option<(ProcedureDefId, prusti_rustc_interface::middle::ty::subst::SubstsRef<'tcx>)> {
+pub fn get_loop_invariant<'tcx>(
+    env_query: EnvQuery,
+    bb_data: &BasicBlockData<'tcx>,
+) -> Option<(
+    ProcedureDefId,
+    prusti_rustc_interface::middle::ty::subst::SubstsRef<'tcx>,
+)> {
     for stmt in &bb_data.statements {
-        if let StatementKind::Assign(box (_, Rvalue::Aggregate(box AggregateKind::Closure(def_id, substs), _))) = &stmt.kind {
-            if is_spec_closure(env_query, def_id.to_def_id()) && crate::utils::has_prusti_attr(env_query.get_attributes(def_id.to_def_id()), "loop_body_invariant_spec") {
-                return Some((def_id.to_def_id(), substs))
+        if let StatementKind::Assign(box (
+            _,
+            Rvalue::Aggregate(box AggregateKind::Closure(def_id, substs), _),
+        )) = &stmt.kind
+        {
+            if is_spec_closure(env_query, def_id.to_def_id())
+                && crate::utils::has_prusti_attr(
+                    env_query.get_attributes(def_id.to_def_id()),
+                    "loop_body_invariant_spec",
+                )
+            {
+                return Some((def_id.to_def_id(), substs));
             }
         }
     }
@@ -255,8 +284,14 @@ pub fn is_ghost_end_marker<'tcx>(env_query: EnvQuery, bb: &BasicBlockData<'tcx>)
 
 fn is_spec_block_kind(env_query: EnvQuery, bb_data: &BasicBlockData, kind: &str) -> bool {
     for stmt in &bb_data.statements {
-        if let StatementKind::Assign(box (_, Rvalue::Aggregate(box AggregateKind::Closure(def_id, _), _))) = &stmt.kind {
-            if is_spec_closure(env_query, def_id.to_def_id()) && crate::utils::has_prusti_attr(env_query.get_attributes(def_id.to_def_id()), kind) {
+        if let StatementKind::Assign(box (
+            _,
+            Rvalue::Aggregate(box AggregateKind::Closure(def_id, _), _),
+        )) = &stmt.kind
+        {
+            if is_spec_closure(env_query, def_id.to_def_id())
+                && crate::utils::has_prusti_attr(env_query.get_attributes(def_id.to_def_id()), kind)
+            {
                 return true;
             }
         }
@@ -270,9 +305,11 @@ struct BasicBlockNode {
     predecessors: HashSet<BasicBlock>,
 }
 
-fn _blocks_definitely_leading_to<'a>(bb_graph: &'a HashMap<BasicBlock, BasicBlockNode>,
-                                 target: BasicBlock,
-                                 blocks: &'a mut HashSet<BasicBlock>) -> &'a mut HashSet<BasicBlock> {
+fn _blocks_definitely_leading_to<'a>(
+    bb_graph: &'a HashMap<BasicBlock, BasicBlockNode>,
+    target: BasicBlock,
+    blocks: &'a mut HashSet<BasicBlock>,
+) -> &'a mut HashSet<BasicBlock> {
     for pred in bb_graph[&target].predecessors.iter() {
         debug!("target: {:#?}, pred: {:#?}", target, pred);
         if bb_graph[pred].successors.len() == 1 {
@@ -284,7 +321,10 @@ fn _blocks_definitely_leading_to<'a>(bb_graph: &'a HashMap<BasicBlock, BasicBloc
     blocks
 }
 
-fn blocks_definitely_leading_to(bb_graph: &HashMap<BasicBlock, BasicBlockNode>, target: BasicBlock) -> HashSet<BasicBlock> {
+fn blocks_definitely_leading_to(
+    bb_graph: &HashMap<BasicBlock, BasicBlockNode>,
+    target: BasicBlock,
+) -> HashSet<BasicBlock> {
     let mut blocks = HashSet::new();
     _blocks_definitely_leading_to(bb_graph, target, &mut blocks);
     blocks
@@ -293,7 +333,7 @@ fn blocks_definitely_leading_to(bb_graph: &HashMap<BasicBlock, BasicBlockNode>, 
 fn blocks_dominated_by(mir: &Body, dominator: BasicBlock) -> HashSet<BasicBlock> {
     let dominators = mir.basic_blocks.dominators();
     let mut blocks = HashSet::new();
-    for bb in mir.basic_blocks().indices() {
+    for bb in mir.basic_blocks.indices() {
         if dominators.is_dominated_by(bb, dominator) {
             blocks.insert(bb);
         }
@@ -301,7 +341,11 @@ fn blocks_dominated_by(mir: &Body, dominator: BasicBlock) -> HashSet<BasicBlock>
     blocks
 }
 
-fn get_nonspec_basic_blocks(env_query: EnvQuery, bb_graph: HashMap<BasicBlock, BasicBlockNode>, mir: &Body) -> HashSet<BasicBlock>{
+fn get_nonspec_basic_blocks(
+    env_query: EnvQuery,
+    bb_graph: HashMap<BasicBlock, BasicBlockNode>,
+    mir: &Body,
+) -> HashSet<BasicBlock> {
     let mut spec_basic_blocks: HashSet<BasicBlock> = HashSet::new();
     for (bb, _) in bb_graph.iter() {
         if is_marked_specification_block(env_query, &mir[*bb]) {
@@ -313,15 +357,22 @@ fn get_nonspec_basic_blocks(env_query: EnvQuery, bb_graph: HashMap<BasicBlock, B
     debug!("spec basic blocks: {:#?}", spec_basic_blocks);
 
     let all_basic_blocks: HashSet<BasicBlock> = bb_graph.keys().cloned().collect();
-    all_basic_blocks.difference(&spec_basic_blocks).cloned().collect()
+    all_basic_blocks
+        .difference(&spec_basic_blocks)
+        .cloned()
+        .collect()
 }
 
 /// Returns the set of basic blocks that are not used as part of the typechecking of Prusti specifications
-fn build_nonspec_basic_blocks(env_query: EnvQuery, mir: &Body, real_edges: &RealEdges) -> HashSet<BasicBlock> {
+fn build_nonspec_basic_blocks(
+    env_query: EnvQuery,
+    mir: &Body,
+    real_edges: &RealEdges,
+) -> HashSet<BasicBlock> {
     let dominators = mir.basic_blocks.dominators();
     let mut loop_heads: HashSet<BasicBlock> = HashSet::new();
 
-    for source in mir.basic_blocks().indices() {
+    for source in mir.basic_blocks.indices() {
         for &target in real_edges.successors(source) {
             if dominators.is_dominated_by(source, target) {
                 loop_heads.insert(target);
@@ -330,7 +381,7 @@ fn build_nonspec_basic_blocks(env_query: EnvQuery, mir: &Body, real_edges: &Real
     }
 
     let mut visited: HashSet<BasicBlock> = HashSet::new();
-    let mut to_visit: Vec<BasicBlock> = vec![mir.basic_blocks().indices().next().unwrap()];
+    let mut to_visit: Vec<BasicBlock> = vec![mir.basic_blocks.indices().next().unwrap()];
 
     let mut bb_graph: HashMap<BasicBlock, BasicBlockNode> = HashMap::new();
 
@@ -342,9 +393,9 @@ fn build_nonspec_basic_blocks(env_query: EnvQuery, mir: &Body, real_edges: &Real
         }
 
         bb_graph.entry(source).or_insert_with(|| BasicBlockNode {
-                successors: HashSet::new(),
-                predecessors: HashSet::new(),
-            });
+            successors: HashSet::new(),
+            predecessors: HashSet::new(),
+        });
 
         visited.insert(source);
 
@@ -358,10 +409,14 @@ fn build_nonspec_basic_blocks(env_query: EnvQuery, mir: &Body, real_edges: &Real
             }
 
             bb_graph.entry(target).or_insert_with(|| BasicBlockNode {
-                    successors: HashSet::new(),
-                    predecessors: HashSet::new(),
-                });
-            bb_graph.get_mut(&target).unwrap().predecessors.insert(source);
+                successors: HashSet::new(),
+                predecessors: HashSet::new(),
+            });
+            bb_graph
+                .get_mut(&target)
+                .unwrap()
+                .predecessors
+                .insert(source);
             bb_graph.get_mut(&source).unwrap().successors.insert(target);
         }
     }

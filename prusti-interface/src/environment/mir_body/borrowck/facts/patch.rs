@@ -35,13 +35,13 @@ pub fn apply_patch_to_borrowck<'tcx>(
     }
 
     let mut block_sizes: FxHashMap<_, _> = old_body
-        .basic_blocks()
+        .basic_blocks
         .iter_enumerated()
         .map(|(bb, data)| (bb, data.statements.len()))
         .collect();
 
     // Create cfg_edge facts for the new basic blocks.
-    let bb_base = old_body.basic_blocks().len();
+    let bb_base = old_body.basic_blocks.len();
     for (offset, block) in patch.new_blocks.iter().enumerate() {
         // +1 is for terminator.
         let mut statement_indices = 0usize..block.statements.len() + 1;
@@ -179,9 +179,9 @@ pub fn apply_patch_to_borrowck<'tcx>(
 
     // Patch cfg_edge facts to account for removed basic blocks.
     let reachable = mir::traversal::reachable_as_bitset(patched_body);
-    if patched_body.basic_blocks().len() > reachable.count() {
+    if patched_body.basic_blocks.len() > reachable.count() {
         // Delete cfg_edges of removed blocks.
-        for (src, block) in patched_body.basic_blocks().iter_enumerated() {
+        for (src, block) in patched_body.basic_blocks.iter_enumerated() {
             if !reachable.contains(src) {
                 for statement_index in 0..block.statements.len() + 1 {
                     assert!(cfg_edges
@@ -217,7 +217,7 @@ pub fn apply_patch_to_borrowck<'tcx>(
             }
         }
         // Remap cfg_edges of moved blocks.
-        for (src, block) in patched_body.basic_blocks().iter_enumerated() {
+        for (src, block) in patched_body.basic_blocks.iter_enumerated() {
             let mut target_points = Vec::new();
             for target in block.terminator().successors() {
                 target_points.push(lt_patcher.start_point(target.index(), 0));

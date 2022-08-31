@@ -378,7 +378,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         }
 
         let default_target = targets.otherwise();
-        let default_target_terminator = self.mir.basic_blocks()[default_target].terminator();
+        let default_target_terminator = self.mir.basic_blocks[default_target].terminator();
         trace!("default_target_terminator: {:?}", default_target_terminator);
         let default_is_unreachable = matches!(
             default_target_terminator.kind,

@@ -345,7 +345,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 }
                 let default_target = targets.otherwise();
 
-                let default_target_terminator = self.mir.basic_blocks()[default_target]
+                let default_target_terminator = self.mir.basic_blocks[default_target]
                     .terminator
                     .as_ref()
                     .unwrap();

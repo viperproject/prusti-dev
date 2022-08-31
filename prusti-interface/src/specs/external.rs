@@ -1,16 +1,23 @@
-use prusti_rustc_interface::hir::{
-    def_id::DefId,
-    intravisit::{self, Visitor},
+use prusti_rustc_interface::{
+    errors::MultiSpan,
+    hir::{
+        def_id::DefId,
+        intravisit::{self, Visitor},
+    },
+    middle::hir::map::Map,
+    span::Span,
 };
-use prusti_rustc_interface::middle::{hir::map::Map};
-use prusti_rustc_interface::span::Span;
-use prusti_rustc_interface::errors::MultiSpan;
 
-use crate::{environment::{Environment, EnvDiagnostic, EnvQuery, EnvName}, PrustiError};
-use std::collections::HashMap;
-use prusti_specs::ExternSpecKind;
+use crate::{
+    environment::{EnvDiagnostic, EnvName, EnvQuery, Environment},
+    PrustiError,
+};
 use prusti_rustc_interface::middle::ty::subst::SubstsRef;
-use std::cmp::{Eq, PartialEq};
+use prusti_specs::ExternSpecKind;
+use std::{
+    cmp::{Eq, PartialEq},
+    collections::HashMap,
+};
 
 pub enum ExternSpecResolverError {
     /// Occurs when the user declares an extern spec in an impl block but the
@@ -54,7 +61,11 @@ pub enum ExternSpecDeclaration {
 
 impl ExternSpecDeclaration {
     /// Constructs [ExternSpecDeclaration] from a method call with the given substitutions.
-    fn from_method_call<'tcx>(def_id: DefId, substs: SubstsRef<'tcx>, env_query: EnvQuery<'tcx>) -> Self {
+    fn from_method_call<'tcx>(
+        def_id: DefId,
+        substs: SubstsRef<'tcx>,
+        env_query: EnvQuery<'tcx>,
+    ) -> Self {
         let is_impl_method = env_query.is_trait_method_impl(def_id);
         let is_trait_method = env_query.get_trait_of_item(def_id).is_some();
         let maybe_impl_def_id = env_query.find_impl_of_trait_method_call(def_id, substs);
@@ -132,30 +143,35 @@ impl<'tcx> ExternSpecResolver<'tcx> {
         visitor.visit_fn(fn_kind, fn_decl, body_id, span, id);
         let current_def_id = self.env_query.as_local_def_id(id).to_def_id();
         if let Some((target_def_id, substs, span)) = visitor.spec_found {
-            let extern_spec_decl = ExternSpecDeclaration::from_method_call(target_def_id, substs, self.env_query);
+            let extern_spec_decl =
+                ExternSpecDeclaration::from_method_call(target_def_id, substs, self.env_query);
 
-            if matches!(extern_spec_kind, ExternSpecKind::Trait) &&
-                !matches!(extern_spec_decl, ExternSpecDeclaration::Trait(_)) {
-                unreachable!("External specification declared on a trait did not resolve to a trait method");
-            } else if matches!(extern_spec_kind, ExternSpecKind::TraitImpl) &&
-                !matches!(extern_spec_decl, ExternSpecDeclaration::TraitImpl(_, _)) {
+            if matches!(extern_spec_kind, ExternSpecKind::Trait)
+                && !matches!(extern_spec_decl, ExternSpecDeclaration::Trait(_))
+            {
+                unreachable!(
+                    "External specification declared on a trait did not resolve to a trait method"
+                );
+            } else if matches!(extern_spec_kind, ExternSpecKind::TraitImpl)
+                && !matches!(extern_spec_decl, ExternSpecDeclaration::TraitImpl(_, _))
+            {
                 unreachable!("External specification declared on a trait implementation did not resolve to a concrete type");
             }
 
             {
                 // TODO: this resolution happens here but also in SpecCollector
                 // maybe it can be done once only?
-                let (resolved_def_id, _) = self.env_query.resolve_method_call(
-                    current_def_id,
-                    target_def_id,
-                    substs,
-                );
+                let (resolved_def_id, _) =
+                    self.env_query
+                        .resolve_method_call(current_def_id, target_def_id, substs);
                 if matches!(extern_spec_kind, ExternSpecKind::TraitImpl)
-                    && resolved_def_id == target_def_id {
+                    && resolved_def_id == target_def_id
+                {
                     // should have resolved but did not: resolved to default
-                    self.errors.push(
-                        ExternSpecResolverError::ResolvedToDefault(target_def_id, span),
-                    );
+                    self.errors.push(ExternSpecResolverError::ResolvedToDefault(
+                        target_def_id,
+                        span,
+                    ));
                 } else {
                     // A call to the extern spec must be possible with the same exact
                     // type substitutions applied.
@@ -163,13 +179,15 @@ impl<'tcx> ExternSpecResolver<'tcx> {
                     // constraints are the same (otherwise specs might not make sense)
                     let (resolved_gens, current_gens) = (
                         self.env_query.identity_substs(resolved_def_id).len(),
-                        self.env_query.identity_substs(current_def_id).len()
+                        self.env_query.identity_substs(current_def_id).len(),
                     );
                     if resolved_gens != current_gens {
                         let diff = resolved_gens as isize - current_gens as isize;
-                        self.errors.push(
-                            ExternSpecResolverError::InvalidGenerics(diff, resolved_def_id, span),
-                        );
+                        self.errors.push(ExternSpecResolverError::InvalidGenerics(
+                            diff,
+                            resolved_def_id,
+                            span,
+                        ));
                     }
                 }
             }
@@ -178,14 +196,14 @@ impl<'tcx> ExternSpecResolver<'tcx> {
                 self.register_duplicate_spec(target_def_id, current_def_id, span);
             } else {
                 self.check_validity(extern_spec_kind, &extern_spec_decl, span);
-                self.extern_fn_map.insert(extern_spec_decl.clone(), current_def_id);
+                self.extern_fn_map
+                    .insert(extern_spec_decl.clone(), current_def_id);
             }
         }
     }
 
     fn register_duplicate_spec(&mut self, decl_def_id: DefId, dup_spec_def_id: DefId, span: Span) {
-        self
-            .spec_duplicates
+        self.spec_duplicates
             .entry(decl_def_id)
             .or_default()
             .push((dup_spec_def_id, span));
@@ -193,12 +211,18 @@ impl<'tcx> ExternSpecResolver<'tcx> {
 
     /// Checks whether the encoded method call (call to `spec_for_def_id`) is valid.
     /// See [ExternSpecResolverError] for possible errors (including examples)
-    fn check_validity(&mut self, extern_spec_kind: ExternSpecKind, declared_spec: &ExternSpecDeclaration, span: Span) {
+    fn check_validity(
+        &mut self,
+        extern_spec_kind: ExternSpecKind,
+        declared_spec: &ExternSpecDeclaration,
+        span: Span,
+    ) {
         if matches!(extern_spec_kind, ExternSpecKind::InherentImpl) {
-            if let ExternSpecDeclaration::TraitImpl(def_id,_) = declared_spec {
-                self.errors.push(
-                    ExternSpecResolverError::InvalidExternSpecForTraitImpl(*def_id, span),
-                );
+            if let ExternSpecDeclaration::TraitImpl(def_id, _) = declared_spec {
+                self.errors
+                    .push(ExternSpecResolverError::InvalidExternSpecForTraitImpl(
+                        *def_id, span,
+                    ));
             }
         }
         // Note: A check for matches!(extern_spec_kind, ExternSpecKind::TraitImpl) && !is_trait_method
@@ -218,8 +242,9 @@ impl<'tcx> ExternSpecResolver<'tcx> {
                     PrustiError::incorrect(
                         "Invalid external specification",
                         MultiSpan::from_span(*span),
-                    ).add_note(err_note, None)
-                        .emit(env_diagnostic);
+                    )
+                    .add_note(err_note, None)
+                    .emit(env_diagnostic);
                 }
                 ExternSpecResolverError::InvalidGenerics(diff, def_id, span) => {
                     let function_name = self.env_name.get_item_name(*def_id);
@@ -227,8 +252,9 @@ impl<'tcx> ExternSpecResolver<'tcx> {
                     PrustiError::incorrect(
                         "Invalid external specification",
                         MultiSpan::from_span(*span),
-                    ).add_note(err_note, None)
-                        .emit(env_diagnostic);
+                    )
+                    .add_note(err_note, None)
+                    .emit(env_diagnostic);
                 }
                 ExternSpecResolverError::ResolvedToDefault(def_id, span) => {
                     let function_name = self.env_name.get_item_name(*def_id);
@@ -236,8 +262,9 @@ impl<'tcx> ExternSpecResolver<'tcx> {
                     PrustiError::incorrect(
                         "Invalid external specification",
                         MultiSpan::from_span(*span),
-                    ).add_note(err_note, None)
-                        .emit(env_diagnostic);
+                    )
+                    .add_note(err_note, None)
+                    .emit(env_diagnostic);
                 }
             }
         }
@@ -251,7 +278,8 @@ impl<'tcx> ExternSpecResolver<'tcx> {
             PrustiError::incorrect(
                 format!("duplicate specification for {}", function_name),
                 MultiSpan::from_spans(specs.iter().map(|s| s.1).collect()),
-            ).emit(env_diagnostic);
+            )
+            .emit(env_diagnostic);
         }
     }
 }
@@ -269,7 +297,7 @@ struct ExternSpecVisitor<'tcx> {
 
 impl<'tcx> Visitor<'tcx> for ExternSpecVisitor<'tcx> {
     type Map = Map<'tcx>;
-    type NestedFilter =prusti_rustc_interface::middle::hir::nested_filter::All;
+    type NestedFilter = prusti_rustc_interface::middle::hir::nested_filter::All;
 
     fn nested_visit_map(&mut self) -> Self::Map {
         self.env_query.hir()
@@ -281,9 +309,7 @@ impl<'tcx> Visitor<'tcx> for ExternSpecVisitor<'tcx> {
         }
         if let prusti_rustc_interface::hir::ExprKind::Call(callee_expr, _arguments) = ex.kind {
             if let prusti_rustc_interface::hir::ExprKind::Path(ref qself) = callee_expr.kind {
-                let tyck_res = self
-                    .env_query.tcx()
-                    .typeck(callee_expr.hir_id.owner);
+                let tyck_res = self.env_query.tcx().typeck(callee_expr.hir_id.owner);
                 let substs = tyck_res.node_substs(callee_expr.hir_id);
                 let res = tyck_res.qpath_res(qself, callee_expr.hir_id);
                 if let prusti_rustc_interface::hir::def::Res::Def(_, def_id) = res {

@@ -84,7 +84,7 @@ pub fn compute_definitely_initialized<'a, 'tcx: 'a>(
     // Convert the pointwise_state to analysis_result.
     // TODO: Replace AnalysisResult with PointwiseState, to avoid this conversion.
     let mut analysis_result = AnalysisResult::new();
-    for (bb, bb_data) in body.basic_blocks().iter_enumerated() {
+    for (bb, bb_data) in body.basic_blocks.iter_enumerated() {
         let num_statements = bb_data.statements.len();
         let mut location = bb.start_location();
         analysis_result.before_block.insert(
