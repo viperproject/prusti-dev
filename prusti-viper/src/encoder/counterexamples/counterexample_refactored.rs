@@ -1,6 +1,6 @@
-use std::fmt;
-use prusti_rustc_interface::errors::MultiSpan;
 use prusti_interface::PrustiError;
+use prusti_rustc_interface::errors::MultiSpan;
+use std::fmt;
 
 /// Counterexample information for a single variable.
 #[derive(Debug)]
@@ -13,15 +13,16 @@ pub struct CounterexampleEntry {
 
 impl CounterexampleEntry {
     pub fn new(name: Option<String>, history: Vec<(Entry, MultiSpan)>) -> Self {
-        CounterexampleEntry {
-            name, 
-            history,
-        }
+        CounterexampleEntry { name, history }
     }
-    fn history_to_string(&self) -> Vec<String>{
+    fn history_to_string(&self) -> Vec<String> {
         let mut messages = Vec::new();
         for (value, _) in &self.history {
-            messages.push(format!("counterexample for \"{}\"\n value:   {}", self.name.as_ref().unwrap_or(&"result".to_string()), indented_debug(value)));
+            messages.push(format!(
+                "counterexample for \"{}\"\n value:   {}",
+                self.name.as_ref().unwrap_or(&"result".to_string()),
+                indented_debug(value)
+            ));
         }
         messages
     }
@@ -49,9 +50,7 @@ impl fmt::Display for CounterexampleEntry {
 pub struct Counterexample(Vec<CounterexampleEntry>);
 
 impl Counterexample {
-    pub fn new(
-        entries: Vec<CounterexampleEntry>,
-    ) -> Self {
+    pub fn new(entries: Vec<CounterexampleEntry>) -> Self {
         Self(entries)
     }
 
@@ -62,10 +61,7 @@ impl Counterexample {
             let messages = counterexample_entry.history_to_string();
             let mut iter = messages.iter();
             for (_, span) in &counterexample_entry.history {
-                prusti_error.add_note_mut(
-                    iter.next().unwrap(),
-                    Some(span.clone()),
-                );
+                prusti_error.add_note_mut(iter.next().unwrap(), Some(span.clone()));
             }
         }
         prusti_error
@@ -102,7 +98,7 @@ pub enum Entry {
         name: String,
         field_entry: (String, Box<Entry>),
     },
-    Array(Vec<Entry>), 
+    Array(Vec<Entry>),
     Tuple(Vec<Entry>),
     Seq(Vec<Entry>),
     Unknown,
@@ -139,7 +135,12 @@ impl fmt::Debug for Entry {
             }
             Entry::Ref(el) => write!(f, "ref({:#?})", el),
             Entry::Box(el) => write!(f, "box({:#?})", el),
-            Entry::Enum { super_name, name, field_entries, custom_print_option} => {
+            Entry::Enum {
+                super_name,
+                name,
+                field_entries,
+                custom_print_option,
+            } => {
                 if let Some(custom_print) = custom_print_option {
                     let mut custom_print_iter = custom_print.iter();
                     let text = custom_print_iter.next().unwrap(); //safe because custom_print has at least one element
@@ -147,13 +148,18 @@ impl fmt::Debug for Entry {
                     let mut output = text_iter.next().unwrap().to_string(); //safe because text_iter has at least one element
                     for next in text_iter {
                         let fieldname = custom_print_iter.next().unwrap(); //safe because of encoding (checked by compiler)
-                        let field_entry = &field_entries.iter().find(|(name, _) | fieldname == name).unwrap().1; //safe because of encoding (checked by compiler)
+                        let field_entry = &field_entries
+                            .iter()
+                            .find(|(name, _)| fieldname == name)
+                            .unwrap()
+                            .1; //safe because of encoding (checked by compiler)
                         output.push_str(&format!("{:#?}", field_entry));
                         output.push_str(next);
                     }
                     write!(f, "{}", output)
                 } else {
-                    let named_fields = !field_entries.is_empty() && field_entries[0].0.parse::<usize>().is_err();
+                    let named_fields =
+                        !field_entries.is_empty() && field_entries[0].0.parse::<usize>().is_err();
                     let enum_name = format!("{}::{}", super_name, name);
                     if named_fields {
                         let mut f1 = f.debug_struct(&enum_name);
@@ -170,7 +176,11 @@ impl fmt::Debug for Entry {
                     }
                 }
             }
-            Entry::Struct { name, field_entries , custom_print_option} => {
+            Entry::Struct {
+                name,
+                field_entries,
+                custom_print_option,
+            } => {
                 if let Some(custom_print) = custom_print_option {
                     let mut custom_print_iter = custom_print.iter();
                     let text = custom_print_iter.next().unwrap(); //safe because custom_print has at least one element
@@ -178,7 +188,11 @@ impl fmt::Debug for Entry {
                     let mut output = text_iter.next().unwrap().to_string(); //safe because text_iter has at least one element
                     for next in text_iter {
                         let fieldname = custom_print_iter.next().unwrap(); //safe because of encoding (checked by compiler)
-                        let field_entry = &field_entries.iter().find(|(name, _) | fieldname == name).unwrap().1; //safe because of encoding (checked by compiler)
+                        let field_entry = &field_entries
+                            .iter()
+                            .find(|(name, _)| fieldname == name)
+                            .unwrap()
+                            .1; //safe because of encoding (checked by compiler)
                         output.push_str(&format!("{:#?}", field_entry));
                         output.push_str(next);
                     }
@@ -189,7 +203,7 @@ impl fmt::Debug for Entry {
                         f1.field(fieldname, entry);
                     }
                     f1.finish()
-                }  
+                }
             }
             Entry::Tuple(fields) => {
                 if fields.is_empty() {

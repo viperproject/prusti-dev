@@ -1,19 +1,20 @@
-use std::{convert::TryFrom, cmp::Ordering};
+use std::convert::TryFrom;
 
 /// This type identifies one of the procedural macro attributes of Prusti
-#[derive(PartialEq, Eq, Copy, Clone, Debug)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug, PartialOrd, Ord)]
 pub enum SpecAttributeKind {
-    Requires,
-    Ensures,
-    AfterExpiry,
-    AssertOnExpiry,
-    Pure,
-    Trusted,
-    Predicate,
-    Invariant,
-    GhostConstraint,
-    Model, 
-    PrintCounterexample,
+    /// Model needs to be processed first.
+    Model = 0,
+    Requires = 1,
+    Ensures = 2,
+    AfterExpiry = 3,
+    AssertOnExpiry = 4,
+    Pure = 5,
+    Trusted = 6,
+    Predicate = 7,
+    Invariant = 8,
+    GhostConstraint = 9,
+    PrintCounterexample = 10,
 }
 
 impl TryFrom<String> for SpecAttributeKind {
@@ -34,21 +35,5 @@ impl TryFrom<String> for SpecAttributeKind {
             "print_counterexample" => Ok(SpecAttributeKind::PrintCounterexample),
             _ => Err(name),
         }
-    }
-}
-
-impl Ord for SpecAttributeKind {
-    fn cmp(&self, other: &Self) -> Ordering {
-        match (self, other){
-            (SpecAttributeKind::Model, _) => Ordering::Less,
-            (_, SpecAttributeKind::Model) => Ordering::Greater,
-            _ => Ordering::Equal,
-        }
-    }
-}
-
-impl PartialOrd for SpecAttributeKind {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
     }
 }

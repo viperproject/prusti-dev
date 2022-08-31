@@ -14,7 +14,7 @@ use prusti_rustc_interface::{
         def_id::{DefId, LocalDefId},
         intravisit, FnRetTy,
     },
-    middle::{hir::map::Map, ty::TyCtxt},
+    middle::hir::map::Map,
     span::Span,
 };
 use std::{collections::HashMap, convert::TryInto, fmt::Debug};

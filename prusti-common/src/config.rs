@@ -131,12 +131,6 @@ lazy_static::lazy_static! {
         settings.set_default("hide_uuids", false).unwrap();
         settings.set_default("counterexample", false).unwrap();
         settings.set_default("print_counterexample_if_model_is_present", false).unwrap();
-        /*
-            this is not needed at the moment; as long as there is an axioms in snapshot domains that compares 
-            a snapshot variable directly with its constructors/destructors, e.g.
-            forall value: Snap :: valid(value) ==> value == destructor$Snap$$(constructor$Snap$$(value)))
-            settings.set_default("unroll_model", 3).unwrap();
-        */
         settings.set_default("print_hash", false).unwrap();
         settings.set_default("enable_cache", true).unwrap();
         settings.set_default("enable_ghost_constraints", false).unwrap();
@@ -523,19 +517,11 @@ pub fn counterexample() -> bool {
     read_setting("counterexample")
 }
 
-/// When enabled, Prusti will print a counterexample for a model and its original 
+/// When enabled, Prusti will print a counterexample for a model and its original
 /// type
 pub fn print_counterexample_if_model_is_present() -> bool {
     read_setting("print_counterexample_if_model_is_present")
 }
-/*
-This has not needed at moment
-Details about this are found in Limbeck Markus BA
-/// Defines how often a model is unrolled in the definitional_axiom such that a counterexample can be created.
-pub fn unroll_model() -> usize {
-    read_setting("unroll_model")
-}
-*/
 
 /// When enabled, prints the hash of a verification request (the hash is used
 /// for caching). This is a debugging option which does not perform

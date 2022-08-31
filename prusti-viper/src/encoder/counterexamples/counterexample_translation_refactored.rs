@@ -1,35 +1,33 @@
-use rustc_hash::{FxHashMap};
-use prusti_rustc_interface::span::source_map::Spanned;
-use super::{VarMappingInterface, VarMapping};
-use crate::encoder::counterexamples::mapping::PureFunction;
-use crate::encoder::errors::PositionManager;
-use crate::encoder::mir::pure::PureFunctionEncoderInterface;
-use crate::encoder::mir::specifications::SpecificationsInterface;
-
-use viper::silicon_counterexample::*;
-
-use prusti_interface::data::ProcedureDefId;
-use crate::encoder::Encoder;
-use crate::encoder::places::{Local, LocalVariableManager};
-use super::counterexample_refactored::*;
-
-use prusti_rustc_interface::middle::mir::{self, VarDebugInfo};
-use prusti_rustc_interface::errors::MultiSpan;
-use prusti_rustc_interface::middle::ty::{self, Ty, TyCtxt};
-use std::{iter, vec};
-use prusti_rustc_interface::hir::{ExprKind, StmtKind, Expr, Block, QPath, Path, def_id::LocalDefId};
-
-use prusti_rustc_interface::ast::LitKind;
+use super::{counterexample_refactored::*, VarMapping, VarMappingInterface};
+use crate::encoder::{
+    counterexamples::mapping::PureFunction,
+    errors::PositionManager,
+    mir::{pure::PureFunctionEncoderInterface, specifications::SpecificationsInterface},
+    places::{Local, LocalVariableManager},
+    Encoder,
+};
 use prusti_common::config;
-
-
+use prusti_interface::data::ProcedureDefId;
+use prusti_rustc_interface::{
+    ast::LitKind,
+    errors::MultiSpan,
+    hir::{def_id::LocalDefId, Block, Expr, ExprKind, Path, QPath, StmtKind},
+    middle::{
+        mir::{self, VarDebugInfo},
+        ty::{self, Ty, TyCtxt},
+    },
+    span::source_map::Spanned,
+};
+use rustc_hash::FxHashMap;
+use std::{iter, vec};
+use viper::silicon_counterexample::*;
 
 pub fn backtranslate(
     encoder: &Encoder,
     position_manager: &PositionManager,
     def_id: ProcedureDefId,
     silicon_counterexample: &SiliconCounterexample,
-) ->  Counterexample {
+) -> Counterexample {
     let mut translator = CounterexampleTranslator::new(encoder, def_id, silicon_counterexample);
 
     translator.create_mapping(def_id, encoder); //creates the mapping between mir var and the corresponding snapshot var
@@ -43,11 +41,10 @@ pub fn backtranslate(
 pub struct CounterexampleTranslator<'ce, 'tcx, 'v> {
     encoder: &'ce Encoder<'v, 'tcx>,
     silicon_counterexample: &'ce SiliconCounterexample,
-    tcx: TyCtxt<'tcx>, 
+    tcx: TyCtxt<'tcx>,
     var_debug_info: Vec<VarDebugInfo<'tcx>>,
-    local_variable_manager: LocalVariableManager<'tcx>, 
-    pub(super) var_mapping: VarMapping, 
-    
+    local_variable_manager: LocalVariableManager<'tcx>,
+    pub(super) var_mapping: VarMapping,
 }
 
 impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
@@ -69,27 +66,43 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
         }
     }
     ///get all label markers and there value in the counterexample
-    fn get_label_markers(&self) -> FxHashMap<String, bool>{
-        self.var_mapping.labels_successor_mapping.iter().map(
-            | (label, _) | {
-                match self.silicon_counterexample.model.entries.get(&format!("{}$marker",label)){
+    fn get_label_markers(&self) -> FxHashMap<String, bool> {
+        self.var_mapping
+            .labels_successor_mapping
+            .iter()
+            .map(|(label, _)| {
+                match self
+                    .silicon_counterexample
+                    .model
+                    .entries
+                    .get(&format!("{}$marker", label))
+                {
                     Some(ModelEntry::LitBool(b)) => (label.clone(), *b),
-                    _ => (label.clone(), false) //if label marker is not found, we treat it like it was not visited (should be impossible) 
+                    _ => (label.clone(), false), //if label marker is not found, we treat it like it was not visited (should be impossible)
                 }
-            }
-        ).collect::<FxHashMap<String, bool>>()
+            })
+            .collect::<FxHashMap<String, bool>>()
     }
 
     //Given a MIR var name, it returns all relevant snapshot variables
-    fn get_trace_of_var(&self, position_manager: &PositionManager, var: &String, label_markers: &FxHashMap<String, bool>) -> Vec<(String, MultiSpan)>{
+    fn get_trace_of_var(
+        &self,
+        position_manager: &PositionManager,
+        var: &String,
+        label_markers: &FxHashMap<String, bool>,
+    ) -> Vec<(String, MultiSpan)> {
         let mut label = "start_label".to_string();
         let mut snapshot_var_vec = Vec::new();
-        if let Some(label_snapshot_mapping) = self.var_mapping.var_snaphot_mapping.get(var){
+        if let Some(label_snapshot_mapping) = self.var_mapping.var_snaphot_mapping.get(var) {
             loop {
-                if let Some(snapshot_vars) = label_snapshot_mapping.get(&label){
-                    snapshot_var_vec.extend(snapshot_vars.iter().map(|x| (x.name.clone(), self.get_span(position_manager, &x.position))));
+                if let Some(snapshot_vars) = label_snapshot_mapping.get(&label) {
+                    snapshot_var_vec.extend(
+                        snapshot_vars.iter().map(|x| {
+                            (x.name.clone(), self.get_span(position_manager, &x.position))
+                        }),
+                    );
                 }
-                if let Some(next) = self.get_successor(&label, label_markers){
+                if let Some(next) = self.get_successor(&label, label_markers) {
                     label = next.to_string();
                 } else {
                     break;
@@ -99,11 +112,15 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
         snapshot_var_vec
     }
 
-    fn process_entries(&self, position_manager: &PositionManager, label_markers: &FxHashMap<String, bool>) -> Vec< CounterexampleEntry> {
+    fn process_entries(
+        &self,
+        position_manager: &PositionManager,
+        label_markers: &FxHashMap<String, bool>,
+    ) -> Vec<CounterexampleEntry> {
         //variables
         let mut entries = vec![];
 
-        for vdi in &self.var_debug_info{
+        for vdi in &self.var_debug_info {
             let rust_name = vdi.name.to_ident_string();
             let local: mir::Local = if let mir::VarDebugInfoContents::Place(place) = vdi.value {
                 if let Some(local) = place.as_local() {
@@ -119,8 +136,8 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
             let vir_name = self.local_variable_manager.get_name(var_local);
             let trace = self.get_trace_of_var(position_manager, &vir_name, label_markers);
             let history = self.process_entry(&trace, typ);
-            entries.push( CounterexampleEntry::new(Some(rust_name), history))
-        } 
+            entries.push(CounterexampleEntry::new(Some(rust_name), history))
+        }
 
         //result
         let vir_name = "_0".to_string();
@@ -128,82 +145,162 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
         let typ = self.local_variable_manager.get_type(return_local);
         let trace = self.get_trace_of_var(position_manager, &vir_name, label_markers);
         let history = self.process_entry(&trace, typ);
-        entries.push( CounterexampleEntry::new(None, history));
+        entries.push(CounterexampleEntry::new(None, history));
 
         //pure functions
         let mut relevant_pure_functions = vec![];
 
-        for (key, val) in self.var_mapping.pure_functions_mapping.iter(){
-            if label_markers.get(key) == Some(&true){
+        for (key, val) in self.var_mapping.pure_functions_mapping.iter() {
+            if label_markers.get(key) == Some(&true) {
                 relevant_pure_functions.extend(val.iter());
             }
         }
-        for pure_fn in relevant_pure_functions{
+        for pure_fn in relevant_pure_functions {
             let ce_pure_fn = self.process_pure_function(pure_fn, position_manager);
-            let mut pure_fn_name = format!("{}()", pure_fn.name.trim_start_matches("caller_for$m_").trim_end_matches('$'));
+            let mut pure_fn_name = format!(
+                "{}()",
+                pure_fn
+                    .name
+                    .trim_start_matches("caller_for$m_")
+                    .trim_end_matches('$')
+            );
             pure_fn_name = pure_fn_name.split('$').last().unwrap().to_string(); //remove prefix of functions in implementations
-            entries.push(CounterexampleEntry::new(Some(pure_fn_name), vec![ce_pure_fn]));
+            entries.push(CounterexampleEntry::new(
+                Some(pure_fn_name),
+                vec![ce_pure_fn],
+            ));
         }
 
         entries
     }
 
-    fn process_pure_function(&self, pure_fn: &PureFunction, position_manager: &PositionManager, ) -> (Entry,MultiSpan) {
-        let typ = self.encoder.get_proc_def_id(pure_fn.name.trim_start_matches("caller_for$").to_string()).map(|fn_proc_id| self.tcx.fn_sig(fn_proc_id).skip_binder().output());
-        let sil_arguments = pure_fn.args.iter().map(|arg | {
-            self.silicon_counterexample.model.entries.get(arg).cloned()
-        }).collect();
+    fn process_pure_function(
+        &self,
+        pure_fn: &PureFunction,
+        position_manager: &PositionManager,
+    ) -> (Entry, MultiSpan) {
+        let typ = self
+            .encoder
+            .get_proc_def_id(pure_fn.name.trim_start_matches("caller_for$").to_string())
+            .map(|fn_proc_id| self.tcx.fn_sig(fn_proc_id).skip_binder().output());
+        let sil_arguments = pure_fn
+            .args
+            .iter()
+            .map(|arg| self.silicon_counterexample.model.entries.get(arg).cloned())
+            .collect();
 
-        let return_value = if let Some(function) = self.silicon_counterexample.functions.entries.get(&pure_fn.name){
-                function.get_function_value(&sil_arguments)
-            } else {
-                &None
-            };
-        (self.translate_snapshot_entry(return_value.as_ref(), typ, true), self.get_span(position_manager, &pure_fn.position))
+        let return_value = if let Some(function) = self
+            .silicon_counterexample
+            .functions
+            .entries
+            .get(&pure_fn.name)
+        {
+            function.get_function_value(&sil_arguments)
+        } else {
+            &None
+        };
+        (
+            self.translate_snapshot_entry(return_value.as_ref(), typ, true),
+            self.get_span(position_manager, &pure_fn.position),
+        )
     }
 
-    fn process_entry(&self, trace: &Vec<(String, MultiSpan)>, ty: Ty<'tcx>) -> Vec<(Entry,MultiSpan)> {
+    fn process_entry(
+        &self,
+        trace: &Vec<(String, MultiSpan)>,
+        ty: Ty<'tcx>,
+    ) -> Vec<(Entry, MultiSpan)> {
         let mut entries = vec![];
-        for (snapshot_var, span) in trace{ 
+        for (snapshot_var, span) in trace {
             let model_entry = self.silicon_counterexample.model.entries.get(snapshot_var);
             let entry = self.translate_snapshot_entry(model_entry, Some(ty), true);
             entries.push((entry, span.clone()));
-            if config::print_counterexample_if_model_is_present() { //if the original type should be part of the counterexample in addition to the model
-                match &ty.kind(){
+            if config::print_counterexample_if_model_is_present() {
+                //if the original type should be part of the counterexample in addition to the model
+                match &ty.kind() {
                     &ty::TyKind::Adt(adt_def, _) if adt_def.is_struct() => {
-                        if self.encoder.get_type_specs(adt_def.did()).and_then(|p| p.has_model).is_some() {
+                        if self
+                            .encoder
+                            .get_type_specs(adt_def.did())
+                            .and_then(|p| p.has_model)
+                            .is_some()
+                        {
                             let entry = self.translate_snapshot_entry(model_entry, Some(ty), false); //extract the counterexample of the original type
                             entries.push((entry, span.clone()));
                         }
-                    },
+                    }
                     _ => (),
                 }
             }
-        }        
+        }
         entries
     }
 
-    fn custom_print(&self, prusti_counterexample_print: Vec<(Option<String>, LocalDefId)>, variant_option: Option<String>) -> Option<Vec<String>>{
-        let def_id_option = match variant_option{
-            Some(_) => prusti_counterexample_print.iter().find(|x| x.0 == variant_option),
+    fn custom_print(
+        &self,
+        prusti_counterexample_print: Vec<(Option<String>, LocalDefId)>,
+        variant_option: Option<String>,
+    ) -> Option<Vec<String>> {
+        let def_id_option = match variant_option {
+            Some(_) => prusti_counterexample_print
+                .iter()
+                .find(|x| x.0 == variant_option),
             None => prusti_counterexample_print.first(),
         };
-        
-        if let Some(def_id) = def_id_option{
-            let expr = &self.tcx.hir().body(self.tcx.hir().body_owned_by(def_id.1)).value;
-            if let ExprKind::Block(Block{ expr: Some(Expr{kind: ExprKind::If(_, expr, _), ..}), ..}, _) = expr.kind{
-                if let ExprKind::Block(block, _) = expr.kind{
+
+        if let Some(def_id) = def_id_option {
+            let expr = &self
+                .tcx
+                .hir()
+                .body(self.tcx.hir().body_owned_by(def_id.1))
+                .value;
+            if let ExprKind::Block(
+                Block {
+                    expr:
+                        Some(Expr {
+                            kind: ExprKind::If(_, expr, _),
+                            ..
+                        }),
+                    ..
+                },
+                _,
+            ) = expr.kind
+            {
+                if let ExprKind::Block(block, _) = expr.kind {
                     let stmts = block.stmts;
-                    let args = stmts.iter().filter_map(|stmt | {
-                        match stmt.kind{
-                            StmtKind::Semi(Expr{kind: ExprKind::Lit(Spanned {node: LitKind::Str(symbol, _), ..} ), ..}) => Some(symbol.to_ident_string()), //first arg
-                            StmtKind::Semi(Expr{kind: ExprKind::Lit(Spanned {node: LitKind::Int(int, _), ..} ), ..}) => Some(int.to_string()), //unnamed fields
-                            StmtKind::Semi(Expr{kind: ExprKind::Path(QPath::Resolved(_, Path{segments, ..})), ..}) => { //named fields
-                                segments.first().map(|path_segment| path_segment.ident.name.to_ident_string())
-                            },
-                            _ => None
-                        }
-                    }).collect::<Vec<String>>();
+                    let args = stmts
+                        .iter()
+                        .filter_map(|stmt| {
+                            match stmt.kind {
+                                StmtKind::Semi(Expr {
+                                    kind:
+                                        ExprKind::Lit(Spanned {
+                                            node: LitKind::Str(symbol, _),
+                                            ..
+                                        }),
+                                    ..
+                                }) => Some(symbol.to_ident_string()), //first arg
+                                StmtKind::Semi(Expr {
+                                    kind:
+                                        ExprKind::Lit(Spanned {
+                                            node: LitKind::Int(int, _),
+                                            ..
+                                        }),
+                                    ..
+                                }) => Some(int.to_string()), //unnamed fields
+                                StmtKind::Semi(Expr {
+                                    kind: ExprKind::Path(QPath::Resolved(_, Path { segments, .. })),
+                                    ..
+                                }) => {
+                                    //named fields
+                                    segments.first().map(|path_segment| {
+                                        path_segment.ident.name.to_ident_string()
+                                    })
+                                }
+                                _ => None,
+                            }
+                        })
+                        .collect::<Vec<String>>();
                     return Some(args);
                 }
             }
@@ -211,142 +308,260 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
         None
     }
 
-    
-    fn translate_snapshot_entry(&self,
+    fn translate_snapshot_entry(
+        &self,
         model_entry: Option<&ModelEntry>,
         typ: Option<Ty<'tcx>>,
         model: bool, //if false, ignore models
     ) -> Entry {
-       match (model_entry, typ.map(|x| x.kind())){
-            (Some(ModelEntry::LitInt(string)),Some(ty::TyKind::Char)) => {
-                if let Ok(value_int) = string.parse::<u32>(){
-                    if let Some(value_char) = char::from_u32(value_int){
+        match (model_entry, typ.map(|x| x.kind())) {
+            (Some(ModelEntry::LitInt(string)), Some(ty::TyKind::Char)) => {
+                if let Ok(value_int) = string.parse::<u32>() {
+                    if let Some(value_char) = char::from_u32(value_int) {
                         Entry::Char(value_char)
-                    } else { Entry::Unknown}
-                } else {Entry::Unknown}
-            }, 
-            (Some(ModelEntry::LitInt(string)),_) => Entry::Int(string.clone()), 
-            (Some(ModelEntry::LitFloat(string)),_) => Entry::Float(string.clone()),
-            (Some(ModelEntry::LitBool(bool)),_) => Entry::Bool(*bool),
+                    } else {
+                        Entry::Unknown
+                    }
+                } else {
+                    Entry::Unknown
+                }
+            }
+            (Some(ModelEntry::LitInt(string)), _) => Entry::Int(string.clone()),
+            (Some(ModelEntry::LitFloat(string)), _) => Entry::Float(string.clone()),
+            (Some(ModelEntry::LitBool(bool)), _) => Entry::Bool(*bool),
             (Some(ModelEntry::DomainValue(domain_name, _)), Some(ty::TyKind::Ref(_, typ, _))) => {
                 //this should never fail since a DomainValue can only exist if the corresponding domain exists
-                let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
+                let sil_domain = self
+                    .silicon_counterexample
+                    .domains
+                    .entries
+                    .get(domain_name)
+                    .unwrap();
                 let sil_fn_name = format!("destructor${}$$target_current", domain_name);
-                Entry::Ref(box self.extract_field_value(&sil_fn_name, Some(*typ), model_entry, sil_domain, model))
-            },
-           (Some(ModelEntry::DomainValue(domain_name, _)), Some(ty::TyKind::Tuple(subst))) => {
-                let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
+                Entry::Ref(box self.extract_field_value(
+                    &sil_fn_name,
+                    Some(*typ),
+                    model_entry,
+                    sil_domain,
+                    model,
+                ))
+            }
+            (Some(ModelEntry::DomainValue(domain_name, _)), Some(ty::TyKind::Tuple(subst))) => {
+                let sil_domain = self
+                    .silicon_counterexample
+                    .domains
+                    .entries
+                    .get(domain_name)
+                    .unwrap();
                 let len = subst.len();
                 let mut fields = vec![];
                 for i in 0..len {
                     let field_typ = subst[i];
                     let field_name = format!("tuple_{}", i);
                     let sil_fn_name = format!("destructor${}$${}", domain_name, &field_name);
-                    let field_entry = self.extract_field_value(&sil_fn_name, Some(field_typ), model_entry, sil_domain, model);
+                    let field_entry = self.extract_field_value(
+                        &sil_fn_name,
+                        Some(field_typ),
+                        model_entry,
+                        sil_domain,
+                        model,
+                    );
                     fields.push(field_entry);
                 }
                 Entry::Tuple(fields)
-            },
-            (Some(ModelEntry::DomainValue(domain_name, ..)), Some(ty::TyKind::Adt(adt_def, subst))) if adt_def.is_box() => {
+            }
+            (
+                Some(ModelEntry::DomainValue(domain_name, ..)),
+                Some(ty::TyKind::Adt(adt_def, subst)),
+            ) if adt_def.is_box() => {
                 //this should never fail since a DomainValue can only exist if the corresponding domain exists
-                let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
+                let sil_domain = self
+                    .silicon_counterexample
+                    .domains
+                    .entries
+                    .get(domain_name)
+                    .unwrap();
                 let sil_fn_name = format!("destructor${}$$val_ref", domain_name);
                 let new_typ = subst.type_at(0);
-                Entry::Box(box self.extract_field_value(&sil_fn_name, Some(new_typ), model_entry, sil_domain, model))
-            },
-                
-            (Some(ModelEntry::DomainValue(domain_name, ..)), Some(ty::TyKind::Adt(adt_def, subst))) if adt_def.is_struct() => {
-                if domain_name == "Snap$Unbounded" { //FIXME check for correct type instead of name
-                    let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
+                Entry::Box(box self.extract_field_value(
+                    &sil_fn_name,
+                    Some(new_typ),
+                    model_entry,
+                    sil_domain,
+                    model,
+                ))
+            }
+
+            (
+                Some(ModelEntry::DomainValue(domain_name, ..)),
+                Some(ty::TyKind::Adt(adt_def, subst)),
+            ) if adt_def.is_struct() => {
+                if domain_name == "Snap$Unbounded" {
+                    //FIXME check for correct type instead of name
+                    let sil_domain = self
+                        .silicon_counterexample
+                        .domains
+                        .entries
+                        .get(domain_name)
+                        .unwrap();
                     let sil_fn_name = format!("destructor${}$$value", domain_name);
                     let variant = adt_def.variants().iter().next().unwrap();
                     let int_typ = Some(variant.fields[0].ty(self.tcx, subst));
-                    return self.extract_field_value(&sil_fn_name, int_typ, model_entry, sil_domain, model);
+                    return self.extract_field_value(
+                        &sil_fn_name,
+                        int_typ,
+                        model_entry,
+                        sil_domain,
+                        model,
+                    );
                 }
                 let variant = adt_def.variants().iter().next().unwrap();
                 let struct_name = variant.ident(self.tcx).name.to_ident_string();
                 //check if a model should replace the original type in the counterexample
-                if model{
-                    if let Some((to_model, model_id), ) = self.encoder.get_type_specs(adt_def.did()).and_then(|p| p.has_model){
-                        let entry = self.extract_model(model_entry, domain_name, to_model, model_id);
-                        return if let Entry::Struct{field_entries, custom_print_option,..} = entry{
-                            Entry::Struct{
-                                name: format!("{}_model",struct_name),
+                if model {
+                    if let Some((to_model, model_id)) = self
+                        .encoder
+                        .get_type_specs(adt_def.did())
+                        .and_then(|p| p.has_model)
+                    {
+                        let entry =
+                            self.extract_model(model_entry, domain_name, to_model, model_id);
+                        return if let Entry::Struct {
+                            field_entries,
+                            custom_print_option,
+                            ..
+                        } = entry
+                        {
+                            Entry::Struct {
+                                name: format!("{}_model", struct_name),
                                 field_entries,
                                 custom_print_option,
                             }
-                        }  else {
+                        } else {
                             entry
                         };
-                    } 
+                    }
                 }
-                let field_entries = self.translate_snapshot_adt_fields(
-                    variant,
-                    model_entry,
-                    subst,
-                    model, 
-                );
-                let custom_print_option = self.encoder.get_type_specs(adt_def.did()).and_then(| p | self.custom_print(p.counterexample_print, None));
+                let field_entries =
+                    self.translate_snapshot_adt_fields(variant, model_entry, subst, model);
+                let custom_print_option = self
+                    .encoder
+                    .get_type_specs(adt_def.did())
+                    .and_then(|p| self.custom_print(p.counterexample_print, None));
                 Entry::Struct {
                     name: struct_name,
                     field_entries,
                     custom_print_option,
                 }
-                
-            },
-            (Some(ModelEntry::DomainValue(domain_name, _)), Some(ty::TyKind::Adt(adt_def, subst))) if adt_def.is_union() => {
+            }
+            (
+                Some(ModelEntry::DomainValue(domain_name, _)),
+                Some(ty::TyKind::Adt(adt_def, subst)),
+            ) if adt_def.is_union() => {
                 let disc_function_name = format!("discriminant${}", domain_name);
                 //this should never fail since a DomainValue can only exist if the corresponding domain exists
-                let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
+                let sil_domain = self
+                    .silicon_counterexample
+                    .domains
+                    .entries
+                    .get(domain_name)
+                    .unwrap();
                 let sil_fn_param = vec![model_entry.cloned()];
-                if let Some(disc_function) = sil_domain.functions.entries.get(&disc_function_name){
-                    if let Some(ModelEntry::LitInt(disc_value)) = disc_function.get_function_value(&sil_fn_param) {
+                if let Some(disc_function) = sil_domain.functions.entries.get(&disc_function_name) {
+                    if let Some(ModelEntry::LitInt(disc_value)) =
+                        disc_function.get_function_value(&sil_fn_param)
+                    {
                         let super_name = format!("{:?}", adt_def);
                         let disc_value_int = disc_value.parse::<usize>().unwrap();
                         let variant = adt_def.variants().iter().next().unwrap();
-                        let variant_name = variant.fields[disc_value_int].ident(self.tcx).name.to_ident_string();
+                        let variant_name = variant.fields[disc_value_int]
+                            .ident(self.tcx)
+                            .name
+                            .to_ident_string();
                         let field_typ = Some(variant.fields[disc_value_int].ty(self.tcx, subst));
 
-                        let destructor_sil_name = format!("destructor${}${}$value", domain_name, &variant_name);
-                        
-                        if let Some(value_function) = sil_domain.functions.entries.get(&destructor_sil_name){
-                            let new_model_entry = value_function.get_function_value(&sil_fn_param); 
-                            if let Some(ModelEntry::DomainValue(domain_name, _)) = new_model_entry{
-                                let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
+                        let destructor_sil_name =
+                            format!("destructor${}${}$value", domain_name, &variant_name);
+
+                        if let Some(value_function) =
+                            sil_domain.functions.entries.get(&destructor_sil_name)
+                        {
+                            let new_model_entry = value_function.get_function_value(&sil_fn_param);
+                            if let Some(ModelEntry::DomainValue(domain_name, _)) = new_model_entry {
+                                let sil_domain = self
+                                    .silicon_counterexample
+                                    .domains
+                                    .entries
+                                    .get(domain_name)
+                                    .unwrap();
                                 let sil_fn_name = format!("destructor${}$$value", domain_name);
-                                let field_entry = self.extract_field_value(&sil_fn_name, field_typ, new_model_entry.as_ref(), sil_domain, model);
-                                return Entry::Union { 
-                                    name: super_name, 
+                                let field_entry = self.extract_field_value(
+                                    &sil_fn_name,
+                                    field_typ,
+                                    new_model_entry.as_ref(),
+                                    sil_domain,
+                                    model,
+                                );
+                                return Entry::Union {
+                                    name: super_name,
                                     field_entry: (variant_name, box field_entry),
                                 };
                             }
-                            return Entry::Union { 
-                                name: super_name, 
+                            return Entry::Union {
+                                name: super_name,
                                 field_entry: (variant_name, box Entry::Unknown),
-                            };    
+                            };
                         }
                     }
                 }
-                Entry::Union { 
-                    name: format!("{:?}", adt_def), 
+                Entry::Union {
+                    name: format!("{:?}", adt_def),
                     field_entry: ("?".to_string(), box Entry::Unknown),
                 }
-            },
-            (Some(ModelEntry::DomainValue(domain_name, _)), Some(ty::TyKind::Adt(adt_def, subst))) if adt_def.is_enum() => {
+            }
+            (
+                Some(ModelEntry::DomainValue(domain_name, _)),
+                Some(ty::TyKind::Adt(adt_def, subst)),
+            ) if adt_def.is_enum() => {
                 let disc_function_name = format!("discriminant${}", domain_name);
-                let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
+                let sil_domain = self
+                    .silicon_counterexample
+                    .domains
+                    .entries
+                    .get(domain_name)
+                    .unwrap();
                 let sil_fn_param = vec![model_entry.cloned()];
-                if let Some(disc_function) = sil_domain.functions.entries.get(&disc_function_name){
-                    if let Some(ModelEntry::LitInt(disc_value)) = disc_function.get_function_value(&sil_fn_param){
+                if let Some(disc_function) = sil_domain.functions.entries.get(&disc_function_name) {
+                    if let Some(ModelEntry::LitInt(disc_value)) =
+                        disc_function.get_function_value(&sil_fn_param)
+                    {
                         let super_name = format!("{:?}", adt_def);
                         let disc_value_int = disc_value.parse::<u32>().unwrap();
-                        if let Some(variant) = adt_def.variants().iter().find(|x| get_discriminant_of_vardef(x) == Some(disc_value_int)){
+                        if let Some(variant) = adt_def
+                            .variants()
+                            .iter()
+                            .find(|x| get_discriminant_of_vardef(x) == Some(disc_value_int))
+                        {
                             let variant_name = variant.ident(self.tcx).name.to_ident_string();
-                            let destructor_sil_name = format!("destructor${}${}$value", domain_name, &variant_name);
-                                if let Some(value_function) = sil_domain.functions.entries.get(&destructor_sil_name){
+                            let destructor_sil_name =
+                                format!("destructor${}${}$value", domain_name, &variant_name);
+                            if let Some(value_function) =
+                                sil_domain.functions.entries.get(&destructor_sil_name)
+                            {
                                 let domain_entry = value_function.get_function_value(&sil_fn_param);
-                                let field_entries = self.translate_snapshot_adt_fields(variant, domain_entry.as_ref(), subst, model);
-                                let custom_print_option = self.encoder.get_type_specs(adt_def.did()).and_then(| p | self.custom_print(p.counterexample_print, Some(variant_name.clone())));
+                                let field_entries = self.translate_snapshot_adt_fields(
+                                    variant,
+                                    domain_entry.as_ref(),
+                                    subst,
+                                    model,
+                                );
+                                let custom_print_option =
+                                    self.encoder.get_type_specs(adt_def.did()).and_then(|p| {
+                                        self.custom_print(
+                                            p.counterexample_print,
+                                            Some(variant_name.clone()),
+                                        )
+                                    });
                                 return Entry::Enum {
                                     super_name,
                                     name: variant_name,
@@ -363,69 +578,95 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                     field_entries: vec![],
                     custom_print_option: None,
                 }
-            },
+            }
             (Some(ModelEntry::Seq(_, model_entries)), Some(ty::TyKind::Adt(_, subst))) => {
                 let typ = subst.type_at(0);
-                let entries = model_entries.iter().map(|entry| 
-                {
-                    self.translate_snapshot_entry(Some(entry), Some(typ), model)
-                }).collect();
+                let entries = model_entries
+                    .iter()
+                    .map(|entry| self.translate_snapshot_entry(Some(entry), Some(typ), model))
+                    .collect();
 
                 Entry::Seq(entries)
-            },
+            }
             (Some(ModelEntry::Seq(_, model_entries)), Some(ty::TyKind::Array(typ, _))) => {
-                let entries = model_entries.iter().map(|entry| 
-                {
-                    self.translate_snapshot_entry(Some(entry), Some(*typ), model)
-                }).collect();
+                let entries = model_entries
+                    .iter()
+                    .map(|entry| self.translate_snapshot_entry(Some(entry), Some(*typ), model))
+                    .collect();
 
                 Entry::Array(entries)
-            },
-            (Some(ModelEntry::DomainValue(domain_name, _)), _) => { //snapshot typ for primitive typ
+            }
+            (Some(ModelEntry::DomainValue(domain_name, _)), _) => {
+                //snapshot typ for primitive typ
 
                 //this should never fail since a DomainValue can only exist if the corresponding domain exists
-                let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
+                let sil_domain = self
+                    .silicon_counterexample
+                    .domains
+                    .entries
+                    .get(domain_name)
+                    .unwrap();
                 let sil_fn_name = format!("destructor${}$$value", domain_name);
                 self.extract_field_value(&sil_fn_name, typ, model_entry, sil_domain, model)
-            }  
+            }
             _ => Entry::Unknown,
         }
     }
-    
-    fn translate_snapshot_adt_fields(&self,
-    variant: &ty::VariantDef,
-    model_entry: Option<&ModelEntry>,
-    subst: ty::subst::SubstsRef<'tcx>,
-    model: bool, //if false, ignore models
+
+    fn translate_snapshot_adt_fields(
+        &self,
+        variant: &ty::VariantDef,
+        model_entry: Option<&ModelEntry>,
+        subst: ty::subst::SubstsRef<'tcx>,
+        model: bool, //if false, ignore models
     ) -> Vec<(String, Entry)> {
         match model_entry {
             Some(ModelEntry::DomainValue(domain_name, _)) => {
                 //this should never fail since a DomainValue can only exist if the corresponding domain exists
-                let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
+                let sil_domain = self
+                    .silicon_counterexample
+                    .domains
+                    .entries
+                    .get(domain_name)
+                    .unwrap();
                 let mut fields = vec![];
                 for f in &variant.fields {
                     let field_name = f.ident(self.tcx).name.to_ident_string();
                     let field_typ = f.ty(self.tcx, subst);
                     let sil_fn_name = format!("destructor${}$$f${}", domain_name, &field_name);
-                    let field_entry = self.extract_field_value(&sil_fn_name, Some(field_typ), model_entry, sil_domain, model);
+                    let field_entry = self.extract_field_value(
+                        &sil_fn_name,
+                        Some(field_typ),
+                        model_entry,
+                        sil_domain,
+                        model,
+                    );
 
                     fields.push((field_name, field_entry));
                 }
                 fields
-            },
-            _ => iter::zip(variant.fields.iter().map(|x| x.ident(self.tcx).name.to_ident_string()), iter::repeat(Entry::Unknown)).collect()
+            }
+            _ => iter::zip(
+                variant
+                    .fields
+                    .iter()
+                    .map(|x| x.ident(self.tcx).name.to_ident_string()),
+                iter::repeat(Entry::Unknown),
+            )
+            .collect(),
         }
-    }  
+    }
 
-    fn extract_field_value(&self, 
-    sil_fn_name: &String,
-    field_typ: Option<Ty<'tcx>>,
-    model_entry: Option<&ModelEntry>,
-    sil_domain: &DomainEntry,
-    model: bool, //if false, ignore models
+    fn extract_field_value(
+        &self,
+        sil_fn_name: &String,
+        field_typ: Option<Ty<'tcx>>,
+        model_entry: Option<&ModelEntry>,
+        sil_domain: &DomainEntry,
+        model: bool, //if false, ignore models
     ) -> Entry {
         let sil_fn_param = vec![model_entry.cloned()];
-        let field_value = if let Some(function) = sil_domain.functions.entries.get(sil_fn_name){
+        let field_value = if let Some(function) = sil_domain.functions.entries.get(sil_fn_name) {
             function.get_function_value(&sil_fn_param)
         } else {
             &None
@@ -433,28 +674,46 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
         self.translate_snapshot_entry(field_value.as_ref(), field_typ, model)
     }
 
-    fn extract_model(&self,
+    fn extract_model(
+        &self,
         model_entry: Option<&ModelEntry>,
-        domain_name: &str, 
-        to_model: String, 
+        domain_name: &str,
+        to_model: String,
         model_id: LocalDefId,
-    )->Entry{
+    ) -> Entry {
         let domain_name_wo_snap = domain_name.trim_start_matches("Snap");
         let ref_to_model_domain_name = format!("Snap$ref$Shared{}", domain_name_wo_snap);
-        let ref_to_model_function_name = format!("constructor${}$no_alloc", ref_to_model_domain_name); 
-        if let Some(sil_domain) = self.silicon_counterexample.domains.entries.get(&ref_to_model_domain_name){
+        let ref_to_model_function_name =
+            format!("constructor${}$no_alloc", ref_to_model_domain_name);
+        if let Some(sil_domain) = self
+            .silicon_counterexample
+            .domains
+            .entries
+            .get(&ref_to_model_domain_name)
+        {
             let sil_fn_param = vec![model_entry.cloned()];
-            if let Some(ref_to_model_function) = sil_domain.functions.entries.get(&ref_to_model_function_name){
+            if let Some(ref_to_model_function) = sil_domain
+                .functions
+                .entries
+                .get(&ref_to_model_function_name)
+            {
                 let sil_ref_domain = ref_to_model_function.get_function_value(&sil_fn_param);
                 let sil_ref_fn_param = vec![sil_ref_domain.clone()];
-                let sil_to_model_fn_name = format!("caller_for$m_{}$$model{}$",to_model, domain_name_wo_snap);
-                if let Some(sil_to_model_fn) = self.silicon_counterexample.functions.entries.get(&sil_to_model_fn_name){
+                let sil_to_model_fn_name =
+                    format!("caller_for$m_{}$$model{}$", to_model, domain_name_wo_snap);
+                if let Some(sil_to_model_fn) = self
+                    .silicon_counterexample
+                    .functions
+                    .entries
+                    .get(&sil_to_model_fn_name)
+                {
                     let sil_model = sil_to_model_fn.get_function_value(&sil_ref_fn_param);
                     let model_typ = self.tcx.type_of(model_id);
-                    let entry = self.translate_snapshot_entry(sil_model.as_ref(), Some(model_typ), false);
-                    return entry
+                    let entry =
+                        self.translate_snapshot_entry(sil_model.as_ref(), Some(model_typ), false);
+                    return entry;
                 }
-            } 
+            }
         }
         Entry::Unknown
     }

@@ -32,6 +32,4 @@ mod typed;
 mod middle;
 mod purifier;
 pub mod counterexamples;
-
-
 mod definition_collector;

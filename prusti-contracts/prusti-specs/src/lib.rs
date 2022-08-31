@@ -594,81 +594,80 @@ pub fn trusted(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     // `#[trusted]` can be applied to both types and to methods, figure out
     // which one by trying to parse a `DeriveInput`.
     if syn::parse2::<syn::DeriveInput>(tokens.clone()).is_ok() {
-        rewrite_prusti_attributes_for_types(SpecAttributeKind::Trusted, attr, tokens)
-        // // TODO: reduce duplication with `invariant`
-        // let mut rewriter = rewriter::AstRewriter::new();
-        // let spec_id = rewriter.generate_spec_id();
-        // let spec_id_str = spec_id.to_string();
+        // TODO: reduce duplication with `invariant`
+        let mut rewriter = rewriter::AstRewriter::new();
+        let spec_id = rewriter.generate_spec_id();
+        let spec_id_str = spec_id.to_string();
 
-        // let item: syn::DeriveInput = handle_result!(syn::parse2(tokens));
-        // let item_span = item.span();
-        // let item_ident = item.ident.clone();
-        // let item_name = syn::Ident::new(
-        //     &format!("prusti_trusted_item_{}_{}", item_ident, spec_id),
-        //     item_span,
-        // );
+        let item: syn::DeriveInput = handle_result!(syn::parse2(tokens));
+        let item_span = item.span();
+        let item_ident = item.ident.clone();
+        let item_name = syn::Ident::new(
+            &format!("prusti_trusted_item_{}_{}", item_ident, spec_id),
+            item_span,
+        );
 
-        // let spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
-        //     #[allow(unused_variables, dead_code, non_snake_case)]
-        //     #[prusti::spec_only]
-        //     #[prusti::trusted_type]
-        //     #[prusti::spec_id = #spec_id_str]
-        //     fn #item_name(self) {}
-        // };
+        let spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
+            #[allow(unused_variables, dead_code, non_snake_case)]
+            #[prusti::spec_only]
+            #[prusti::trusted_type]
+            #[prusti::spec_id = #spec_id_str]
+            fn #item_name(self) {}
+        };
 
-        // let generics = &item.generics;
-        // let generics_idents = generics
-        //     .params
-        //     .iter()
-        //     .map(|generic_param| match generic_param {
-        //         syn::GenericParam::Type(param) => {
-        //             syn::GenericParam::Type(
-        //                 syn::TypeParam {
-        //                     attrs: Vec::new(),
-        //                     bounds: syn::punctuated::Punctuated::new(),
-        //                     colon_token: None,
-        //                     default: None,
-        //                     eq_token: None,
-        //                     ident: param.ident.clone(),
-        //                 }
-        //             )
-        //         },
-        //         syn::GenericParam::Lifetime(param) => {
-        //             syn::GenericParam::Lifetime(
-        //                 syn::LifetimeDef {
-        //                     attrs: Vec::new(),
-        //                     bounds: syn::punctuated::Punctuated::new(),
-        //                     colon_token: None,
-        //                     lifetime: param.lifetime.clone(),
-        //                 }
-        //             )
-        //         },
-        //         syn::GenericParam::Const(param) => {
-        //             syn::GenericParam::Const(
-        //                 syn::ConstParam {
-        //                     attrs: Vec::new(),
-        //                     colon_token: param.colon_token,
-        //                     const_token: param.const_token,
-        //                     default: None,
-        //                     eq_token: None,
-        //                     ident: param.ident.clone(),
-        //                     ty: param.ty.clone(),
-        //                 }
-        //             )
-        //         }
-        //     })
-        //     .collect::<syn::punctuated::Punctuated<_, syn::Token![,]>>();
-        // // TODO: similarly to extern_specs, don't generate an actual impl
-        // let item_impl: syn::ItemImpl = parse_quote_spanned! {item_span=>
-        //     impl #generics #item_ident <#generics_idents> {
-        //         #spec_item
-        //     }
-        // };
-        // quote_spanned! { item_span =>
-        //     #[prusti::specs_version = #SPECS_VERSION]
-        //     #item
-        //     #item_impl
-        // }
+        let generics = &item.generics;
+        let generics_idents = generics
+            .params
+            .iter()
+            .map(|generic_param| match generic_param {
+                syn::GenericParam::Type(param) => {
+                    syn::GenericParam::Type(
+                        syn::TypeParam {
+                            attrs: Vec::new(),
+                            bounds: syn::punctuated::Punctuated::new(),
+                            colon_token: None,
+                            default: None,
+                            eq_token: None,
+                            ident: param.ident.clone(),
+                        }
+                    )
+                },
+                syn::GenericParam::Lifetime(param) => {
+                    syn::GenericParam::Lifetime(
+                        syn::LifetimeDef {
+                            attrs: Vec::new(),
+                            bounds: syn::punctuated::Punctuated::new(),
+                            colon_token: None,
+                            lifetime: param.lifetime.clone(),
+                        }
+                    )
+                },
+                syn::GenericParam::Const(param) => {
+                    syn::GenericParam::Const(
+                        syn::ConstParam {
+                            attrs: Vec::new(),
+                            colon_token: param.colon_token,
+                            const_token: param.const_token,
+                            default: None,
+                            eq_token: None,
+                            ident: param.ident.clone(),
+                            ty: param.ty.clone(),
+                        }
+                    )
+                }
+            })
+            .collect::<syn::punctuated::Punctuated<_, syn::Token![,]>>();
+        // TODO: similarly to extern_specs, don't generate an actual impl
+        let item_impl: syn::ItemImpl = parse_quote_spanned! {item_span=>
+            impl #generics #item_ident <#generics_idents> {
+                #spec_item
+            }
+        };
+        quote_spanned! { item_span =>
+            #[prusti::specs_version = #SPECS_VERSION]
+            #item
+            #item_impl
+        }
     } else {
         rewrite_prusti_attributes(SpecAttributeKind::Trusted, attr, tokens)
     }
