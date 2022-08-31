@@ -6,9 +6,9 @@
 //! that is used to show that the lifetime that the client provided is indeed
 //! `'tcx`.
 
-use prusti_rustc_interface::hir::def_id::LocalDefId;
-use prusti_rustc_interface::middle::ty::TyCtxt;
-use prusti_rustc_interface::borrowck::BodyWithBorrowckFacts;
+use prusti_rustc_interface::{
+    borrowck::BodyWithBorrowckFacts, hir::def_id::LocalDefId, middle::ty::TyCtxt,
+};
 use std::{cell::RefCell, collections::HashMap, thread_local};
 
 thread_local! {

@@ -18,7 +18,7 @@ pub fn validate<'tcx>(
 
     let mut seen_points = FxHashSet::default();
 
-    for (block, data) in body.basic_blocks().iter_enumerated() {
+    for (block, data) in body.basic_blocks.iter_enumerated() {
         let mut location = mir::Location {
             block,
             statement_index: 0,

@@ -17,11 +17,11 @@ pub struct RealEdges {
 impl RealEdges {
     pub fn new(body: &mir::Body) -> Self {
         let mut successors: IndexVec<_, Vec<_>> =
-            body.basic_blocks().iter().map(|_| Vec::new()).collect();
+            body.basic_blocks.iter().map(|_| Vec::new()).collect();
         let mut predecessors: IndexVec<_, Vec<_>> =
-            body.basic_blocks().iter().map(|_| Vec::new()).collect();
+            body.basic_blocks.iter().map(|_| Vec::new()).collect();
 
-        for (bb, bb_data) in body.basic_blocks().iter_enumerated() {
+        for (bb, bb_data) in body.basic_blocks.iter_enumerated() {
             let targets = real_targets(bb_data.terminator());
             for &target in &targets {
                 successors[bb].push(target);

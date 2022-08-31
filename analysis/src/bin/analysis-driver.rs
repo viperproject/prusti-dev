@@ -51,7 +51,7 @@ fn get_attribute<'tcx>(
     get_attributes(tcx, def_id)
         .iter()
         .find(|attr| match &attr.kind {
-            ast::AttrKind::Normal(
+            ast::AttrKind::Normal(normal_attr) => match &normal_attr.item {
                 ast::AttrItem {
                     path:
                         ast::Path {
@@ -61,13 +61,13 @@ fn get_attribute<'tcx>(
                         },
                     args: ast::MacArgs::Empty,
                     tokens: _,
-                },
-                _,
-            ) => {
-                segments.len() == 2
-                    && segments[0].ident.as_str() == segment1
-                    && segments[1].ident.as_str() == segment2
-            }
+                } => {
+                    segments.len() == 2
+                        && segments[0].ident.as_str() == segment1
+                        && segments[1].ident.as_str() == segment2
+                }
+                _ => false,
+            },
             _ => false,
         })
 }

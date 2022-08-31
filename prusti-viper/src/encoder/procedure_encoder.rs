@@ -1291,7 +1291,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         cfg_block: CfgBlockIndex,
     ) -> SpannedEncodingResult<()> {
         debug_assert!(!self.procedure.is_spec_block(bbi));
-        let bb_data = &self.mir.basic_blocks()[bbi];
+        let bb_data = &self.mir.basic_blocks[bbi];
         let statements: &Vec<mir::Statement<'tcx>> = &bb_data.statements;
         for stmt_index in 0..statements.len() {
             trace!("Encode statement {:?}:{}", bbi, stmt_index);
@@ -1319,7 +1319,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         curr_block: CfgBlockIndex,
     ) -> SpannedEncodingResult<MirSuccessor> {
         trace!("Encode terminator of {:?}", bbi);
-        let bb_data = &self.mir.basic_blocks()[bbi];
+        let bb_data = &self.mir.basic_blocks[bbi];
         let location = mir::Location {
             block: bbi,
             statement_index: bb_data.statements.len(),
@@ -5246,7 +5246,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let mut encoded_specs = vec![];
         let mut encoded_spec_spans = vec![];
         for bbi in spec_blocks {
-            for stmt in &self.mir.basic_blocks()[bbi].statements {
+            for stmt in &self.mir.basic_blocks[bbi].statements {
                 if let mir::StatementKind::Assign(box (
                     _,
                     mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, cl_substs), _),
@@ -5450,7 +5450,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         place: Place<'tcx>,
     ) -> EncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
         let mir_encoder = if let Some(location) = location {
-            let block = &self.mir.basic_blocks()[location.block];
+            let block = &self.mir.basic_blocks[location.block];
             assert_eq!(block.statements.len(), location.statement_index, "expected terminator location");
             match &block.terminator().kind {
                 mir::TerminatorKind::Call{ args, destination, .. } => {

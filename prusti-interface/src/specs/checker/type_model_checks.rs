@@ -1,19 +1,21 @@
 use super::common::*;
 use crate::{
-    environment::{Environment, EnvQuery},
+    environment::{EnvQuery, Environment},
     utils::{has_to_model_fn_attr, has_to_model_impl_attr},
     PrustiError,
 };
 use log::debug;
-use rustc_hash::FxHashMap;
-use prusti_rustc_interface::hir::{
-    self as hir,
-    def::{DefKind, Res},
-    intravisit, HirId, QPath, TyKind,
+use prusti_rustc_interface::{
+    errors::MultiSpan,
+    hir::{
+        self as hir,
+        def::{DefKind, Res},
+        intravisit, HirId, QPath, TyKind,
+    },
+    middle::{hir::map::Map, ty::TyCtxt},
+    span::Span,
 };
-use prusti_rustc_interface::middle::{hir::map::Map, ty::TyCtxt};
-use prusti_rustc_interface::span::Span;
-use prusti_rustc_interface::errors::MultiSpan;
+use rustc_hash::FxHashMap;
 
 /// Checks the usage of the `.model()` method (induced by the `#[model]` macro) in non-spec code
 pub struct IllegalModelUsagesChecker;
@@ -148,7 +150,7 @@ struct CollectModelledTypes<'tcx> {
 
 impl<'tcx> intravisit::Visitor<'tcx> for CollectModelledTypes<'tcx> {
     type Map = Map<'tcx>;
-    type NestedFilter =prusti_rustc_interface::middle::hir::nested_filter::All;
+    type NestedFilter = prusti_rustc_interface::middle::hir::nested_filter::All;
 
     fn nested_visit_map(&mut self) -> Self::Map {
         self.env_query.hir()

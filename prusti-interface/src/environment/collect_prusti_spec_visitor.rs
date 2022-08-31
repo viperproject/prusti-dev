@@ -4,17 +4,17 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-
 use crate::environment::Environment;
-use prusti_rustc_interface::hir;
-use prusti_rustc_interface::hir::def_id::DefId;
-use prusti_rustc_interface::hir::intravisit::Visitor;
+use prusti_rustc_interface::{
+    hir,
+    hir::{def_id::DefId, intravisit::Visitor},
+};
 
 use log::trace;
 
-use crate::utils::{has_spec_only_attr, has_extern_spec_attr};
+use crate::utils::{has_extern_spec_attr, has_spec_only_attr};
 
-use super::{EnvQuery, EnvName};
+use super::{EnvName, EnvQuery};
 
 pub struct CollectPrustiSpecVisitor<'tcx> {
     env_query: EnvQuery<'tcx>,
@@ -82,7 +82,10 @@ impl<'tcx> Visitor<'tcx> for CollectPrustiSpecVisitor<'tcx> {
         if let hir::TraitItemKind::Fn(_, hir::TraitFn::Required(_)) = trait_item.kind {
             return;
         }
-        let def_id = self.env_query.as_local_def_id(trait_item.hir_id()).to_def_id();
+        let def_id = self
+            .env_query
+            .as_local_def_id(trait_item.hir_id())
+            .to_def_id();
         let item_def_path = self.env_name.get_item_def_path(def_id);
         trace!("Add {} to result", item_def_path);
         self.result.push(def_id);
@@ -101,7 +104,10 @@ impl<'tcx> Visitor<'tcx> for CollectPrustiSpecVisitor<'tcx> {
             return;
         }
 
-        let def_id = self.env_query.as_local_def_id(impl_item.hir_id()).to_def_id();
+        let def_id = self
+            .env_query
+            .as_local_def_id(impl_item.hir_id())
+            .to_def_id();
         let item_def_path = self.env_name.get_item_def_path(def_id);
         trace!("Add {} to result", item_def_path);
         self.result.push(def_id);

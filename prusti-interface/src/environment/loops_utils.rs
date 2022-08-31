@@ -4,12 +4,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-
 use super::mir_sets::PlaceSet;
 use crate::utils;
+use log::{debug, trace};
 use prusti_rustc_interface::middle::{mir, ty::TyCtxt};
 use std::fmt;
-use log::{debug, trace};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum PermissionKind {
@@ -256,7 +255,11 @@ impl<'a, 'tcx: 'a> PermissionTree<'a, 'tcx> {
                 permission_kind = PermissionKind::ReadNode;
             }
         }
-        Self { mir, tcx, root: node }
+        Self {
+            mir,
+            tcx,
+            root: node,
+        }
     }
 
     /// Add a new place by following the same rules as described in the
@@ -346,7 +349,11 @@ impl<'a, 'tcx: 'a> PermissionTree<'a, 'tcx> {
     }
 
     pub fn get_children(&self, parent_place: mir::Place<'tcx>) -> Vec<mir::Place<'tcx>> {
-        trace!("[enter] get_children self={:?} parent_place={:?}", self, parent_place);
+        trace!(
+            "[enter] get_children self={:?} parent_place={:?}",
+            self,
+            parent_place
+        );
         let mut current_parent_node = &self.root;
         let components = utils::VecPlace::new(self.mir, self.tcx, parent_place);
         let mut component_iter = components.iter();
@@ -463,13 +470,21 @@ impl<'a, 'tcx> PermissionForest<'a, 'tcx> {
                 }
                 if !found {
                     for (actual_place, target_place) in places_to_add {
-                        let tree = PermissionTree::new(mir, tcx, actual_place, target_place, target_type);
+                        let tree =
+                            PermissionTree::new(mir, tcx, actual_place, target_place, target_type);
                         trees.push(tree);
                     }
                 }
             }
         }
-        add_paths(mir, tcx, write_paths, &mut trees, TargetType::WriteNode, all_places);
+        add_paths(
+            mir,
+            tcx,
+            write_paths,
+            &mut trees,
+            TargetType::WriteNode,
+            all_places,
+        );
         add_paths(
             mir,
             tcx,
@@ -478,7 +493,14 @@ impl<'a, 'tcx> PermissionForest<'a, 'tcx> {
             TargetType::WriteContents,
             all_places,
         );
-        add_paths(mir, tcx, read_paths, &mut trees, TargetType::Read, all_places);
+        add_paths(
+            mir,
+            tcx,
+            read_paths,
+            &mut trees,
+            TargetType::Read,
+            all_places,
+        );
         Self { trees }
     }
 

@@ -44,7 +44,7 @@ impl<'mir, 'tcx: 'mir> FixpointEngine<'mir, 'tcx> for DefinitelyAllocatedAnalysi
     fn new_initial(&self) -> Self::State {
         let mut locals_without_explicit_allocation: FxHashSet<_> =
             self.mir.vars_and_temps_iter().collect();
-        for block in self.mir.basic_blocks() {
+        for block in self.mir.basic_blocks.iter() {
             for statement in &block.statements {
                 match statement.kind {
                     mir::StatementKind::StorageLive(local)
