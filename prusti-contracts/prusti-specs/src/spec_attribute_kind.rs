@@ -3,7 +3,8 @@ use std::convert::TryFrom;
 /// This type identifies one of the procedural macro attributes of Prusti
 #[derive(PartialEq, Eq, Copy, Clone, Debug, PartialOrd, Ord)]
 pub enum SpecAttributeKind {
-    /// Model needs to be processed first.
+    /// All type specifications that alter its type must be processed before 
+    /// PrintCounterexample. Currently this only applies to Model. 
     Model = 0,
     Requires = 1,
     Ensures = 2,
