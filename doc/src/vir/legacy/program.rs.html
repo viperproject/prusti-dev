@@ -10,9 +10,65 @@
 <span id="10">10</span>
 <span id="11">11</span>
 <span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::legacy::{<a href="../../../src/vir/legacy/mod.rs.html#12">ast</a>::<span class="kw-2">*</span>, <a href="../../../src/vir/legacy/cfg/method.rs.html#25">cfg::CfgMethod</a>};
 
-<span class="attribute">#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Hash)]
+<span class="attribute">#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Hash, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>Program {
     <span class="kw">pub </span>name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
     <span class="kw">pub </span>domains: Vec&lt;<a href="../../../src/vir/legacy/ast/domain.rs.html#11">Domain</a>&gt;,
@@ -21,6 +77,62 @@
     <span class="kw">pub </span>methods: Vec&lt;<a href="../../../src/vir/legacy/cfg/method.rs.html#25">CfgMethod</a>&gt;,
     <span class="kw">pub </span>functions: Vec&lt;<a href="../../../src/vir/legacy/ast/function.rs.html#11">Function</a>&gt;,
     <span class="kw">pub </span>viper_predicates: Vec&lt;<a href="../../../src/vir/legacy/ast/predicate.rs.html#11">Predicate</a>&gt;,
+}
+
+<span class="kw">impl </span><a href="../../../src/vir/legacy/program.rs.html#4">Program</a> {
+    <span class="doccomment">/// Visit each expression.
+    /// Note: sub-expressions of expressions will not be visited.
+    </span><span class="kw">pub fn </span>visit_expressions&lt;F: FnMut(<span class="kw-2">&amp;</span><a href="../../../src/vir/legacy/ast/expr.rs.html#19">Expr</a>)&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>visitor: F) {
+        <span class="kw">for </span>method <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.methods {
+            method.walk_expressions(<span class="kw-2">&amp;mut </span>visitor);
+        }
+        <span class="kw">for </span>function <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.functions {
+            function.visit_expressions(<span class="kw-2">&amp;mut </span>visitor);
+        }
+        <span class="kw">for </span>predicate <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.viper_predicates {
+            predicate.visit_expressions(<span class="kw-2">&amp;mut </span>visitor);
+        }
+    }
+
+    <span class="doccomment">/// Mutably visit each expression.
+    /// Note: sub-expressions of expressions will not be visited.
+    </span><span class="kw">pub fn </span>visit_expressions_mut&lt;F: FnMut(<span class="kw-2">&amp;mut </span><a href="../../../src/vir/legacy/ast/expr.rs.html#19">Expr</a>)&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>visitor: F) {
+        <span class="kw">for </span>method <span class="kw">in </span><span class="self">self</span>.methods.iter_mut() {
+            method.walk_expressions_mut(<span class="kw-2">&amp;mut </span>visitor);
+        }
+        <span class="kw">for </span>function <span class="kw">in </span><span class="self">self</span>.functions.iter_mut() {
+            function.visit_expressions_mut(<span class="kw-2">&amp;mut </span>visitor);
+        }
+        <span class="kw">for </span>predicate <span class="kw">in </span><span class="self">self</span>.viper_predicates.iter_mut() {
+            predicate.visit_expressions_mut(<span class="kw-2">&amp;mut </span>visitor);
+        }
+    }
+
+    <span class="doccomment">/// Visit each statement.
+    </span><span class="kw">pub fn </span>visit_statements&lt;F: FnMut(<span class="kw-2">&amp;</span><a href="../../../src/vir/legacy/ast/stmt.rs.html#20">Stmt</a>)&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>visitor: F) {
+        <span class="kw">for </span>method <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.methods {
+            method.walk_statements(<span class="kw-2">&amp;mut </span>visitor);
+        }
+    }
+
+    <span class="doccomment">/// Mutably visit each statement.
+    </span><span class="kw">pub fn </span>visit_statements_mut&lt;F: FnMut(<span class="kw-2">&amp;mut </span><a href="../../../src/vir/legacy/ast/stmt.rs.html#20">Stmt</a>)&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>visitor: F) {
+        <span class="kw">for </span>method <span class="kw">in </span><span class="self">self</span>.methods.iter_mut() {
+            method.walk_statements_mut(<span class="kw-2">&amp;mut </span>visitor);
+        }
+    }
+
+    <span class="doccomment">/// Visit each position.
+    </span><span class="kw">pub fn </span>visit_positions&lt;F: FnMut(<span class="kw-2">&amp;</span><a href="../../../src/vir/legacy/ast/common.rs.html#19">Position</a>)&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>visitor: F) {
+        <a class="self" href="../../../src/vir/legacy/program.rs.html#58">self</a>.<a href="../../../src/vir/legacy/program.rs.html#17">visit_expressions</a>(|e| <a href="../../../src/vir/legacy/program.rs.html#59">e</a>.<a href="../../../src/vir/legacy/ast/expr_transformers.rs.html#69">visit_positions</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/vir/legacy/program.rs.html#58">visitor</a>));
+        <a class="self" href="../../../src/vir/legacy/program.rs.html#58">self</a>.<a href="../../../src/vir/legacy/program.rs.html#44">visit_statements</a>(|s| <a href="../../../src/vir/legacy/program.rs.html#60">s</a>.<a href="../../../src/vir/legacy/ast/stmt.rs.html#347">visit_positions</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/vir/legacy/program.rs.html#58">visitor</a>));
+    }
+
+    <span class="doccomment">/// Mutably visit each position.
+    </span><span class="kw">pub fn </span>visit_positions_mut&lt;F: FnMut(<span class="kw-2">&amp;mut </span><a href="../../../src/vir/legacy/ast/common.rs.html#19">Position</a>)&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>visitor: F) {
+        <a class="self" href="../../../src/vir/legacy/program.rs.html#64">self</a>.<a href="../../../src/vir/legacy/program.rs.html#31">visit_expressions_mut</a>(|e| <a href="../../../src/vir/legacy/program.rs.html#65">e</a>.<a href="../../../src/vir/legacy/ast/expr_transformers.rs.html#82">visit_positions_mut</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/vir/legacy/program.rs.html#64">visitor</a>));
+        <a class="self" href="../../../src/vir/legacy/program.rs.html#64">self</a>.<a href="../../../src/vir/legacy/program.rs.html#51">visit_statements_mut</a>(|s| <a href="../../../src/vir/legacy/program.rs.html#66">s</a>.<a href="../../../src/vir/legacy/ast/stmt.rs.html#362">visit_positions_mut</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/vir/legacy/program.rs.html#64">visitor</a>));
+    }
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="vir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

@@ -134,34 +134,34 @@
 </span><span class="doccomment">//! Various utility methods for working with VIR.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::legacy::{
-    <a class="self" href="../../../src/vir/lib.rs.html#19">self</a>, <a href="../../../src/vir/legacy/mod.rs.html#12">ast</a>::<span class="kw-2">*</span>, <a href="../../../src/vir/legacy/mod.rs.html#14">cfg</a>, <a href="../../../src/vir/legacy/cfg/method.rs.html#25">CfgMethod</a>, <a href="../../../src/vir/legacy/ast/expr_transformers.rs.html#68">ExprFolder</a>, <a href="../../../src/vir/legacy/ast/expr_transformers.rs.html#310">ExprWalker</a>, <a href="../../../src/vir/legacy/ast/stmt.rs.html#480">FallibleStmtFolder</a>, <a href="../../../src/vir/legacy/ast/function.rs.html#11">Function</a>, <a href="../../../src/vir/legacy/ast/stmt.rs.html#334">StmtFolder</a>,
-    <a href="../../../src/vir/legacy/ast/stmt.rs.html#674">StmtWalker</a>,
+    <a class="self" href="../../../src/vir/lib.rs.html#19">self</a>, <a href="../../../src/vir/legacy/mod.rs.html#12">ast</a>::<span class="kw-2">*</span>, <a href="../../../src/vir/legacy/mod.rs.html#14">cfg</a>, <a href="../../../src/vir/legacy/cfg/method.rs.html#25">CfgMethod</a>, <a href="../../../src/vir/legacy/ast/expr_transformers.rs.html#97">ExprFolder</a>, <a href="../../../src/vir/legacy/ast/expr_transformers.rs.html#384">ExprWalker</a>, <a href="../../../src/vir/legacy/ast/stmt.rs.html#522">FallibleStmtFolder</a>, <a href="../../../src/vir/legacy/ast/function.rs.html#11">Function</a>, <a href="../../../src/vir/legacy/ast/stmt.rs.html#376">StmtFolder</a>,
+    <a href="../../../src/vir/legacy/ast/stmt.rs.html#716">StmtWalker</a>,
 };
 <span class="kw">use </span><a href="../../../log/macro.trace.html">log::trace</a>;
 
 <span class="doccomment">/// Substitute (map) expressions in a statement
-</span><span class="kw">impl </span><a href="../../../src/vir/legacy/ast/stmt.rs.html#19">Stmt</a> {
+</span><span class="kw">impl </span><a href="../../../src/vir/legacy/ast/stmt.rs.html#20">Stmt</a> {
     <span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>map_expr&lt;F&gt;(<span class="self">self</span>, substitutor: F) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>F: Fn(<a href="../../../src/vir/legacy/ast/expr.rs.html#19">Expr</a>) -&gt; <a href="../../../src/vir/legacy/ast/expr.rs.html#19">Expr</a>,
+        </span>F: FnMut(<a href="../../../src/vir/legacy/ast/expr.rs.html#19">Expr</a>) -&gt; <a href="../../../src/vir/legacy/ast/expr.rs.html#19">Expr</a>,
     {
         <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Stmt::map_expr {}&quot;</span>, <span class="self">self</span>);
         <span class="kw">struct </span>StmtExprSubstitutor&lt;T&gt;
         <span class="kw">where
-            </span>T: Fn(<a href="../../../src/vir/legacy/ast/expr.rs.html#19">Expr</a>) -&gt; <a href="../../../src/vir/legacy/ast/expr.rs.html#19">Expr</a>,
+            </span>T: FnMut(<a href="../../../src/vir/legacy/ast/expr.rs.html#19">Expr</a>) -&gt; <a href="../../../src/vir/legacy/ast/expr.rs.html#19">Expr</a>,
         {
             substitutor: T,
         }
-        <span class="kw">impl</span>&lt;T&gt; <a href="../../../src/vir/legacy/ast/stmt.rs.html#334">StmtFolder</a> <span class="kw">for </span>StmtExprSubstitutor&lt;T&gt;
+        <span class="kw">impl</span>&lt;T&gt; <a href="../../../src/vir/legacy/ast/stmt.rs.html#376">StmtFolder</a> <span class="kw">for </span>StmtExprSubstitutor&lt;T&gt;
         <span class="kw">where
-            </span>T: Fn(<a href="../../../src/vir/legacy/ast/expr.rs.html#19">Expr</a>) -&gt; <a href="../../../src/vir/legacy/ast/expr.rs.html#19">Expr</a>,
+            </span>T: FnMut(<a href="../../../src/vir/legacy/ast/expr.rs.html#19">Expr</a>) -&gt; <a href="../../../src/vir/legacy/ast/expr.rs.html#19">Expr</a>,
         {
             <span class="kw">fn </span>fold_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: <a href="../../../src/vir/legacy/ast/expr.rs.html#19">Expr</a>) -&gt; <a href="../../../src/vir/legacy/ast/expr.rs.html#19">Expr</a> {
                 (<a class="self" href="../../../src/vir/legacy/utils.rs.html#33">self</a>.substitutor)(<a href="../../../src/vir/legacy/utils.rs.html#33">e</a>)
             }
         }
-        <a href="../../../src/vir/legacy/utils.rs.html#23">StmtExprSubstitutor</a> { <a href="../../../src/vir/legacy/utils.rs.html#18">substitutor</a> }.<a href="../../../src/vir/legacy/ast/stmt.rs.html#335">fold</a>(<a class="self" href="../../../src/vir/legacy/utils.rs.html#18">self</a>)
+        <a href="../../../src/vir/legacy/utils.rs.html#23">StmtExprSubstitutor</a> { <a href="../../../src/vir/legacy/utils.rs.html#18">substitutor</a> }.<a href="../../../src/vir/legacy/ast/stmt.rs.html#377">fold</a>(<a class="self" href="../../../src/vir/legacy/utils.rs.html#18">self</a>)
     }
 
     <span class="kw">pub fn </span>fallible_map_expr&lt;F, E&gt;(<span class="self">self</span>, substitutor: F) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, E&gt;
@@ -175,7 +175,7 @@
         {
             substitutor: T,
         }
-        <span class="kw">impl</span>&lt;T, U&gt; <a href="../../../src/vir/legacy/ast/stmt.rs.html#480">FallibleStmtFolder</a> <span class="kw">for </span>StmtExprSubstitutor&lt;T, U&gt;
+        <span class="kw">impl</span>&lt;T, U&gt; <a href="../../../src/vir/legacy/ast/stmt.rs.html#522">FallibleStmtFolder</a> <span class="kw">for </span>StmtExprSubstitutor&lt;T, U&gt;
         <span class="kw">where
             </span>T: Fn(<a href="../../../src/vir/legacy/ast/expr.rs.html#19">Expr</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../src/vir/legacy/ast/expr.rs.html#19">Expr</a>, U&gt;,
         {
@@ -185,7 +185,7 @@
                 (<a class="self" href="../../../src/vir/legacy/utils.rs.html#57">self</a>.substitutor)(<a href="../../../src/vir/legacy/utils.rs.html#57">e</a>)
             }
         }
-        <a href="../../../src/vir/legacy/utils.rs.html#45">StmtExprSubstitutor</a> { <a href="../../../src/vir/legacy/utils.rs.html#40">substitutor</a> }.<a href="../../../src/vir/legacy/ast/stmt.rs.html#483">fallible_fold</a>(<a class="self" href="../../../src/vir/legacy/utils.rs.html#40">self</a>)
+        <a href="../../../src/vir/legacy/utils.rs.html#45">StmtExprSubstitutor</a> { <a href="../../../src/vir/legacy/utils.rs.html#40">substitutor</a> }.<a href="../../../src/vir/legacy/ast/stmt.rs.html#525">fallible_fold</a>(<a class="self" href="../../../src/vir/legacy/utils.rs.html#40">self</a>)
     }
 }
 
@@ -203,7 +203,7 @@
         {
             substitutor: T,
         }
-        <span class="kw">impl</span>&lt;T&gt; <a href="../../../src/vir/legacy/ast/expr_transformers.rs.html#68">ExprFolder</a> <span class="kw">for </span>ExprLabelSubstitutor&lt;T&gt;
+        <span class="kw">impl</span>&lt;T&gt; <a href="../../../src/vir/legacy/ast/expr_transformers.rs.html#97">ExprFolder</a> <span class="kw">for </span>ExprLabelSubstitutor&lt;T&gt;
         <span class="kw">where
             </span>T: Fn(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
         {
@@ -211,22 +211,22 @@
                 <a href="../../../src/vir/legacy/ast/expr.rs.html#28">Expr::LabelledOld</a>((<a class="self" href="../../../src/vir/legacy/utils.rs.html#83">self</a>.substitutor)(<a href="../../../src/vir/legacy/utils.rs.html#83">x</a>), <a href="../../../src/vir/legacy/utils.rs.html#83">y</a>, <a href="../../../src/vir/legacy/utils.rs.html#83">p</a>)
             }
         }
-        <a href="../../../src/vir/legacy/utils.rs.html#73">ExprLabelSubstitutor</a> { <a href="../../../src/vir/legacy/utils.rs.html#68">substitutor</a> }.<a href="../../../src/vir/legacy/ast/expr_transformers.rs.html#69">fold</a>(<a class="self" href="../../../src/vir/legacy/utils.rs.html#68">self</a>)
+        <a href="../../../src/vir/legacy/utils.rs.html#73">ExprLabelSubstitutor</a> { <a href="../../../src/vir/legacy/utils.rs.html#68">substitutor</a> }.<a href="../../../src/vir/legacy/ast/expr_transformers.rs.html#98">fold</a>(<a class="self" href="../../../src/vir/legacy/utils.rs.html#68">self</a>)
     }
 }
 
 <span class="doccomment">/// Walks all Statements and Expressions in the provided methods
-</span><span class="kw">pub fn </span>walk_methods(methods: <span class="kw-2">&amp;</span>[<a href="../../../src/vir/legacy/cfg/method.rs.html#25">CfgMethod</a>], walker: <span class="kw-2">&amp;mut </span>(<span class="kw">impl </span><a href="../../../src/vir/legacy/ast/stmt.rs.html#674">StmtWalker</a> + <a href="../../../src/vir/legacy/ast/expr_transformers.rs.html#310">ExprWalker</a>)) {
+</span><span class="kw">pub fn </span>walk_methods(methods: <span class="kw-2">&amp;</span>[<a href="../../../src/vir/legacy/cfg/method.rs.html#25">CfgMethod</a>], walker: <span class="kw-2">&amp;mut </span>(<span class="kw">impl </span><a href="../../../src/vir/legacy/ast/stmt.rs.html#716">StmtWalker</a> + <a href="../../../src/vir/legacy/ast/expr_transformers.rs.html#384">ExprWalker</a>)) {
     <span class="kw">for </span>method <span class="kw">in </span>methods {
         walk_method(method, walker);
     }
 }
 
-<span class="kw">pub fn </span>walk_method(method: <span class="kw-2">&amp;</span><a href="../../../src/vir/legacy/cfg/method.rs.html#25">CfgMethod</a>, walker: <span class="kw-2">&amp;mut </span>(<span class="kw">impl </span><a href="../../../src/vir/legacy/ast/stmt.rs.html#674">StmtWalker</a> + <a href="../../../src/vir/legacy/ast/expr_transformers.rs.html#310">ExprWalker</a>)) {
+<span class="kw">pub fn </span>walk_method(method: <span class="kw-2">&amp;</span><a href="../../../src/vir/legacy/cfg/method.rs.html#25">CfgMethod</a>, walker: <span class="kw-2">&amp;mut </span>(<span class="kw">impl </span><a href="../../../src/vir/legacy/ast/stmt.rs.html#716">StmtWalker</a> + <a href="../../../src/vir/legacy/ast/expr_transformers.rs.html#384">ExprWalker</a>)) {
     <a href="../../../src/vir/legacy/utils.rs.html#98">method</a>.<a href="../../../src/vir/legacy/cfg/visitor.rs.html#63">walk_statements</a>(|stmt| {
-        <a href="../../../src/vir/legacy/ast/stmt.rs.html#675">StmtWalker::walk</a>(<a href="../../../src/vir/legacy/utils.rs.html#98">walker</a>, <a href="../../../src/vir/legacy/utils.rs.html#99">stmt</a>);
+        <a href="../../../src/vir/legacy/ast/stmt.rs.html#717">StmtWalker::walk</a>(<a href="../../../src/vir/legacy/utils.rs.html#98">walker</a>, <a href="../../../src/vir/legacy/utils.rs.html#99">stmt</a>);
     });
-    <a href="../../../src/vir/legacy/utils.rs.html#98">method</a>.<a href="../../../src/vir/legacy/cfg/visitor.rs.html#86">walk_successors</a>(|successor| <span class="kw">match </span><a href="../../../src/vir/legacy/utils.rs.html#102">successor</a> {
+    <a href="../../../src/vir/legacy/utils.rs.html#98">method</a>.<a href="../../../src/vir/legacy/cfg/visitor.rs.html#94">walk_successors</a>(|successor| <span class="kw">match </span><a href="../../../src/vir/legacy/utils.rs.html#102">successor</a> {
         <a href="../../../src/vir/legacy/cfg/method.rs.html#45">cfg::Successor::Undefined</a> | <a href="../../../src/vir/legacy/cfg/method.rs.html#46">cfg::Successor::Return</a> | <a href="../../../src/vir/legacy/cfg/method.rs.html#47">cfg::Successor::Goto</a>(<span class="kw">_</span>) =&gt; {}
         <a href="../../../src/vir/legacy/cfg/method.rs.html#48">cfg::Successor::GotoSwitch</a>(conditional_targets, <span class="kw">_</span>) =&gt; {
             <span class="kw">for </span>(expr, <span class="kw">_</span>) <span class="kw">in </span>conditional_targets {
@@ -237,7 +237,7 @@
 }
 
 <span class="doccomment">/// Walks all Expressions in the provided functions (including pre and post conditions)
-</span><span class="kw">pub fn </span>walk_functions(functions: <span class="kw-2">&amp;</span>[<a href="../../../src/vir/legacy/ast/function.rs.html#11">Function</a>], walker: <span class="kw-2">&amp;mut </span><span class="kw">impl </span><a href="../../../src/vir/legacy/ast/expr_transformers.rs.html#310">ExprWalker</a>) {
+</span><span class="kw">pub fn </span>walk_functions(functions: <span class="kw-2">&amp;</span>[<a href="../../../src/vir/legacy/ast/function.rs.html#11">Function</a>], walker: <span class="kw-2">&amp;mut </span><span class="kw">impl </span><a href="../../../src/vir/legacy/ast/expr_transformers.rs.html#384">ExprWalker</a>) {
     <span class="kw">for </span>function <span class="kw">in </span>functions {
         <span class="kw">for </span>e <span class="kw">in </span><span class="kw-2">&amp;</span>function.pres {
             ExprWalker::walk(walker, e);

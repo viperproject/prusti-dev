@@ -120,6 +120,40 @@
 <span id="120">120</span>
 <span id="121">121</span>
 <span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -182,7 +216,7 @@
 }
 
 <span class="kw">impl </span><a href="../../../../src/vir/legacy/cfg/method.rs.html#25">CfgMethod</a> {
-    <span class="kw">pub fn </span>walk_statements&lt;F: FnMut(<span class="kw-2">&amp;</span><a href="../../../../src/vir/legacy/ast/stmt.rs.html#19">Stmt</a>)&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>walker: F) {
+    <span class="kw">pub fn </span>walk_statements&lt;F: FnMut(<span class="kw-2">&amp;</span><a href="../../../../src/vir/legacy/ast/stmt.rs.html#20">Stmt</a>)&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>walker: F) {
         <span class="kw">for </span>block <span class="kw">in </span><span class="self">self</span>.basic_blocks.iter() {
             <span class="kw">for </span>stmt <span class="kw">in </span>block.stmts.iter() {
                 walker(stmt);
@@ -190,8 +224,16 @@
         }
     }
 
+    <span class="kw">pub fn </span>walk_statements_mut&lt;F: FnMut(<span class="kw-2">&amp;mut </span><a href="../../../../src/vir/legacy/ast/stmt.rs.html#20">Stmt</a>)&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>walker: F) {
+        <span class="kw">for </span>block <span class="kw">in </span><span class="self">self</span>.basic_blocks.iter_mut() {
+            <span class="kw">for </span>stmt <span class="kw">in </span>block.stmts.iter_mut() {
+                walker(stmt);
+            }
+        }
+    }
+
     <span class="comment">// TODO: maybe just let basic_blocks be public and modify those directly?
-    </span><span class="kw">pub fn </span>patch_statements&lt;E, F: FnMut(<a href="../../../../src/vir/legacy/ast/stmt.rs.html#19">Stmt</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../../src/vir/legacy/ast/stmt.rs.html#19">Stmt</a>, E&gt;&gt;(
+    </span><span class="kw">pub fn </span>patch_statements&lt;E, F: FnMut(<a href="../../../../src/vir/legacy/ast/stmt.rs.html#20">Stmt</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../../src/vir/legacy/ast/stmt.rs.html#20">Stmt</a>, E&gt;&gt;(
         <span class="kw-2">mut </span><span class="self">self</span>,
         <span class="kw-2">mut </span>walker: F,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, E&gt; {
@@ -202,12 +244,18 @@
                 .map(<span class="kw-2">&amp;mut </span>walker)
                 .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, <span class="kw">_</span>&gt;&gt;()<span class="question-mark">?</span>;
         }
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../../src/vir/legacy/cfg/visitor.rs.html#73">self</a>)
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../../../src/vir/legacy/cfg/visitor.rs.html#81">self</a>)
     }
 
     <span class="kw">pub fn </span>walk_successors&lt;F: FnMut(<span class="kw-2">&amp;</span><a href="../../../../src/vir/legacy/cfg/method.rs.html#44">Successor</a>)&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>walker: F) {
         <span class="kw">for </span>block <span class="kw">in </span><span class="self">self</span>.basic_blocks.iter() {
             walker(<span class="kw-2">&amp;</span>block.successor);
+        }
+    }
+
+    <span class="kw">pub fn </span>walk_successors_mut&lt;F: FnMut(<span class="kw-2">&amp;mut </span><a href="../../../../src/vir/legacy/cfg/method.rs.html#44">Successor</a>)&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>walker: F) {
+        <span class="kw">for </span>block <span class="kw">in </span><span class="self">self</span>.basic_blocks.iter_mut() {
+            walker(<span class="kw-2">&amp;mut </span>block.successor);
         }
     }
 
@@ -217,17 +265,17 @@
         <span class="kw">struct </span>ExprStmtWalker&lt;<span class="lifetime">&#39;a</span>, T: FnMut(<span class="kw-2">&amp;</span><a href="../../../../src/vir/legacy/ast/expr.rs.html#19">Expr</a>)&gt; {
             walker: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T,
         }
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: FnMut(<span class="kw-2">&amp;</span><a href="../../../../src/vir/legacy/ast/expr.rs.html#19">Expr</a>)&gt; <a href="../../../../src/vir/legacy/ast/stmt.rs.html#674">StmtWalker</a> <span class="kw">for </span>ExprStmtWalker&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: FnMut(<span class="kw-2">&amp;</span><a href="../../../../src/vir/legacy/ast/expr.rs.html#19">Expr</a>)&gt; <a href="../../../../src/vir/legacy/ast/stmt.rs.html#716">StmtWalker</a> <span class="kw">for </span>ExprStmtWalker&lt;<span class="lifetime">&#39;a</span>, T&gt; {
             <span class="kw">fn </span>walk_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span><a href="../../../../src/vir/legacy/ast/expr.rs.html#19">Expr</a>) {
-                (<a class="self" href="../../../../src/vir/legacy/cfg/visitor.rs.html#99">self</a>.walker)(<a href="../../../../src/vir/legacy/cfg/visitor.rs.html#99">expr</a>);
+                (<a class="self" href="../../../../src/vir/legacy/cfg/visitor.rs.html#113">self</a>.walker)(<a href="../../../../src/vir/legacy/cfg/visitor.rs.html#113">expr</a>);
             }
         }
-        <span class="kw">let </span><span class="kw-2">mut </span>stmt_walker = <a href="../../../../src/vir/legacy/cfg/visitor.rs.html#95">ExprStmtWalker</a> {
-            walker: <span class="kw-2">&amp;mut </span><a href="../../../../src/vir/legacy/cfg/visitor.rs.html#94">walker</a>,
+        <span class="kw">let </span><span class="kw-2">mut </span>stmt_walker = <a href="../../../../src/vir/legacy/cfg/visitor.rs.html#109">ExprStmtWalker</a> {
+            walker: <span class="kw-2">&amp;mut </span><a href="../../../../src/vir/legacy/cfg/visitor.rs.html#108">walker</a>,
         };
-        <a class="self" href="../../../../src/vir/legacy/cfg/visitor.rs.html#94">self</a>.<a href="../../../../src/vir/legacy/cfg/visitor.rs.html#63">walk_statements</a>(|stmt| <a href="../../../../src/vir/legacy/cfg/visitor.rs.html#103">stmt_walker</a>.<a href="../../../../src/vir/legacy/ast/stmt.rs.html#675">walk</a>(<a href="../../../../src/vir/legacy/cfg/visitor.rs.html#106">stmt</a>));
-        <a class="self" href="../../../../src/vir/legacy/cfg/visitor.rs.html#94">self</a>.<a href="../../../../src/vir/legacy/cfg/visitor.rs.html#86">walk_successors</a>(|succ| {
-            <span class="kw">if let </span><a href="../../../../src/vir/legacy/cfg/method.rs.html#48">Successor::GotoSwitch</a>(targets, <span class="kw">_</span>) = <a href="../../../../src/vir/legacy/cfg/visitor.rs.html#107">succ</a> {
+        <a class="self" href="../../../../src/vir/legacy/cfg/visitor.rs.html#108">self</a>.<a href="../../../../src/vir/legacy/cfg/visitor.rs.html#63">walk_statements</a>(|stmt| <a href="../../../../src/vir/legacy/cfg/visitor.rs.html#117">stmt_walker</a>.<a href="../../../../src/vir/legacy/ast/stmt.rs.html#717">walk</a>(<a href="../../../../src/vir/legacy/cfg/visitor.rs.html#120">stmt</a>));
+        <a class="self" href="../../../../src/vir/legacy/cfg/visitor.rs.html#108">self</a>.<a href="../../../../src/vir/legacy/cfg/visitor.rs.html#94">walk_successors</a>(|succ| {
+            <span class="kw">if let </span><a href="../../../../src/vir/legacy/cfg/method.rs.html#48">Successor::GotoSwitch</a>(targets, <span class="kw">_</span>) = <a href="../../../../src/vir/legacy/cfg/visitor.rs.html#121">succ</a> {
                 <span class="kw">for </span>(guard, <span class="kw">_</span>) <span class="kw">in </span>targets {
                     walker(guard);
                 }
@@ -235,8 +283,28 @@
         });
     }
 
+    <span class="doccomment">/// Mutably visit each expression used in a statement or successor.
+    /// Note: sub-expressions of expressions will not be visited.
+    </span><span class="kw">pub fn </span>walk_expressions_mut&lt;F: FnMut(<span class="kw-2">&amp;mut </span><a href="../../../../src/vir/legacy/ast/expr.rs.html#19">Expr</a>)&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>walker: F) {
+        <a class="self" href="../../../../src/vir/legacy/cfg/visitor.rs.html#132">self</a>.<a href="../../../../src/vir/legacy/cfg/visitor.rs.html#71">walk_statements_mut</a>(|s| {
+            <span class="comment">// Replace *s with a dummy statement
+            </span><span class="kw">let </span>stmt = std::mem::replace(<a href="../../../../src/vir/legacy/cfg/visitor.rs.html#133">s</a>, <a href="../../../../src/vir/legacy/ast/stmt.rs.html#23">Stmt::Inhale</a>(<span class="bool-val">true</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()));
+            <span class="kw-2">*</span><a href="../../../../src/vir/legacy/cfg/visitor.rs.html#133">s</a> = <a href="../../../../src/vir/legacy/cfg/visitor.rs.html#135">stmt</a>.<a href="../../../../src/vir/legacy/utils.rs.html#18-20">map_expr</a>(|<span class="kw-2">mut </span>e| {
+                <a href="../../../../src/vir/legacy/cfg/visitor.rs.html#132">walker</a>(<span class="kw-2">&amp;mut </span><a href="../../../../src/vir/legacy/cfg/visitor.rs.html#136">e</a>);
+                <a href="../../../../src/vir/legacy/cfg/visitor.rs.html#136">e</a>
+            });
+        });
+        <a class="self" href="../../../../src/vir/legacy/cfg/visitor.rs.html#132">self</a>.<a href="../../../../src/vir/legacy/cfg/visitor.rs.html#100">walk_successors_mut</a>(|succ| {
+            <span class="kw">if let </span><a href="../../../../src/vir/legacy/cfg/method.rs.html#48">Successor::GotoSwitch</a>(targets, <span class="kw">_</span>) = <a href="../../../../src/vir/legacy/cfg/visitor.rs.html#141">succ</a> {
+                <span class="kw">for </span>(guard, <span class="kw">_</span>) <span class="kw">in </span>targets.iter_mut() {
+                    walker(guard);
+                }
+            }
+        });
+    }
+
     <span class="doccomment">/// Remove all statements `s` such that `f(&amp;s)` returns `false`
-    </span><span class="kw">pub fn </span>retain_stmts&lt;F: Fn(<span class="kw-2">&amp;</span><a href="../../../../src/vir/legacy/ast/stmt.rs.html#19">Stmt</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) {
+    </span><span class="kw">pub fn </span>retain_stmts&lt;F: Fn(<span class="kw-2">&amp;</span><a href="../../../../src/vir/legacy/ast/stmt.rs.html#20">Stmt</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) {
         <span class="kw">for </span>block <span class="kw">in </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.basic_blocks {
             block.stmts.retain(|stmt| f(stmt))
         }

@@ -393,23 +393,23 @@
 <span class="kw">pub const </span>RETURN_LABEL: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> = <span class="string">&quot;end_of_method&quot;</span>;
 
 <span class="attribute">#[derive(Derivative)]
-#[derivative(Hash)]
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derivative(Hash, PartialEq)]
+#[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize)]
 </span><span class="kw">pub struct </span><a href="../../../../src/vir/legacy/cfg/method.rs.html#25">CfgMethod</a> {
-    <span class="attribute">#[derivative(Hash = <span class="string">&quot;ignore&quot;</span>)]
+    <span class="attribute">#[derivative(Hash = <span class="string">&quot;ignore&quot;</span>, PartialEq = <span class="string">&quot;ignore&quot;</span>)]
     </span><span class="kw">pub </span>method_name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
     <span class="kw">pub </span>formal_arg_count: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     <span class="kw">pub </span>formal_returns: Vec&lt;<a href="../../../../src/vir/legacy/ast/common.rs.html#298">LocalVar</a>&gt;,
     <span class="kw">pub </span>local_vars: Vec&lt;<a href="../../../../src/vir/legacy/ast/common.rs.html#298">LocalVar</a>&gt;,
-    <span class="attribute">#[derivative(Hash = <span class="string">&quot;ignore&quot;</span>)]
+    <span class="attribute">#[derivative(Hash = <span class="string">&quot;ignore&quot;</span>, PartialEq = <span class="string">&quot;ignore&quot;</span>)]
     </span><span class="kw">pub </span>labels: HashSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
     <span class="kw">pub </span>basic_blocks: Vec&lt;<a href="../../../../src/vir/legacy/cfg/method.rs.html#38">CfgBlock</a>&gt;,
     <span class="kw">pub </span>basic_blocks_labels: Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
 }
 
-<span class="attribute">#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Hash)]
+<span class="attribute">#[derive(Debug, Clone, Eq, PartialEq, serde::Serialize, serde::Deserialize, Hash)]
 </span><span class="kw">pub struct </span>CfgBlock {
-    <span class="kw">pub </span>stmts: Vec&lt;<a href="../../../../src/vir/legacy/ast/stmt.rs.html#19">Stmt</a>&gt;,
+    <span class="kw">pub </span>stmts: Vec&lt;<a href="../../../../src/vir/legacy/ast/stmt.rs.html#20">Stmt</a>&gt;,
     <span class="kw">pub </span>successor: <a href="../../../../src/vir/legacy/cfg/method.rs.html#44">Successor</a>,
 }
 
@@ -532,7 +532,7 @@
         <a class="self" href="../../../../src/vir/legacy/cfg/method.rs.html#157">self</a>.formal_returns.push(LocalVar::new(<a href="../../../../src/vir/legacy/cfg/method.rs.html#157">name</a>, <a href="../../../../src/vir/legacy/cfg/method.rs.html#157">typ</a>));
     }
 
-    <span class="kw">pub fn </span>add_stmt(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <a href="../../../../src/vir/legacy/cfg/method.rs.html#54">CfgBlockIndex</a>, stmt: <a href="../../../../src/vir/legacy/ast/stmt.rs.html#19">Stmt</a>) {
+    <span class="kw">pub fn </span>add_stmt(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <a href="../../../../src/vir/legacy/cfg/method.rs.html#54">CfgBlockIndex</a>, stmt: <a href="../../../../src/vir/legacy/ast/stmt.rs.html#20">Stmt</a>) {
         <span class="kw">for </span>label_name <span class="kw">in </span>gather_labels(<span class="kw-2">&amp;</span>stmt) {
             <span class="macro">assert!</span>(
                 <span class="self">self</span>.is_fresh_local_name(<span class="kw-2">&amp;</span>label_name),
@@ -544,13 +544,13 @@
         <a class="self" href="../../../../src/vir/legacy/cfg/method.rs.html#162">self</a>.basic_blocks[<a href="../../../../src/vir/legacy/cfg/method.rs.html#162">index</a>.block_index].stmts.push(<a href="../../../../src/vir/legacy/cfg/method.rs.html#162">stmt</a>);
     }
 
-    <span class="kw">pub fn </span>add_stmts(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <a href="../../../../src/vir/legacy/cfg/method.rs.html#54">CfgBlockIndex</a>, stmts: Vec&lt;<a href="../../../../src/vir/legacy/ast/stmt.rs.html#19">Stmt</a>&gt;) {
+    <span class="kw">pub fn </span>add_stmts(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <a href="../../../../src/vir/legacy/cfg/method.rs.html#54">CfgBlockIndex</a>, stmts: Vec&lt;<a href="../../../../src/vir/legacy/ast/stmt.rs.html#20">Stmt</a>&gt;) {
         <span class="kw">for </span>stmt <span class="kw">in </span>stmts {
             <span class="self">self</span>.add_stmt(index, stmt);
         }
     }
 
-    <span class="kw">pub fn </span>add_block(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, stmts: Vec&lt;<a href="../../../../src/vir/legacy/ast/stmt.rs.html#19">Stmt</a>&gt;) -&gt; <a href="../../../../src/vir/legacy/cfg/method.rs.html#54">CfgBlockIndex</a> {
+    <span class="kw">pub fn </span>add_block(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, stmts: Vec&lt;<a href="../../../../src/vir/legacy/ast/stmt.rs.html#20">Stmt</a>&gt;) -&gt; <a href="../../../../src/vir/legacy/cfg/method.rs.html#54">CfgBlockIndex</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(label.chars().take(<span class="number">1</span>).all(|c| c.is_alphabetic() || c == <span class="string">&#39;_&#39;</span>));
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(label
             .chars()
