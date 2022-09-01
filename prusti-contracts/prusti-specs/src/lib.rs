@@ -772,7 +772,7 @@ pub fn rewrite_prusti_attributes_for_types(
         .to_compile_error();
     }
 
-    //we order die attributes to ensure a model attribute is processed first
+    // we order the attributes to ensure a model attribute is processed first
     prusti_attributes.sort_by(|(ak1, _), (ak2, _)| ak1.cmp(ak2));
 
     let (generated_spec_items, generated_attributes) =
