@@ -1,8 +1,9 @@
 #![cfg_attr(not(feature = "prusti"), no_std)]
-use proc_macro::TokenStream;
 
 #[cfg(not(feature = "prusti"))]
 mod private {
+    use proc_macro::TokenStream;
+
     #[proc_macro_attribute]
     pub fn requires(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
         tokens
@@ -86,6 +87,7 @@ mod private {
 
 #[cfg(feature = "prusti")]
 mod private {
+    use proc_macro::TokenStream;
     use prusti_specs::{rewrite_prusti_attributes, SpecAttributeKind};
 
     #[proc_macro_attribute]
