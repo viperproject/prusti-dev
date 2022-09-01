@@ -22,8 +22,8 @@ If an enum is annotated, the macro must not contain any arguments. Each variant 
 #[print_counterexample()]
 enum X {
     #[print_counterexample("Custom message: {}, {}", 0, 1)]
-    variant_1(i32, i32),
+    Variant1(i32, i32),
     #[print_counterexample("Custom message")]
-    variant_2,
+    Variant2,
 }
 ```
