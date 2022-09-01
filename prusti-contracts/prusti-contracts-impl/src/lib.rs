@@ -82,6 +82,6 @@ pub fn ghost(_tokens: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
-pub fn print_counterexample(_attr: TokenStream, _tokens: TokenStream) -> TokenStream {
-    TokenStream::new()
+pub fn print_counterexample(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    tokens
 }

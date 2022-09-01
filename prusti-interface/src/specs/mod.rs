@@ -46,7 +46,7 @@ struct ProcedureSpecRefs {
 struct TypeSpecRefs {
     invariants: Vec<LocalDefId>,
     trusted: bool,
-    has_model: Option<(String, LocalDefId)>,
+    model: Option<(String, LocalDefId)>,
     countexample_print: Vec<(Option<String>, LocalDefId)>,
 }
 
@@ -228,7 +228,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                             .collect(),
                     ),
                     trusted: SpecificationItem::Inherent(refs.trusted),
-                    has_model: refs.has_model.clone(),
+                    model: refs.model.clone(),
                     counterexample_print: refs.countexample_print.clone(),
                 },
             );
@@ -483,7 +483,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
                                 let impl_id = hir.get_parent_node(hir.get_parent_node(self_id));
                                 let type_id = get_type_id_from_impl_node(hir.get(impl_id)).unwrap();
                                 if let Some(local_id) = type_id.as_local() {
-                                    self.type_specs.entry(local_id).or_default().has_model =
+                                    self.type_specs.entry(local_id).or_default().model =
                                         Some((attr, model_ty_id));
                                 }
                             }

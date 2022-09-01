@@ -222,7 +222,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                         if self
                             .encoder
                             .get_type_specs(adt_def.did())
-                            .and_then(|p| p.has_model)
+                            .and_then(|p| p.model)
                             .is_some()
                         {
                             let entry = self.translate_snapshot_entry(model_entry, Some(ty), false); //extract the counterexample of the original type
@@ -422,7 +422,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                     if let Some((to_model, model_id)) = self
                         .encoder
                         .get_type_specs(adt_def.did())
-                        .and_then(|p| p.has_model)
+                        .and_then(|p| p.model)
                     {
                         let entry =
                             self.extract_model(model_entry, domain_name, to_model, model_id);
