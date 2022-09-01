@@ -121,6 +121,26 @@ impl Predicate {
             Predicate::Bodyless(_, _) => None,
         }
     }
+
+    /// Visit each expression.
+    /// Note: sub-expressions of expressions will not be visited.
+    pub fn visit_expressions<F: FnMut(&Expr)>(&self, visitor: F) {
+        match self {
+            Predicate::Struct(p) => p.visit_expressions(visitor),
+            Predicate::Enum(p) => p.visit_expressions(visitor),
+            Predicate::Bodyless(..) => {}
+        }
+    }
+
+    /// Mutably visit each expression.
+    /// Note: sub-expressions of expressions will not be visited.
+    pub fn visit_expressions_mut<F: FnMut(&mut Expr)>(&mut self, visitor: F) {
+        match self {
+            Predicate::Struct(p) => p.visit_expressions_mut(visitor),
+            Predicate::Enum(p) => p.visit_expressions_mut(visitor),
+            Predicate::Bodyless(..) => {}
+        }
+    }
 }
 
 impl WithIdentifier for Predicate {
@@ -192,6 +212,18 @@ impl StructPredicate {
     pub fn has_empty_body(&self) -> bool {
         matches!(self.body, Some(Expr::Const(Const::Bool(true), _)))
     }
+
+    /// Visit each expression.
+    /// Note: sub-expressions of expressions will not be visited.
+    pub fn visit_expressions<F: FnMut(&Expr)>(&self, visitor: F) {
+        self.body.iter().for_each(visitor);
+    }
+
+    /// Mutably visit each expression.
+    /// Note: sub-expressions of expressions will not be visited.
+    pub fn visit_expressions_mut<F: FnMut(&mut Expr)>(&mut self, visitor: F) {
+        self.body.iter_mut().for_each(visitor);
+    }
 }
 
 impl WithIdentifier for StructPredicate {
@@ -259,6 +291,26 @@ impl EnumPredicate {
     /// Construct an expression that represents the body of this predicate.
     pub fn body(&self) -> Expr {
         enum_predicate!(self)
+    }
+
+    /// Visit each expression.
+    /// Note: sub-expressions of expressions will not be visited.
+    pub fn visit_expressions<F: FnMut(&Expr)>(&self, mut visitor: F) {
+        visitor(&self.discriminant_bounds);
+        self.variants.iter().for_each(|(e, _, p)| {
+            visitor(e);
+            p.visit_expressions(|e| visitor(e))
+        });
+    }
+
+    /// Mutably visit each expression.
+    /// Note: sub-expressions of expressions will not be visited.
+    pub fn visit_expressions_mut<F: FnMut(&mut Expr)>(&mut self, mut visitor: F) {
+        visitor(&mut self.discriminant_bounds);
+        self.variants.iter_mut().for_each(|(e, _, p)| {
+            visitor(e);
+            p.visit_expressions_mut(&mut visitor);
+        });
     }
 }
 
