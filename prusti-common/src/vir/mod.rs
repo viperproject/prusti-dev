@@ -18,3 +18,4 @@ mod low_to_viper;
 mod to_graphviz;
 pub mod program;
 pub mod macros;
+pub mod program_normalization;
