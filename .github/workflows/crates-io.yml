@@ -1,0 +1,28 @@
+name: Publish prusti-contracts to Crates.io
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master, publish-crates-io]
+    paths: 'prusti-contracts/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - name: Set up Python 3
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Set up the environment
+        run: python x.py setup
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v1.3.0
+      - uses: katyo/publish-crates@v1
+        with:
+          path: './prusti-contracts'
+          # TODO: remove this
+          dry-run: true
+          registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
