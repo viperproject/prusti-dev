@@ -4,21 +4,26 @@ on:
   workflow_dispatch:
   push:
     branches: [master, publish-crates-io]
-    paths: 'prusti-contracts/**'
+    paths:
+      - 'prusti-contracts/**'
+      - '!prusti-contracts/prusti-contracts-test/**'
 
 jobs:
-  deploy:
+  publish:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
-      - name: Set up the environment
-        run: python x.py setup
+      - name: Move to prusti-contracts
+        run: |
+          mkdir tmp
+          mv * tmp || true
+          mv tmp/prusti-contracts/* .
+          rm -rf tmp
       - name: Cache cargo
         uses: Swatinem/rust-cache@v1.3.0
       - uses: katyo/publish-crates@v1
         with:
-          path: './prusti-contracts'
           # TODO: remove this
           dry-run: true
           registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
