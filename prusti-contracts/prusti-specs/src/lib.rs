@@ -504,11 +504,17 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
             "Can refine trait specifications only on trait implementation blocks"
         ))),
     };
+    
+    fn extract_type_path(ty: &syn::Type) -> &syn::TypePath {
+        match ty {
+            syn::Type::Path(type_path) => type_path,
+            syn::Type::Reference(reference) => extract_type_path(&reference.elem),
+            syn::Type::Group(group) => extract_type_path(&group.elem),
+            _ => unimplemented!("Currently not supported: {:?}", ty),
+        }
+    }
 
-    let self_type_path: &syn::TypePath = match &*impl_block.self_ty {
-        syn::Type::Path(type_path) => type_path,
-        _ => unimplemented!("Currently not supported: {:?}", impl_block.self_ty),
-    };
+    let self_type_path: &syn::TypePath = extract_type_path(&*impl_block.self_ty);
 
     let mut new_items = Vec::new();
     let mut generated_spec_items = Vec::new();
