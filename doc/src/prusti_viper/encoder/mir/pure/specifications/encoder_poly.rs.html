@@ -359,6 +359,9 @@
 <span id="359">359</span>
 <span id="360">360</span>
 <span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
 </pre><pre class="rust"><code><span class="comment">// © 2022, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -369,7 +372,7 @@
     errors::{<a href="../../../../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#15">EncodingError</a>, <a href="../../../../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#20">EncodingResult</a>, <a href="../../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>, <a href="../../../../../../src/prusti_viper/encoder/errors/with_span.rs.html#13">WithSpan</a>},
     <a href="../../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#127">high::types::HighTypeEncoderInterface</a>,
     mir::{
-        pure::{<a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/utils.rs.html#14-23">specifications::utils::extract_closure_from_ty</a>, <a href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/interface.rs.html#85">PureFunctionEncoderInterface</a>},
+        pure::{<a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/utils.rs.html#14-23">specifications::utils::extract_closure_from_ty</a>, <a href="../../../../../../src/prusti_viper/encoder/mir/pure/pure_functions/interface.rs.html#121">PureFunctionEncoderInterface</a>},
         <a href="../../../../../../src/prusti_viper/encoder/mir/types/interface.rs.html#24">types::MirTypeEncoderInterface</a>,
     },
     mir_encoder::{<a href="../../../../../../src/prusti_viper/encoder/mir_encoder/mod.rs.html#377">MirEncoder</a>, <a href="../../../../../../src/prusti_viper/encoder/mir_encoder/mod.rs.html#39">PlaceEncoder</a>},
@@ -400,7 +403,7 @@
     <span class="kw">let </span>mir = <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#32">encoder</a>
         .<a href="../../../../../../src/prusti_viper/encoder/encoder.rs.html#208">env</a>()
         .body
-        .get_closure_body(<a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#33">def_id</a>.expect_local(), <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#37">substs</a>);
+        .get_closure_body(<a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#33">def_id</a>.expect_local(), <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#37">substs</a>, <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#36">parent_def_id</a>);
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(mir.arg_count, args.len() + <span class="number">1</span>);
     <span class="kw">let </span>mir_encoder = MirEncoder::new(<a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#32">encoder</a>, <span class="kw-2">&amp;</span><a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#39">mir</a>, <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#33">def_id</a>);
     <span class="kw">let </span><span class="kw-2">mut </span>body_replacements = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
@@ -443,7 +446,10 @@
         encoder.env().query.identity_substs(def_id).len()
     );
 
-    <span class="kw">let </span>mir = <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#72">encoder</a>.<a href="../../../../../../src/prusti_viper/encoder/encoder.rs.html#208">env</a>().body.get_expression_body(<a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#73">def_id</a>, <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#78">substs</a>);
+    <span class="kw">let </span>mir = <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#72">encoder</a>
+        .<a href="../../../../../../src/prusti_viper/encoder/encoder.rs.html#208">env</a>()
+        .body
+        .get_expression_body(<a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#73">def_id</a>, <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#78">substs</a>, <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#77">parent_def_id</a>);
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(
         mir.arg_count,
         target_args.len() + <span class="kw">if </span>target_return.is_some() { <span class="number">1 </span>} <span class="kw">else </span>{ <span class="number">0 </span>}
@@ -479,7 +485,7 @@
     }
     <span class="prelude-val">Ok</span>(encoder
         .encode_pure_expression(def_id, parent_def_id, substs)<span class="question-mark">?
-        </span>.replace_multiple_places(<span class="kw-2">&amp;</span><a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#91">body_replacements</a>))
+        </span>.replace_multiple_places(<span class="kw-2">&amp;</span><a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#94">body_replacements</a>))
 }
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>encode_quantifier&lt;<span class="lifetime">&#39;tcx</span>&gt;(
@@ -502,9 +508,9 @@
     //     |qvars...| -&gt; bool { &lt;body expr&gt; },
     //   )
 
-    </span><span class="kw">let </span>cl_type_body = <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#130">substs</a>.type_at(<span class="number">1</span>);
+    </span><span class="kw">let </span>cl_type_body = <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#133">substs</a>.type_at(<span class="number">1</span>);
     <span class="kw">let </span>(body_def_id, body_substs, body_span, args, <span class="kw">_</span>) =
-        <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/utils.rs.html#14-23">extract_closure_from_ty</a>(<a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#125">encoder</a>.<a href="../../../../../../src/prusti_viper/encoder/encoder.rs.html#208">env</a>().query, <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#144">cl_type_body</a>);
+        <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/utils.rs.html#14-23">extract_closure_from_ty</a>(<a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#128">encoder</a>.<a href="../../../../../../src/prusti_viper/encoder/encoder.rs.html#208">env</a>().query, <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#147">cl_type_body</a>);
 
     <span class="kw">let </span><span class="kw-2">mut </span>encoded_qvars = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
     <span class="kw">let </span><span class="kw-2">mut </span>bounds = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
@@ -592,7 +598,7 @@
 
     <span class="comment">// replace qvars with a nicer name based on quantifier depth to ensure that
     // quantifiers remain stable for caching
-    </span><span class="kw">let </span>quantifier_depth = <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#280">find_quantifier_depth</a>(<span class="kw-2">&amp;</span><a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#223">encoded_body</a>);
+    </span><span class="kw">let </span>quantifier_depth = <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#283">find_quantifier_depth</a>(<span class="kw-2">&amp;</span><a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#226">encoded_body</a>);
     <span class="kw">let </span><span class="kw-2">mut </span>qvar_replacements = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
     <span class="kw">let </span><span class="kw-2">mut </span>fixed_qvars = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
     <span class="kw">for </span>(arg_idx, qvar) <span class="kw">in </span>encoded_qvars.iter().enumerate() {
@@ -606,34 +612,34 @@
         ));
         fixed_qvars.push(qvar_rep);
     }
-    <span class="kw">let </span>bounds = <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#149">bounds</a>
+    <span class="kw">let </span>bounds = <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#152">bounds</a>
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|bound| <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#250">bound</a>.replace_multiple_places(<span class="kw-2">&amp;</span><a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#235">qvar_replacements</a>))
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|bound| <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#253">bound</a>.replace_multiple_places(<span class="kw-2">&amp;</span><a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#238">qvar_replacements</a>))
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
-    <span class="kw">let </span>encoded_body = <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#223">encoded_body</a>.replace_multiple_places(<span class="kw-2">&amp;</span><a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#235">qvar_replacements</a>);
-    <span class="kw">let </span>encoded_trigger_sets = <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#170">encoded_trigger_sets</a>
+    <span class="kw">let </span>encoded_body = <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#226">encoded_body</a>.replace_multiple_places(<span class="kw-2">&amp;</span><a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#238">qvar_replacements</a>);
+    <span class="kw">let </span>encoded_trigger_sets = <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#173">encoded_trigger_sets</a>
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|set| <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#255">set</a>.replace_multiple_places(<span class="kw-2">&amp;</span><a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#235">qvar_replacements</a>))
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|set| <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#258">set</a>.replace_multiple_places(<span class="kw-2">&amp;</span><a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#238">qvar_replacements</a>))
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
     <span class="kw">let </span>final_body = <span class="kw">if </span>bounds.is_empty() {
-        <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#252">encoded_body</a>
+        <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#255">encoded_body</a>
     } <span class="kw">else if </span>is_exists {
-        vir_crate::polymorphic::Expr::and(<a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#248">bounds</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="../../../../../../vir/gen/polymorphic/ast/expr/trait.ExprIterator.html">conjoin</a>(), <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#252">encoded_body</a>)
+        vir_crate::polymorphic::Expr::and(<a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#251">bounds</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="../../../../../../vir/gen/polymorphic/ast/expr/trait.ExprIterator.html">conjoin</a>(), <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#255">encoded_body</a>)
     } <span class="kw">else </span>{
-        vir_crate::polymorphic::Expr::implies(<a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#248">bounds</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="../../../../../../vir/gen/polymorphic/ast/expr/trait.ExprIterator.html">conjoin</a>(), <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#252">encoded_body</a>)
+        vir_crate::polymorphic::Expr::implies(<a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#251">bounds</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="../../../../../../vir/gen/polymorphic/ast/expr/trait.ExprIterator.html">conjoin</a>(), <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#255">encoded_body</a>)
     };
     <span class="kw">if </span>is_exists {
         <span class="prelude-val">Ok</span>(vir_crate::polymorphic::Expr::exists(
-            <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#236">fixed_qvars</a>,
-            <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#253">encoded_trigger_sets</a>,
-            <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#258">final_body</a>,
+            <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#239">fixed_qvars</a>,
+            <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#256">encoded_trigger_sets</a>,
+            <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#261">final_body</a>,
         ))
     } <span class="kw">else </span>{
         <span class="prelude-val">Ok</span>(vir_crate::polymorphic::Expr::forall(
-            <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#236">fixed_qvars</a>,
-            <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#253">encoded_trigger_sets</a>,
-            <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#258">final_body</a>,
+            <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#239">fixed_qvars</a>,
+            <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#256">encoded_trigger_sets</a>,
+            <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#261">final_body</a>,
         ))
     }
 }
@@ -644,47 +650,47 @@
         current_depth: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
         max_depth: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     }
-    <span class="kw">impl </span><a href="../../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">ExprWalker</a> <span class="kw">for </span><a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#282">DepthChecker</a> {
+    <span class="kw">impl </span><a href="../../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">ExprWalker</a> <span class="kw">for </span><a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#285">DepthChecker</a> {
         <span class="kw">fn </span>walk_forall(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/polymorphic/ast/expr/struct.ForAll.html">vir_crate::polymorphic::ForAll</a>) {
-            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#287">self</a>.current_depth += <span class="number">1</span>;
+            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#290">self</a>.current_depth += <span class="number">1</span>;
             <span class="kw">if </span><span class="self">self</span>.current_depth &gt;= <span class="self">self</span>.max_depth {
-                <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#287">self</a>.max_depth = <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#287">self</a>.current_depth;
+                <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#290">self</a>.max_depth = <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#290">self</a>.current_depth;
             }
-            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#287">self</a>.<a href="../../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">walk</a>(<span class="kw-2">&amp;</span><a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#287">statement</a>.body);
-            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#287">self</a>.current_depth -= <span class="number">1</span>;
+            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#290">self</a>.<a href="../../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">walk</a>(<span class="kw-2">&amp;</span><a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#290">statement</a>.body);
+            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#290">self</a>.current_depth -= <span class="number">1</span>;
         }
         <span class="kw">fn </span>walk_exists(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/polymorphic/ast/expr/struct.Exists.html">vir_crate::polymorphic::Exists</a>) {
-            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#295">self</a>.current_depth += <span class="number">1</span>;
+            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#298">self</a>.current_depth += <span class="number">1</span>;
             <span class="kw">if </span><span class="self">self</span>.current_depth &gt;= <span class="self">self</span>.max_depth {
-                <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#295">self</a>.max_depth = <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#295">self</a>.current_depth;
+                <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#298">self</a>.max_depth = <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#298">self</a>.current_depth;
             }
-            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#295">self</a>.<a href="../../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">walk</a>(<span class="kw-2">&amp;</span><a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#295">statement</a>.body);
-            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#295">self</a>.current_depth -= <span class="number">1</span>;
+            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#298">self</a>.<a href="../../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">walk</a>(<span class="kw-2">&amp;</span><a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#298">statement</a>.body);
+            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#298">self</a>.current_depth -= <span class="number">1</span>;
         }
     }
-    <span class="kw">let </span><span class="kw-2">mut </span>checker = <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#282">DepthChecker</a> {
+    <span class="kw">let </span><span class="kw-2">mut </span>checker = <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#285">DepthChecker</a> {
         current_depth: <span class="number">0</span>,
         max_depth: <span class="number">0</span>,
     };
-    <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#304">checker</a>.<a href="../../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">walk</a>(<a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#280">expr</a>);
-    <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#304">checker</a>.max_depth
+    <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#307">checker</a>.<a href="../../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">walk</a>(<a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#283">expr</a>);
+    <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#307">checker</a>.max_depth
 }
 
 <span class="kw">fn </span>check_trigger(trigger: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir_crate::polymorphic::Expr</a>) -&gt; EncodingResult&lt;()&gt; {
     <span class="kw">use </span><a href="../../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.FallibleExprFolder.html">vir_crate::polymorphic::FallibleExprFolder</a>;
     <span class="kw">struct </span>TriggerChecker {}
-    <span class="kw">impl </span><a href="../../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.FallibleExprFolder.html">FallibleExprFolder</a> <span class="kw">for </span><a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#314">TriggerChecker</a> {
+    <span class="kw">impl </span><a href="../../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.FallibleExprFolder.html">FallibleExprFolder</a> <span class="kw">for </span><a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#317">TriggerChecker</a> {
         <span class="kw">type </span>Error = <a href="../../../../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#15">EncodingError</a>;
         <span class="kw">fn </span>fallible_fold(
             <span class="kw-2">&amp;mut </span><span class="self">self</span>,
             e: <a href="../../../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir_crate::polymorphic::Expr</a>,
         ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir_crate::polymorphic::Expr</a>, <span class="self">Self</span>::Error&gt; {
-            <span class="kw">match </span><a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#319">e</a> {
+            <span class="kw">match </span><a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#322">e</a> {
                 <span class="comment">// legal triggers
                 </span>vir_crate::polymorphic::Expr::Local(..)
                 | vir_crate::polymorphic::Expr::Const(..)
                 | vir_crate::polymorphic::Expr::FuncApp(..)
-                | vir_crate::polymorphic::Expr::DomainFuncApp(..) =&gt; <span class="prelude-val">Ok</span>(<a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#319">e</a>),
+                | vir_crate::polymorphic::Expr::DomainFuncApp(..) =&gt; <span class="prelude-val">Ok</span>(<a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#322">e</a>),
                 <span class="comment">// everything else is illegal in triggers
                 </span><span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(EncodingError::incorrect(
                     <span class="string">&quot;only function calls are allowed in triggers&quot;</span>,
@@ -701,9 +707,9 @@
     bound_vars: <span class="kw-2">&amp;</span>[<a href="../../../../../../vir/gen/polymorphic/ast/common/struct.LocalVar.html">vir_crate::polymorphic::LocalVar</a>],
     trigger_set: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/polymorphic/ast/trigger/struct.Trigger.html">vir_crate::polymorphic::Trigger</a>,
 ) -&gt; EncodingResult&lt;()&gt; {
-    <span class="kw">let </span>bound_vars_expr = <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#340">bound_vars</a>
+    <span class="kw">let </span>bound_vars_expr = <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#343">bound_vars</a>
         .iter()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|var| <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#345">var</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|var| <a href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#348">var</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
     <span class="kw">let </span><span class="kw-2">mut </span>found_bounded_vars = FxHashSet::default();
     <span class="kw">for </span>term <span class="kw">in </span>trigger_set.elements() {
