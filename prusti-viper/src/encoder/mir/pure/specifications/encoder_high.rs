@@ -75,7 +75,10 @@ pub(super) fn inline_spec_item_high<'tcx>(
     parent_def_id: DefId,
     substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_high::Expression> {
-    let mir = encoder.env().body.get_spec_body(def_id, substs, parent_def_id);
+    let mir = encoder
+        .env()
+        .body
+        .get_spec_body(def_id, substs, parent_def_id);
     assert_eq!(
         mir.arg_count,
         target_args.len() + if target_return.is_some() { 1 } else { 0 },

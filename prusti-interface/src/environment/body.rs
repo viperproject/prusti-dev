@@ -151,14 +151,15 @@ impl<'tcx> EnvBody<'tcx> {
         caller_def_id: Option<DefId>,
         body: MirBody<'tcx>,
     ) -> MirBody<'tcx> {
-        if let Entry::Vacant(v) = self
-            .monomorphised_bodies
-            .borrow_mut()
-            .entry((def_id, substs, caller_def_id))
+        if let Entry::Vacant(v) =
+            self.monomorphised_bodies
+                .borrow_mut()
+                .entry((def_id, substs, caller_def_id))
         {
             let monomorphised = if let Some(caller_def_id) = caller_def_id {
                 let param_env = self.tcx.param_env(caller_def_id);
-                self.tcx.subst_and_normalize_erasing_regions(substs, param_env, body.0.clone())
+                self.tcx
+                    .subst_and_normalize_erasing_regions(substs, param_env, body.0.clone())
             } else {
                 ty::EarlyBinder(body.0).subst(self.tcx, substs)
             };
@@ -204,7 +205,8 @@ impl<'tcx> EnvBody<'tcx> {
         substs: SubstsRef<'tcx>,
         caller_def_id: DefId,
     ) -> MirBody<'tcx> {
-        if let Some(body) = self.get_monomorphised(def_id.to_def_id(), substs, Some(caller_def_id)) {
+        if let Some(body) = self.get_monomorphised(def_id.to_def_id(), substs, Some(caller_def_id))
+        {
             return body;
         }
         let body = self.get_closure_body_identity(def_id);
