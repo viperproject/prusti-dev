@@ -83,6 +83,8 @@ pub(crate) trait SpecificationsInterface<'tcx> {
 
     fn get_predicate_body(&self, def_id: DefId, substs: SubstsRef<'tcx>) -> Option<DefId>;
 
+    fn terminates(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool;
+
     /// Get the loop invariant attached to a function with a
     /// `prusti::loop_body_invariant_spec` attribute.
     fn get_loop_specs(&self, def_id: DefId) -> Option<typed::LoopSpecification>;
@@ -186,6 +188,25 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
             .unwrap_or(None);
         trace!("get_predicate_body {:?} = {:?}", query, result);
         result.cloned()
+    }
+
+    fn terminates(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool {
+        let substs = substs.unwrap_or_else(|| self.env().query.identity_substs(def_id));
+        let query = SpecQuery::GetProcKind(def_id, substs);
+        let result = self
+            .specifications_state
+            .specs
+            .borrow_mut()
+            .get_and_refine_proc_spec(self.env(), query)
+            .and_then(|spec| {
+                spec.terminates
+                    .extract_with_selective_replacement()
+                    .copied()
+            })
+            .unwrap_or(None)
+            .is_some();
+        trace!("terminates {:?} = {}", query, result);
+        result
     }
 
     fn get_loop_specs(&self, def_id: DefId) -> Option<typed::LoopSpecification> {

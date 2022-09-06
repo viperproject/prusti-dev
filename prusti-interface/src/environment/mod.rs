@@ -37,7 +37,7 @@ pub use self::{
     name::EnvName,
     procedure::{
         get_loop_invariant, is_ghost_begin_marker, is_ghost_end_marker, is_loop_invariant_block,
-        is_marked_specification_block, BasicBlockIndex, Procedure,
+        is_loop_variant_block, is_marked_specification_block, BasicBlockIndex, Procedure,
     },
     query::EnvQuery,
 };
@@ -46,6 +46,7 @@ use self::{
     collect_prusti_spec_visitor::CollectPrustiSpecVisitor,
 };
 use crate::data::ProcedureDefId;
+use rustc_middle::ty::SubstsRef;
 
 /// Facade to the Rust compiler.
 pub struct Environment<'tcx> {
@@ -132,6 +133,60 @@ impl<'tcx> Environment<'tcx> {
             })
             .ord()
             .unwrap()
+    }
+
+    pub fn is_recursive(&self, proc_def_id: ProcedureDefId) -> bool {
+        use rustc_middle::mir;
+        let proc = self.get_procedure(proc_def_id);
+        for block in proc.get_mir().basic_blocks.iter() {
+            let (&func, substs_ref) = match block.terminator().kind {
+                mir::TerminatorKind::Call {
+                    func: mir::Operand::Constant(box mir::Constant { literal, .. }),
+                    ..
+                } => {
+                    if let ty::TyKind::FnDef(def_id, substs_ref) = literal.ty().kind() {
+                        (def_id, substs_ref)
+                    } else {
+                        continue;
+                    }
+                }
+                _ => continue,
+            };
+            if func == proc_def_id {
+                return true;
+            }
+            if func.as_local().is_some() {
+                // assumption that functions from a different crate cannot call this function
+                // that would entail a cyclic dependency which doesn't make much sense to me
+                let reachable = self.callee_reaches_caller(proc_def_id, func, substs_ref);
+                if reachable {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
+    pub fn callee_reaches_caller(
+        &self,
+        caller_def_id: ProcedureDefId,
+        called_def_id: ProcedureDefId,
+        call_substs: SubstsRef<'tcx>,
+    ) -> bool {
+        if called_def_id == caller_def_id {
+            true
+        } else {
+            let param_env = self.tcx().param_env(caller_def_id);
+            if let Some(instance) =
+                traits::resolve_instance(self.tcx(), param_env.and((called_def_id, call_substs)))
+                    .unwrap()
+            {
+                self.tcx()
+                    .mir_callgraph_reachable((instance, caller_def_id.expect_local()))
+            } else {
+                true
+            }
+        }
     }
 
     /// Get the current version of the `prusti` crate

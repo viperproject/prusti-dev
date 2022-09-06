@@ -1315,6 +1315,12 @@ pub(in super::super) trait BuiltinMethodsInterface {
         predicate: vir_mid::Predicate,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()>;
+    fn encode_ghost_havoc_method_call(
+        &mut self,
+        statements: &mut Vec<vir_low::Statement>,
+        predicate: vir_mid::VariableDecl,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<()>;
     fn encode_open_frac_bor_atomic_method(
         &mut self,
         ty: &vir_mid::Type,
@@ -2149,6 +2155,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
         }
         Ok(())
     }
+
+    fn encode_ghost_havoc_method_call(
+        &mut self,
+        statements: &mut Vec<vir_low::Statement>,
+        variable: vir_mid::VariableDecl,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<()> {
+        let ty = variable.ty.to_snapshot(self)?;
+        let fresh_value = self.create_new_temporary_variable(ty)?;
+        let variable_expr = vir_mid::Expression::local(variable, position);
+        self.encode_snapshot_update(statements, &variable_expr, fresh_value.into(), position)
+    }
+
     fn encode_open_frac_bor_atomic_method(
         &mut self,
         ty: &vir_mid::Type,

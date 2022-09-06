@@ -78,6 +78,9 @@ impl DefSpecificationMap {
                 if let Some(posts) = spec.posts.extract_with_selective_replacement() {
                     specs.extend(posts);
                 }
+                if let Some(Some(term)) = spec.terminates.extract_with_selective_replacement() {
+                    specs.push(term.to_def_id());
+                }
                 if let Some(pledges) = spec.pledges.extract_with_selective_replacement() {
                     specs.extend(pledges.iter().filter_map(|pledge| pledge.lhs));
                     specs.extend(pledges.iter().map(|pledge| pledge.rhs));
@@ -199,6 +202,7 @@ pub struct ProcedureSpecification {
     pub posts: SpecificationItem<Vec<DefId>>,
     pub pledges: SpecificationItem<Vec<Pledge>>,
     pub trusted: SpecificationItem<bool>,
+    pub terminates: SpecificationItem<Option<LocalDefId>>,
 }
 
 impl ProcedureSpecification {
@@ -212,6 +216,7 @@ impl ProcedureSpecification {
             posts: SpecificationItem::Empty,
             pledges: SpecificationItem::Empty,
             trusted: SpecificationItem::Inherent(false),
+            terminates: SpecificationItem::Inherent(None),
         }
     }
 }
@@ -246,8 +251,9 @@ impl ProcedureSpecificationKind {
 }
 
 #[derive(Debug, Clone)]
-pub struct LoopSpecification {
-    pub invariant: LocalDefId,
+pub enum LoopSpecification {
+    Invariant(LocalDefId),
+    Variant(LocalDefId),
 }
 
 /// Specification of a type.
@@ -444,6 +450,14 @@ impl SpecGraph<ProcedureSpecification> {
         self.specs_with_constraints
             .values_mut()
             .for_each(|s| s.trusted.set(trusted));
+    }
+
+    /// Sets the termination flag for the base spec and all constrained specs.
+    pub fn set_terminates(&mut self, terminates: LocalDefId) {
+        self.base_spec.terminates.set(Some(terminates));
+        self.specs_with_constraints
+            .values_mut()
+            .for_each(|s| s.terminates.set(Some(terminates)));
     }
 
     /// Sets the [ProcedureSpecificationKind] for the base spec and all constrained specs.
@@ -737,6 +751,7 @@ impl Refinable for ProcedureSpecification {
             pledges: self.pledges.refine(replace_empty(&EMPTYP, &other.pledges)),
             kind: self.kind.refine(&other.kind),
             trusted: self.trusted.refine(&other.trusted),
+            terminates: self.terminates.refine(&other.terminates),
         }
     }
 }
