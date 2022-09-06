@@ -32,7 +32,8 @@ pub(crate) fn create_value_field(ty: vir::Type) -> EncodingResult<vir::FieldDecl
         | vir::Type::Closure(_)
         | vir::Type::FunctionDef(_)
         | vir::Type::FnPointer
-        | vir::Type::TypeVar(_) => vir::FieldDecl::new("val_ref", 0usize, ty),
+        | vir::Type::TypeVar(_)
+        | vir::Type::Projection(_) => vir::FieldDecl::new("val_ref", 0usize, ty),
 
         vir::Type::Reference(vir::ty::Reference { target_type, .. }) => {
             vir::FieldDecl::new("val_ref", 0usize, (*target_type).clone())
@@ -49,7 +50,6 @@ pub(crate) fn create_value_field(ty: vir::Type) -> EncodingResult<vir::FieldDecl
         | vir::Type::Pointer(_)
         | vir::Type::Never
         | vir::Type::Str
-        | vir::Type::Projection(_)
         | vir::Type::Unsupported(_) => {
             return Err(EncodingError::unsupported(format!(
                 "{} type is not supported",

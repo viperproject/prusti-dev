@@ -68,6 +68,23 @@ impl<'tcx> PreLoadedBodies<'tcx> {
     }
 }
 
+/// Key representing a concrete monomorphisation, consisting of:
+///
+/// - the `DefId` of the monomorphised function (callee),
+/// - the substitutions applied to it, and
+/// - (optionally) the `DefId` of the caller.
+///
+/// The `DefId` of the caller is important as it determines the `ParamEnv`,
+/// from which we can resolve projection types (e.g. `<T as Foo>::AT` might
+/// resolve to `i32` if the `ParamEnv` of the caller has `T: Foo<AT = i32>`).
+/// However, such normalisation also erases the regions when using the current
+/// compiler APIs. As such, the caller `DefId` is left as `None` if:
+///
+/// - we are encoding an impure function, where the method is encoded only once
+///   and calls are performed indirectly via contract exhale/inhale; or
+/// - when the caller is unknown, e.g. to check a pure function definition.
+type MonomorphKey<'tcx> = (DefId, SubstsRef<'tcx>, Option<DefId>);
+
 /// Store for all the `mir::Body` which we've taken out of the compiler
 /// or imported from external crates, all of which are indexed by DefId
 pub struct EnvBody<'tcx> {
@@ -82,7 +99,7 @@ pub struct EnvBody<'tcx> {
     specs: PreLoadedBodies<'tcx>,
 
     /// Copies of above MIR bodies with the given substs applied.
-    monomorphised_bodies: RefCell<FxHashMap<(DefId, SubstsRef<'tcx>), MirBody<'tcx>>>,
+    monomorphised_bodies: RefCell<FxHashMap<MonomorphKey<'tcx>, MirBody<'tcx>>>,
 }
 
 impl<'tcx> EnvBody<'tcx> {
@@ -116,25 +133,37 @@ impl<'tcx> EnvBody<'tcx> {
         }
     }
 
-    fn get_monomorphised(&self, def_id: DefId, substs: SubstsRef<'tcx>) -> Option<MirBody<'tcx>> {
+    fn get_monomorphised(
+        &self,
+        def_id: DefId,
+        substs: SubstsRef<'tcx>,
+        caller_def_id: Option<DefId>,
+    ) -> Option<MirBody<'tcx>> {
         self.monomorphised_bodies
             .borrow()
-            .get(&(def_id, substs))
+            .get(&(def_id, substs, caller_def_id))
             .cloned()
     }
     fn set_monomorphised(
         &self,
         def_id: DefId,
         substs: SubstsRef<'tcx>,
+        caller_def_id: Option<DefId>,
         body: MirBody<'tcx>,
     ) -> MirBody<'tcx> {
-        if let Entry::Vacant(v) = self
-            .monomorphised_bodies
-            .borrow_mut()
-            .entry((def_id, substs))
+        if let Entry::Vacant(v) =
+            self.monomorphised_bodies
+                .borrow_mut()
+                .entry((def_id, substs, caller_def_id))
         {
-            v.insert(MirBody(ty::EarlyBinder(body.0).subst(self.tcx, substs)))
-                .clone()
+            let monomorphised = if let Some(caller_def_id) = caller_def_id {
+                let param_env = self.tcx.param_env(caller_def_id);
+                self.tcx
+                    .subst_and_normalize_erasing_regions(substs, param_env, body.0.clone())
+            } else {
+                ty::EarlyBinder(body.0).subst(self.tcx, substs)
+            };
+            v.insert(MirBody(monomorphised)).clone()
         } else {
             unreachable!()
         }
@@ -153,11 +182,11 @@ impl<'tcx> EnvBody<'tcx> {
     /// Get the MIR body of a local impure function, monomorphised
     /// with the given type substitutions.
     pub fn get_impure_fn_body(&self, def_id: LocalDefId, substs: SubstsRef<'tcx>) -> MirBody<'tcx> {
-        if let Some(body) = self.get_monomorphised(def_id.to_def_id(), substs) {
+        if let Some(body) = self.get_monomorphised(def_id.to_def_id(), substs, None) {
             return body;
         }
         let body = self.get_impure_fn_body_identity(def_id);
-        self.set_monomorphised(def_id.to_def_id(), substs, body)
+        self.set_monomorphised(def_id.to_def_id(), substs, None, body)
     }
 
     fn get_closure_body_identity(&self, def_id: LocalDefId) -> MirBody<'tcx> {
@@ -170,45 +199,66 @@ impl<'tcx> EnvBody<'tcx> {
 
     /// Get the MIR body of a local closure (e.g. loop invariant or trigger),
     /// monomorphised with the given type substitutions.
-    pub fn get_closure_body(&self, def_id: LocalDefId, substs: SubstsRef<'tcx>) -> MirBody<'tcx> {
-        if let Some(body) = self.get_monomorphised(def_id.to_def_id(), substs) {
+    pub fn get_closure_body(
+        &self,
+        def_id: LocalDefId,
+        substs: SubstsRef<'tcx>,
+        caller_def_id: DefId,
+    ) -> MirBody<'tcx> {
+        if let Some(body) = self.get_monomorphised(def_id.to_def_id(), substs, Some(caller_def_id))
+        {
             return body;
         }
         let body = self.get_closure_body_identity(def_id);
-        self.set_monomorphised(def_id.to_def_id(), substs, body)
+        self.set_monomorphised(def_id.to_def_id(), substs, Some(caller_def_id), body)
     }
 
     /// Get the MIR body of a local or external pure function,
     /// monomorphised with the given type substitutions.
-    pub fn get_pure_fn_body(&self, def_id: DefId, substs: SubstsRef<'tcx>) -> MirBody<'tcx> {
-        if let Some(body) = self.get_monomorphised(def_id, substs) {
+    pub fn get_pure_fn_body(
+        &self,
+        def_id: DefId,
+        substs: SubstsRef<'tcx>,
+        caller_def_id: DefId,
+    ) -> MirBody<'tcx> {
+        if let Some(body) = self.get_monomorphised(def_id, substs, Some(caller_def_id)) {
             return body;
         }
         let body = self.pure_fns.expect(def_id);
-        self.set_monomorphised(def_id, substs, body)
+        self.set_monomorphised(def_id, substs, Some(caller_def_id), body)
     }
 
     /// Get the MIR body of a local or external expression (e.g. any spec or predicate),
     /// monomorphised with the given type substitutions.
-    pub fn get_expression_body(&self, def_id: DefId, substs: SubstsRef<'tcx>) -> MirBody<'tcx> {
-        if let Some(body) = self.get_monomorphised(def_id, substs) {
+    pub fn get_expression_body(
+        &self,
+        def_id: DefId,
+        substs: SubstsRef<'tcx>,
+        caller_def_id: DefId,
+    ) -> MirBody<'tcx> {
+        if let Some(body) = self.get_monomorphised(def_id, substs, Some(caller_def_id)) {
             return body;
         }
         let body = self
             .specs
             .get(def_id)
             .unwrap_or_else(|| self.predicates.expect(def_id));
-        self.set_monomorphised(def_id, substs, body)
+        self.set_monomorphised(def_id, substs, Some(caller_def_id), body)
     }
 
     /// Get the MIR body of a local or external spec (pres/posts/pledges/type-specs),
     /// monomorphised with the given type substitutions.
-    pub fn get_spec_body(&self, def_id: DefId, substs: SubstsRef<'tcx>) -> MirBody<'tcx> {
-        if let Some(body) = self.get_monomorphised(def_id, substs) {
+    pub fn get_spec_body(
+        &self,
+        def_id: DefId,
+        substs: SubstsRef<'tcx>,
+        caller_def_id: DefId,
+    ) -> MirBody<'tcx> {
+        if let Some(body) = self.get_monomorphised(def_id, substs, Some(caller_def_id)) {
             return body;
         }
         let body = self.specs.expect(def_id);
-        self.set_monomorphised(def_id, substs, body)
+        self.set_monomorphised(def_id, substs, Some(caller_def_id), body)
     }
 
     /// Get Polonius facts of a local procedure.
