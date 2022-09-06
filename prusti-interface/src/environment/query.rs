@@ -149,7 +149,12 @@ impl<'tcx> EnvQuery<'tcx> {
         substs: SubstsRef<'tcx>,
     ) -> ty::PolyFnSig<'tcx> {
         let def_id = def_id.into_param();
-        ty::EarlyBinder(self.tcx.fn_sig(def_id)).subst(self.tcx, substs)
+        let sig = if self.tcx.is_closure(def_id) {
+            substs.as_closure().sig()
+        } else {
+            self.tcx.fn_sig(def_id)
+        };
+        ty::EarlyBinder(sig).subst(self.tcx, substs)
     }
 
     /// Computes the signature of the function with subst applied and associated types resolved.
@@ -157,10 +162,11 @@ impl<'tcx> EnvQuery<'tcx> {
         self,
         def_id: impl IntoParam<ProcedureDefId>,
         substs: SubstsRef<'tcx>,
+        caller_def_id: impl IntoParam<ProcedureDefId>,
     ) -> ty::PolyFnSig<'tcx> {
         let def_id = def_id.into_param();
         let sig = self.get_fn_sig(def_id, substs);
-        self.resolve_assoc_types(sig, def_id)
+        self.resolve_assoc_types(sig, caller_def_id.into_param())
     }
 
     /// Returns true iff `def_id` is a closure.
