@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/httparse-1.7.1/src/iter.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>iter.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../httparse/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../httparse/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../httparse/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/httparse-1.8.0/src/iter.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>iter.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../httparse/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../httparse/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../httparse/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -106,115 +106,9 @@
 <span id="106">106</span>
 <span id="107">107</span>
 <span id="108">108</span>
-<span id="109">109</span>
-<span id="110">110</span>
-<span id="111">111</span>
-<span id="112">112</span>
-<span id="113">113</span>
-<span id="114">114</span>
-<span id="115">115</span>
-<span id="116">116</span>
-<span id="117">117</span>
-<span id="118">118</span>
-<span id="119">119</span>
-<span id="120">120</span>
-<span id="121">121</span>
-<span id="122">122</span>
-<span id="123">123</span>
-<span id="124">124</span>
-<span id="125">125</span>
-<span id="126">126</span>
-<span id="127">127</span>
-<span id="128">128</span>
-<span id="129">129</span>
-<span id="130">130</span>
-<span id="131">131</span>
-<span id="132">132</span>
-<span id="133">133</span>
-<span id="134">134</span>
-<span id="135">135</span>
-<span id="136">136</span>
-<span id="137">137</span>
-<span id="138">138</span>
-<span id="139">139</span>
-<span id="140">140</span>
-<span id="141">141</span>
-<span id="142">142</span>
-<span id="143">143</span>
-<span id="144">144</span>
-<span id="145">145</span>
-<span id="146">146</span>
-<span id="147">147</span>
-<span id="148">148</span>
-<span id="149">149</span>
-<span id="150">150</span>
-<span id="151">151</span>
-<span id="152">152</span>
-<span id="153">153</span>
-<span id="154">154</span>
-<span id="155">155</span>
-<span id="156">156</span>
-<span id="157">157</span>
-<span id="158">158</span>
-<span id="159">159</span>
-<span id="160">160</span>
-<span id="161">161</span>
-<span id="162">162</span>
-<span id="163">163</span>
-<span id="164">164</span>
-<span id="165">165</span>
-<span id="166">166</span>
-<span id="167">167</span>
-<span id="168">168</span>
-<span id="169">169</span>
-<span id="170">170</span>
-<span id="171">171</span>
-<span id="172">172</span>
-<span id="173">173</span>
-<span id="174">174</span>
-<span id="175">175</span>
-<span id="176">176</span>
-<span id="177">177</span>
-<span id="178">178</span>
-<span id="179">179</span>
-<span id="180">180</span>
-<span id="181">181</span>
-<span id="182">182</span>
-<span id="183">183</span>
-<span id="184">184</span>
-<span id="185">185</span>
-<span id="186">186</span>
-<span id="187">187</span>
-<span id="188">188</span>
-<span id="189">189</span>
-<span id="190">190</span>
-<span id="191">191</span>
-<span id="192">192</span>
-<span id="193">193</span>
-<span id="194">194</span>
-<span id="195">195</span>
-<span id="196">196</span>
-<span id="197">197</span>
-<span id="198">198</span>
-<span id="199">199</span>
-<span id="200">200</span>
-<span id="201">201</span>
-<span id="202">202</span>
-<span id="203">203</span>
-<span id="204">204</span>
-<span id="205">205</span>
-<span id="206">206</span>
-<span id="207">207</span>
-<span id="208">208</span>
-<span id="209">209</span>
-<span id="210">210</span>
-<span id="211">211</span>
-<span id="212">212</span>
-<span id="213">213</span>
-<span id="214">214</span>
-<span id="215">215</span>
-<span id="216">216</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/slice/index.html">core::slice</a>;
+</pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/slice/index.html">core::slice</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">core::convert::TryInto</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">core::convert::TryFrom</a>;
 
 <span class="kw">pub struct </span>Bytes&lt;<span class="lifetime">&#39;a</span>&gt; {
     slice: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
@@ -224,74 +118,85 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Bytes&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>new(slice: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; Bytes&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <a href="../../src/httparse/iter.rs.html#3">Bytes</a> {
-            <a href="../../src/httparse/iter.rs.html#10">slice</a>,
+        <a href="../../src/httparse/iter.rs.html#5">Bytes</a> {
+            <a href="../../src/httparse/iter.rs.html#12">slice</a>,
             pos: <span class="number">0
         </span>}
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>pos(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/httparse/iter.rs.html#18">self</a>.pos
+        <a class="self" href="../../src/httparse/iter.rs.html#20">self</a>.pos
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>peek(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
-        <a class="self" href="../../src/httparse/iter.rs.html#23">self</a>.slice.get(<a class="self" href="../../src/httparse/iter.rs.html#23">self</a>.pos).cloned()
+        <a class="self" href="../../src/httparse/iter.rs.html#25">self</a>.<a href="../../src/httparse/iter.rs.html#30">peek_ahead</a>(<span class="number">0</span>)
+    }
+
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>peek_ahead(<span class="kw-2">&amp;</span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
+        <a class="self" href="../../src/httparse/iter.rs.html#30">self</a>.slice.get(<a class="self" href="../../src/httparse/iter.rs.html#30">self</a>.pos + <a href="../../src/httparse/iter.rs.html#30">n</a>).copied()
+    }
+
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>peek_n&lt;U: TryFrom&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span>&lt;U&gt; {
+        <span class="self">self</span>.slice.get(<span class="self">self</span>.pos..<span class="self">self</span>.pos + n)<span class="question-mark">?</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">try_into</a>().ok()
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">pub unsafe fn </span>bump(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.pos &lt; <span class="self">self</span>.slice.len(), <span class="string">&quot;overflow&quot;</span>);
-        <a class="self" href="../../src/httparse/iter.rs.html#28">self</a>.pos += <span class="number">1</span>;
+        <a class="self" href="../../src/httparse/iter.rs.html#40">self</a>.pos += <span class="number">1</span>;
     }
 
     <span class="attribute">#[allow(unused)]
     #[inline]
     </span><span class="kw">pub unsafe fn </span>advance(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.pos + n &lt;= <span class="self">self</span>.slice.len(), <span class="string">&quot;overflow&quot;</span>);
-        <a class="self" href="../../src/httparse/iter.rs.html#35">self</a>.pos += <a href="../../src/httparse/iter.rs.html#35">n</a>;
+        <a class="self" href="../../src/httparse/iter.rs.html#47">self</a>.pos += <a href="../../src/httparse/iter.rs.html#47">n</a>;
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/httparse/iter.rs.html#41">self</a>.slice.len()
+        <a class="self" href="../../src/httparse/iter.rs.html#53">self</a>.slice.len()
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>slice(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
         <span class="comment">// not moving position at all, so it&#39;s safe
         </span><span class="kw">unsafe </span>{
-            <a class="self" href="../../src/httparse/iter.rs.html#46">self</a>.<a href="../../src/httparse/iter.rs.html#54">slice_skip</a>(<span class="number">0</span>)
+            <a class="self" href="../../src/httparse/iter.rs.html#58">self</a>.<a href="../../src/httparse/iter.rs.html#66">slice_skip</a>(<span class="number">0</span>)
         }
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">pub unsafe fn </span>slice_skip(<span class="kw-2">&amp;mut </span><span class="self">self</span>, skip: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.pos &gt;= skip);
-        <span class="kw">let </span>head_pos = <a class="self" href="../../src/httparse/iter.rs.html#54">self</a>.pos - <a href="../../src/httparse/iter.rs.html#54">skip</a>;
-        <span class="kw">let </span>ptr = <a class="self" href="../../src/httparse/iter.rs.html#54">self</a>.slice.as_ptr();
-        <span class="kw">let </span>head = slice::from_raw_parts(<a href="../../src/httparse/iter.rs.html#57">ptr</a>, <a href="../../src/httparse/iter.rs.html#56">head_pos</a>);
-        <span class="kw">let </span>tail = slice::from_raw_parts(<a href="../../src/httparse/iter.rs.html#57">ptr</a>.add(<a class="self" href="../../src/httparse/iter.rs.html#54">self</a>.pos), <a class="self" href="../../src/httparse/iter.rs.html#54">self</a>.slice.len() - <a class="self" href="../../src/httparse/iter.rs.html#54">self</a>.pos);
-        <a class="self" href="../../src/httparse/iter.rs.html#54">self</a>.pos = <span class="number">0</span>;
-        <a class="self" href="../../src/httparse/iter.rs.html#54">self</a>.slice = <a href="../../src/httparse/iter.rs.html#59">tail</a>;
-        <a href="../../src/httparse/iter.rs.html#58">head</a>
+        <span class="kw">let </span>head_pos = <a class="self" href="../../src/httparse/iter.rs.html#66">self</a>.pos - <a href="../../src/httparse/iter.rs.html#66">skip</a>;
+        <span class="kw">let </span>ptr = <a class="self" href="../../src/httparse/iter.rs.html#66">self</a>.slice.as_ptr();
+        <span class="kw">let </span>head = slice::from_raw_parts(<a href="../../src/httparse/iter.rs.html#69">ptr</a>, <a href="../../src/httparse/iter.rs.html#68">head_pos</a>);
+        <span class="kw">let </span>tail = slice::from_raw_parts(<a href="../../src/httparse/iter.rs.html#69">ptr</a>.add(<a class="self" href="../../src/httparse/iter.rs.html#66">self</a>.pos), <a class="self" href="../../src/httparse/iter.rs.html#66">self</a>.slice.len() - <a class="self" href="../../src/httparse/iter.rs.html#66">self</a>.pos);
+        <a class="self" href="../../src/httparse/iter.rs.html#66">self</a>.pos = <span class="number">0</span>;
+        <a class="self" href="../../src/httparse/iter.rs.html#66">self</a>.slice = <a href="../../src/httparse/iter.rs.html#71">tail</a>;
+        <a href="../../src/httparse/iter.rs.html#70">head</a>
     }
 
     <span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>next_8&lt;<span class="lifetime">&#39;b</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Bytes8&lt;<span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;a</span>&gt;&gt; {
-        <span class="kw">if </span><span class="self">self</span>.slice.len() &gt;= <span class="self">self</span>.pos + <span class="number">8 </span>{
-            <span class="prelude-val">Some</span>(Bytes8::new(<a class="self" href="../../src/httparse/iter.rs.html#66">self</a>))
-        } <span class="kw">else </span>{
-            <span class="prelude-val">None
-        </span>}
+    </span><span class="kw">pub unsafe fn </span>advance_and_commit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.pos + n &lt;= <span class="self">self</span>.slice.len(), <span class="string">&quot;overflow&quot;</span>);
+        <a class="self" href="../../src/httparse/iter.rs.html#78">self</a>.pos += <a href="../../src/httparse/iter.rs.html#78">n</a>;
+        <span class="kw">let </span>ptr = <a class="self" href="../../src/httparse/iter.rs.html#78">self</a>.slice.as_ptr();
+        <span class="kw">let </span>tail = slice::from_raw_parts(<a href="../../src/httparse/iter.rs.html#81">ptr</a>.add(<a href="../../src/httparse/iter.rs.html#78">n</a>), <a class="self" href="../../src/httparse/iter.rs.html#78">self</a>.slice.len() - <a href="../../src/httparse/iter.rs.html#78">n</a>);
+        <a class="self" href="../../src/httparse/iter.rs.html#78">self</a>.pos = <span class="number">0</span>;
+        <a class="self" href="../../src/httparse/iter.rs.html#78">self</a>.slice = <a href="../../src/httparse/iter.rs.html#82">tail</a>;
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; AsRef&lt;[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt; <span class="kw">for </span>Bytes&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/httparse/iter.rs.html#77">self</a>.slice[<a class="self" href="../../src/httparse/iter.rs.html#77">self</a>.pos..]
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/httparse/iter.rs.html#90">self</a>.slice[<a class="self" href="../../src/httparse/iter.rs.html#90">self</a>.pos..]
     }
 }
 
@@ -301,133 +206,12 @@
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
         <span class="kw">if </span><span class="self">self</span>.slice.len() &gt; <span class="self">self</span>.pos {
-            <span class="kw">let </span>b = <span class="kw">unsafe </span>{ <span class="kw-2">*</span><a class="self" href="../../src/httparse/iter.rs.html#86">self</a>.slice.get_unchecked(<a class="self" href="../../src/httparse/iter.rs.html#86">self</a>.pos) };
-            <a class="self" href="../../src/httparse/iter.rs.html#86">self</a>.pos += <span class="number">1</span>;
-            <span class="prelude-val">Some</span>(<a href="../../src/httparse/iter.rs.html#88">b</a>)
+            <span class="kw">let </span>b = <span class="kw">unsafe </span>{ <span class="kw-2">*</span><a class="self" href="../../src/httparse/iter.rs.html#99">self</a>.slice.get_unchecked(<a class="self" href="../../src/httparse/iter.rs.html#99">self</a>.pos) };
+            <a class="self" href="../../src/httparse/iter.rs.html#99">self</a>.pos += <span class="number">1</span>;
+            <span class="prelude-val">Some</span>(<a href="../../src/httparse/iter.rs.html#101">b</a>)
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
-    }
-}
-
-<span class="kw">pub struct </span>Bytes8&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;a</span>&gt; {
-    bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Bytes&lt;<span class="lifetime">&#39;b</span>&gt;,
-    <span class="attribute">#[cfg(debug_assertions)]
-    </span>pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
-}
-
-<span class="macro">macro_rules! </span>bytes8_methods {
-    (<span class="macro-nonterminal">$f</span>:ident, <span class="macro-nonterminal">$pos</span>:expr) =&gt; {
-        <span class="attribute">#[inline]
-        </span><span class="kw">pub fn </span><span class="macro-nonterminal">$f</span>(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; u8 {
-            <span class="self">self</span>.assert_pos(<span class="macro-nonterminal">$pos</span>);
-            <span class="kw">let </span>b = <span class="kw">unsafe </span>{ <span class="kw-2">*</span><span class="self">self</span>.bytes.slice.get_unchecked(<span class="self">self</span>.bytes.pos) };
-            <span class="self">self</span>.bytes.pos += <span class="number">1</span>;
-            b
-        }
-    };
-    () =&gt; {
-        <span class="macro">bytes8_methods!</span>(_0, <span class="number">0</span>);
-        <span class="macro">bytes8_methods!</span>(_1, <span class="number">1</span>);
-        <span class="macro">bytes8_methods!</span>(_2, <span class="number">2</span>);
-        <span class="macro">bytes8_methods!</span>(_3, <span class="number">3</span>);
-        <span class="macro">bytes8_methods!</span>(_4, <span class="number">4</span>);
-        <span class="macro">bytes8_methods!</span>(_5, <span class="number">5</span>);
-        <span class="macro">bytes8_methods!</span>(_6, <span class="number">6</span>);
-        <span class="macro">bytes8_methods!</span>(_7, <span class="number">7</span>);
-    }
-}
-
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;a</span>&gt; Bytes8&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
-    <a class="macro" href="../../src/httparse/iter.rs.html#103-123">bytes8_methods! </a>{}
-
-    <span class="attribute">#[cfg(not(debug_assertions))]
-    #[inline]
-    </span><span class="kw">fn </span>new(bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Bytes&lt;<span class="lifetime">&#39;b</span>&gt;) -&gt; Bytes8&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
-        Bytes8 {
-            bytes: bytes,
-        }
-    }
-
-    <span class="attribute">#[cfg(debug_assertions)]
-    #[inline]
-    </span><span class="kw">fn </span>new(bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Bytes&lt;<span class="lifetime">&#39;b</span>&gt;) -&gt; Bytes8&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
-        <a href="../../src/httparse/iter.rs.html#97">Bytes8</a> {
-            <a href="../../src/httparse/iter.rs.html#138">bytes</a>,
-            pos: <span class="number">0</span>,
-        }
-    }
-
-    <span class="attribute">#[cfg(not(debug_assertions))]
-    #[inline]
-    </span><span class="kw">fn </span>assert_pos(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _pos: usize) {
-    }
-
-    <span class="attribute">#[cfg(debug_assertions)]
-    #[inline]
-    </span><span class="kw">fn </span>assert_pos(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.pos == pos);
-        <a class="self" href="../../src/httparse/iter.rs.html#152">self</a>.pos += <span class="number">1</span>;
-    }
-}
-
-<span class="attribute">#[cfg(test)]
-</span><span class="kw">mod </span>tests {
-    <span class="kw">use </span><span class="kw">super</span>::Bytes;
-
-    <span class="attribute">#[test]
-    </span><span class="kw">fn </span>test_next_8_too_short() {
-        <span class="comment">// Start with 10 bytes.
-        </span><span class="kw">let </span>slice = [<span class="number">0u8</span>, <span class="number">1u8</span>, <span class="number">2u8</span>, <span class="number">3u8</span>, <span class="number">4u8</span>, <span class="number">5u8</span>, <span class="number">6u8</span>, <span class="number">7u8</span>, <span class="number">8u8</span>, <span class="number">9u8</span>];
-        <span class="kw">let </span><span class="kw-2">mut </span>bytes = Bytes::new(<span class="kw-2">&amp;</span>slice);
-        <span class="comment">// Skip 3 of them.
-        </span><span class="kw">unsafe </span>{ bytes.advance(<span class="number">3</span>); }
-        <span class="comment">// There should be 7 left, not enough to call next_8.
-        </span><span class="macro">assert!</span>(bytes.next_8().is_none());
-    }
-
-    <span class="attribute">#[test]
-    </span><span class="kw">fn </span>test_next_8_just_right() {
-        <span class="comment">// Start with 10 bytes.
-        </span><span class="kw">let </span>slice = [<span class="number">0u8</span>, <span class="number">1u8</span>, <span class="number">2u8</span>, <span class="number">3u8</span>, <span class="number">4u8</span>, <span class="number">5u8</span>, <span class="number">6u8</span>, <span class="number">7u8</span>, <span class="number">8u8</span>, <span class="number">9u8</span>];
-        <span class="kw">let </span><span class="kw-2">mut </span>bytes = Bytes::new(<span class="kw-2">&amp;</span>slice);
-        <span class="comment">// Skip 2 of them.
-        </span><span class="kw">unsafe </span>{ bytes.advance(<span class="number">2</span>); }
-        <span class="comment">// There should be 8 left, just enough to call next_8.
-        </span><span class="kw">let </span>ret = bytes.next_8();
-        <span class="macro">assert!</span>(ret.is_some());
-        <span class="kw">let </span><span class="kw-2">mut </span>ret = ret.unwrap();
-        <span class="comment">// They should be the bytes starting with 2.
-        </span><span class="macro">assert_eq!</span>(ret._0(), <span class="number">2u8</span>);
-        <span class="macro">assert_eq!</span>(ret._1(), <span class="number">3u8</span>);
-        <span class="macro">assert_eq!</span>(ret._2(), <span class="number">4u8</span>);
-        <span class="macro">assert_eq!</span>(ret._3(), <span class="number">5u8</span>);
-        <span class="macro">assert_eq!</span>(ret._4(), <span class="number">6u8</span>);
-        <span class="macro">assert_eq!</span>(ret._5(), <span class="number">7u8</span>);
-        <span class="macro">assert_eq!</span>(ret._6(), <span class="number">8u8</span>);
-        <span class="macro">assert_eq!</span>(ret._7(), <span class="number">9u8</span>);
-    }
-
-    <span class="attribute">#[test]
-    </span><span class="kw">fn </span>test_next_8_extra() {
-        <span class="comment">// Start with 10 bytes.
-        </span><span class="kw">let </span>slice = [<span class="number">0u8</span>, <span class="number">1u8</span>, <span class="number">2u8</span>, <span class="number">3u8</span>, <span class="number">4u8</span>, <span class="number">5u8</span>, <span class="number">6u8</span>, <span class="number">7u8</span>, <span class="number">8u8</span>, <span class="number">9u8</span>];
-        <span class="kw">let </span><span class="kw-2">mut </span>bytes = Bytes::new(<span class="kw-2">&amp;</span>slice);
-        <span class="comment">// Skip 1 of them.
-        </span><span class="kw">unsafe </span>{ bytes.advance(<span class="number">1</span>); }
-        <span class="comment">// There should be 9 left, more than enough to call next_8.
-        </span><span class="kw">let </span>ret = bytes.next_8();
-        <span class="macro">assert!</span>(ret.is_some());
-        <span class="kw">let </span><span class="kw-2">mut </span>ret = ret.unwrap();
-        <span class="comment">// They should be the bytes starting with 1.
-        </span><span class="macro">assert_eq!</span>(ret._0(), <span class="number">1u8</span>);
-        <span class="macro">assert_eq!</span>(ret._1(), <span class="number">2u8</span>);
-        <span class="macro">assert_eq!</span>(ret._2(), <span class="number">3u8</span>);
-        <span class="macro">assert_eq!</span>(ret._3(), <span class="number">4u8</span>);
-        <span class="macro">assert_eq!</span>(ret._4(), <span class="number">5u8</span>);
-        <span class="macro">assert_eq!</span>(ret._5(), <span class="number">6u8</span>);
-        <span class="macro">assert_eq!</span>(ret._6(), <span class="number">7u8</span>);
-        <span class="macro">assert_eq!</span>(ret._7(), <span class="number">8u8</span>);
     }
 }
 </code></pre></div>

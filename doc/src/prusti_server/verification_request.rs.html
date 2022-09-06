@@ -78,6 +78,9 @@
 <span id="78">78</span>
 <span id="79">79</span>
 <span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
 </pre><pre class="rust"><code><span class="comment">// © 2021, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -134,10 +137,13 @@
                 <a href="../../src/prusti_server/verification_request.rs.html#39">verifier_args</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
                     <span class="string">&quot;--assertTimeout&quot;</span>.to_string(),
                     config::assert_timeout().to_string(),
-                    <span class="string">&quot;--z3ConfigArgs&quot;</span>.to_string(),
-                    <span class="macro">format!</span>(
-                        <span class="string">&quot;smt.qi.eager_threshold={}&quot;</span>,
-                        config::smt_qi_eager_threshold()
+                    <span class="string">&quot;--proverConfigArgs&quot;</span>.to_string(),
+                    <span class="comment">// model.partial changes the default case of functions in counterexamples
+                    // to #unspecified
+                    </span><span class="macro">format!</span>(
+                        <span class="string">&quot;smt.qi.eager_threshold={} model.partial={}&quot;</span>,
+                        config::smt_qi_eager_threshold(),
+                        config::counterexample()
                     ),
                     <span class="string">&quot;--logLevel&quot;</span>.to_string(),
                     <span class="string">&quot;ERROR&quot;</span>.to_string(),
@@ -145,7 +151,7 @@
 
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(check_timeout) = config::check_timeout() {
                     <a href="../../src/prusti_server/verification_request.rs.html#39">verifier_args</a>.push(<span class="string">&quot;--checkTimeout&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-                    <a href="../../src/prusti_server/verification_request.rs.html#39">verifier_args</a>.push(<a href="../../src/prusti_server/verification_request.rs.html#66">check_timeout</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+                    <a href="../../src/prusti_server/verification_request.rs.html#39">verifier_args</a>.push(<a href="../../src/prusti_server/verification_request.rs.html#69">check_timeout</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
                 }
             }
             VerificationBackend::Carbon =&gt; {

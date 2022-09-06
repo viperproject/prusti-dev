@@ -535,6 +535,17 @@
 <span id="535">535</span>
 <span id="536">536</span>
 <span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Processes `#[model]` attributed types.
 //!
 //! Usage documentation can be found in the corresponding macro definition.
@@ -556,7 +567,7 @@
     <a href="../../../src/prusti_specs/common.rs.html#404">common::add_phantom_data_for_generic_params</a>,
     user_provided_type_params::{
         <a href="../../../src/prusti_specs/user_provided_type_params.rs.html#7">UserAnnotatedTypeParam</a>, <a href="../../../src/prusti_specs/user_provided_type_params.rs.html#91">UserAnnotatedTypeParamParser</a>, <a href="../../../src/prusti_specs/user_provided_type_params.rs.html#72">UserAnnotatedTypeParamParserError</a>,
-    }, <a href="../../../src/prusti_specs/lib.rs.html#42">SPECS_VERSION</a>,
+    }, <a href="../../../src/prusti_specs/lib.rs.html#44">SPECS_VERSION</a>,
 };
 <span class="kw">use </span>proc_macro2::{<a href="../../../proc_macro2/struct.Ident.html">Ident</a>, <a href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a>};
 <span class="kw">use </span><a href="../../../quote/to_tokens/trait.ToTokens.html">quote::ToTokens</a>;
@@ -564,27 +575,29 @@
 <span class="kw">use </span><a href="../../../uuid/struct.Uuid.html">uuid::Uuid</a>;
 
 <span class="doccomment">/// See module level documentation
-</span><span class="kw">pub fn </span>rewrite(item_struct: <a href="../../../syn/item/struct.ItemStruct.html">syn::ItemStruct</a>) -&gt; syn::Result&lt;<a href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a>&gt; {
-    <span class="kw">let </span>res = <a href="../../../src/prusti_specs/type_model/mod.rs.html#40">rewrite_internal</a>(<a href="../../../src/prusti_specs/type_model/mod.rs.html#30">item_struct</a>);
+</span><span class="kw">pub fn </span>rewrite(item_struct: <a href="../../../syn/item/struct.ItemStruct.html">syn::ItemStruct</a>) -&gt; syn::Result&lt;Vec&lt;<a href="../../../syn/item/enum.Item.html">syn::Item</a>&gt;&gt; {
+    <span class="kw">let </span>res = <a href="../../../src/prusti_specs/type_model/mod.rs.html#42">rewrite_internal</a>(<a href="../../../src/prusti_specs/type_model/mod.rs.html#30">item_struct</a>);
     <span class="kw">match </span><a href="../../../src/prusti_specs/type_model/mod.rs.html#31">res</a> {
-        <span class="prelude-val">Ok</span>(result) =&gt; <span class="prelude-val">Ok</span>(<a href="../../../src/prusti_specs/type_model/mod.rs.html#33">result</a>.<a href="../../../quote/to_tokens/trait.ToTokens.html">into_token_stream</a>()),
-        <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/prusti_specs/type_model/mod.rs.html#34">err</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+        <span class="prelude-val">Ok</span>(result) =&gt; {
+            <span class="prelude-val">Ok</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[syn::Item::Struct(result.model_struct), syn::Item::Trait(result.to_model_trait), syn::Item::Impl(result.model_impl)])
+        },
+        <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a href="../../../src/prusti_specs/type_model/mod.rs.html#36">err</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
     }
 }
 
-<span class="kw">type </span>TypeModelGenerationResult&lt;R&gt; = <span class="prelude-ty">Result</span>&lt;R, <a href="../../../src/prusti_specs/type_model/mod.rs.html#238">TypeModelGenerationError</a>&gt;;
+<span class="kw">type </span>TypeModelGenerationResult&lt;R&gt; = <span class="prelude-ty">Result</span>&lt;R, <a href="../../../src/prusti_specs/type_model/mod.rs.html#242">TypeModelGenerationError</a>&gt;;
 
-<span class="kw">fn </span>rewrite_internal(item_struct: <a href="../../../syn/item/struct.ItemStruct.html">syn::ItemStruct</a>) -&gt; TypeModelGenerationResult&lt;<a href="../../../src/prusti_specs/type_model/mod.rs.html#264">TypeModel</a>&gt; {
-    <span class="kw">let </span>idents = GeneratedIdents::generate(<span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/type_model/mod.rs.html#40">item_struct</a>);
+<span class="kw">fn </span>rewrite_internal(item_struct: <a href="../../../syn/item/struct.ItemStruct.html">syn::ItemStruct</a>) -&gt; TypeModelGenerationResult&lt;<a href="../../../src/prusti_specs/type_model/mod.rs.html#268">TypeModel</a>&gt; {
+    <span class="kw">let </span>idents = GeneratedIdents::generate(<span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/type_model/mod.rs.html#42">item_struct</a>);
 
     <span class="kw">let </span>model_struct = ModelStruct::create(<span class="kw-2">&amp;</span>item_struct, <span class="kw-2">&amp;</span>idents)<span class="question-mark">?</span>;
-    <span class="kw">let </span>to_model_trait = ToModelTrait::create(<span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/type_model/mod.rs.html#40">item_struct</a>, <span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/type_model/mod.rs.html#43">model_struct</a>, <span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/type_model/mod.rs.html#41">idents</a>);
+    <span class="kw">let </span>to_model_trait = ToModelTrait::create(<span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/type_model/mod.rs.html#42">item_struct</a>, <span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/type_model/mod.rs.html#45">model_struct</a>, <span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/type_model/mod.rs.html#43">idents</a>);
     <span class="kw">let </span>model_impl = create_model_impl(<span class="kw-2">&amp;</span>item_struct, <span class="kw-2">&amp;</span>model_struct, <span class="kw-2">&amp;</span>to_model_trait)<span class="question-mark">?</span>;
 
-    <span class="prelude-val">Ok</span>(<a href="../../../src/prusti_specs/type_model/mod.rs.html#264">TypeModel</a> {
-        model_struct: <a href="../../../src/prusti_specs/type_model/mod.rs.html#43">model_struct</a>.item,
-        to_model_trait: <a href="../../../src/prusti_specs/type_model/mod.rs.html#44">to_model_trait</a>.item,
-        <a href="../../../src/prusti_specs/type_model/mod.rs.html#45">model_impl</a>,
+    <span class="prelude-val">Ok</span>(<a href="../../../src/prusti_specs/type_model/mod.rs.html#268">TypeModel</a> {
+        model_struct: <a href="../../../src/prusti_specs/type_model/mod.rs.html#45">model_struct</a>.item,
+        to_model_trait: <a href="../../../src/prusti_specs/type_model/mod.rs.html#46">to_model_trait</a>.item,
+        <a href="../../../src/prusti_specs/type_model/mod.rs.html#47">model_impl</a>,
     })
 }
 
@@ -595,18 +608,18 @@
     </span>path: <a href="../../../syn/path/struct.Path.html">syn::Path</a>,
 }
 
-<span class="kw">impl </span><a href="../../../src/prusti_specs/type_model/mod.rs.html#54">ModelStruct</a> {
+<span class="kw">impl </span><a href="../../../src/prusti_specs/type_model/mod.rs.html#56">ModelStruct</a> {
     <span class="kw">fn </span>create(
         item_struct: <span class="kw-2">&amp;</span><a href="../../../syn/item/struct.ItemStruct.html">syn::ItemStruct</a>,
-        idents: <span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/type_model/mod.rs.html#205">GeneratedIdents</a>,
+        idents: <span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/type_model/mod.rs.html#209">GeneratedIdents</a>,
     ) -&gt; TypeModelGenerationResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">if </span>item_struct.fields.is_empty() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/prusti_specs/type_model/mod.rs.html#240">TypeModelGenerationError::MissingStructFields</a>(
-                <a href="../../../src/prusti_specs/type_model/mod.rs.html#63">item_struct</a>.<a href="../../../syn/spanned/trait.Spanned.html">span</a>(),
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../src/prusti_specs/type_model/mod.rs.html#244">TypeModelGenerationError::MissingStructFields</a>(
+                <a href="../../../src/prusti_specs/type_model/mod.rs.html#65">item_struct</a>.<a href="../../../syn/spanned/trait.Spanned.html">span</a>(),
             ));
         }
 
-        <span class="kw">let </span>model_struct_ident = <span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/type_model/mod.rs.html#64">idents</a>.model_struct_ident;
+        <span class="kw">let </span>model_struct_ident = <span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/type_model/mod.rs.html#66">idents</a>.model_struct_ident;
         <span class="kw">let </span><span class="kw-2">mut </span>model_struct: <a href="../../../syn/item/struct.ItemStruct.html">syn::ItemStruct</a> = <a class="macro" href="../../../src/prusti_specs/parse_quote_spanned.rs.html#23-28">parse_quote_spanned! </a>{item_struct.span()=&gt;
             <span class="attribute">#[derive(Copy, Clone)]
             #[allow(non_camel_case_types)]
@@ -616,23 +629,23 @@
         <span class="kw">let </span>params = item_struct
             .parse_user_annotated_type_params()
             .map_err(TypeModelGenerationError::NonParsableTypeParam)<span class="question-mark">?</span>;
-        <a href="../../../src/prusti_specs/type_model/mod.rs.html#73">model_struct</a>.generics.params.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(
-            <a href="../../../src/prusti_specs/type_model/mod.rs.html#79">params</a>
+        <a href="../../../src/prusti_specs/type_model/mod.rs.html#75">model_struct</a>.generics.params.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(
+            <a href="../../../src/prusti_specs/type_model/mod.rs.html#81">params</a>
                 .iter()
                 .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(UserAnnotatedTypeParam::as_generic_type_param)
                 .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
                 .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(syn::GenericParam::Type),
         );
 
-        <a href="../../../src/prusti_specs/type_model/mod.rs.html#73">model_struct</a>.fields = <a href="../../../src/prusti_specs/type_model/mod.rs.html#63">item_struct</a>.fields.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <a href="../../../src/prusti_specs/common.rs.html#404">add_phantom_data_for_generic_params</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/prusti_specs/type_model/mod.rs.html#73">model_struct</a>);
+        <a href="../../../src/prusti_specs/type_model/mod.rs.html#75">model_struct</a>.fields = <a href="../../../src/prusti_specs/type_model/mod.rs.html#65">item_struct</a>.fields.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <a href="../../../src/prusti_specs/common.rs.html#404">add_phantom_data_for_generic_params</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/prusti_specs/type_model/mod.rs.html#75">model_struct</a>);
 
-        <span class="kw">let </span>generic_idents = <a href="../../../src/prusti_specs/type_model/mod.rs.html#73">model_struct</a>
+        <span class="kw">let </span>generic_idents = <a href="../../../src/prusti_specs/type_model/mod.rs.html#75">model_struct</a>
             .generics
             .params
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|generic_param| <span class="kw">match </span><a href="../../../src/prusti_specs/type_model/mod.rs.html#97">generic_param</a> {
-                syn::GenericParam::Type(type_param) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/type_model/mod.rs.html#98">type_param</a>.ident),
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|generic_param| <span class="kw">match </span><a href="../../../src/prusti_specs/type_model/mod.rs.html#99">generic_param</a> {
+                syn::GenericParam::Type(type_param) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/type_model/mod.rs.html#100">type_param</a>.ident),
                 <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
             });
         <span class="kw">let </span>model_path: <a href="../../../syn/path/struct.Path.html">syn::Path</a> = <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote!</a>(
@@ -640,8 +653,8 @@
         );
 
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
-            item: <a href="../../../src/prusti_specs/type_model/mod.rs.html#73">model_struct</a>,
-            path: <a href="../../../src/prusti_specs/type_model/mod.rs.html#101">model_path</a>,
+            item: <a href="../../../src/prusti_specs/type_model/mod.rs.html#75">model_struct</a>,
+            path: <a href="../../../src/prusti_specs/type_model/mod.rs.html#103">model_path</a>,
         })
     }
 }
@@ -653,25 +666,25 @@
     </span>path: <a href="../../../syn/path/struct.Path.html">syn::Path</a>,
 }
 
-<span class="kw">impl </span><a href="../../../src/prusti_specs/type_model/mod.rs.html#112">ToModelTrait</a> {
+<span class="kw">impl </span><a href="../../../src/prusti_specs/type_model/mod.rs.html#114">ToModelTrait</a> {
     <span class="kw">fn </span>create(
         item_struct: <span class="kw-2">&amp;</span><a href="../../../syn/item/struct.ItemStruct.html">syn::ItemStruct</a>,
-        model_struct: <span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/type_model/mod.rs.html#54">ModelStruct</a>,
-        idents: <span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/type_model/mod.rs.html#205">GeneratedIdents</a>,
+        model_struct: <span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/type_model/mod.rs.html#56">ModelStruct</a>,
+        idents: <span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/type_model/mod.rs.html#209">GeneratedIdents</a>,
     ) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>generic_params: Vec&lt;<a href="../../../syn/generics/enum.GenericParam.html">syn::GenericParam</a>&gt; =
-            <a href="../../../src/prusti_specs/type_model/mod.rs.html#122">model_struct</a>.item.generics.params.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="kw">let </span>generic_params_idents: Vec&lt;<a href="../../../proc_macro2/struct.Ident.html">Ident</a>&gt; = <a href="../../../src/prusti_specs/type_model/mod.rs.html#125">generic_params</a>
+            <a href="../../../src/prusti_specs/type_model/mod.rs.html#124">model_struct</a>.item.generics.params.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <span class="kw">let </span>generic_params_idents: Vec&lt;<a href="../../../proc_macro2/struct.Ident.html">Ident</a>&gt; = <a href="../../../src/prusti_specs/type_model/mod.rs.html#127">generic_params</a>
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|generic_param| <span class="kw">match </span><a href="../../../src/prusti_specs/type_model/mod.rs.html#129">generic_param</a> {
-                syn::GenericParam::Type(type_param) =&gt; <span class="prelude-val">Some</span>(<a href="../../../src/prusti_specs/type_model/mod.rs.html#130">type_param</a>.ident.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|generic_param| <span class="kw">match </span><a href="../../../src/prusti_specs/type_model/mod.rs.html#131">generic_param</a> {
+                syn::GenericParam::Type(type_param) =&gt; <span class="prelude-val">Some</span>(<a href="../../../src/prusti_specs/type_model/mod.rs.html#132">type_param</a>.ident.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
                 <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
             })
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
 
-        <span class="kw">let </span>model_path = <span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/type_model/mod.rs.html#122">model_struct</a>.path;
-
-        <span class="kw">let </span>to_model_trait_ident = <span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/type_model/mod.rs.html#123">idents</a>.to_model_trait_ident;
+        <span class="kw">let </span>model_path = <span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/type_model/mod.rs.html#124">model_struct</a>.path;
+        
+        <span class="kw">let </span>to_model_trait_ident = <span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/type_model/mod.rs.html#125">idents</a>.to_model_trait_ident;
         <span class="kw">let </span>item = <a class="macro" href="../../../src/prusti_specs/parse_quote_spanned.rs.html#23-28">parse_quote_spanned! </a>{item_struct.span()=&gt;
             <span class="attribute">#[allow(non_camel_case_types)]
             </span><span class="kw">trait </span>#to_model_trait_ident&lt;#(#generic_params),<span class="kw-2">*</span>&gt; {
@@ -686,16 +699,16 @@
             #to_model_trait_ident&lt;#(#generic_params_idents),<span class="kw-2">*</span>&gt;
         );
 
-        <span class="self">Self </span>{ <a href="../../../src/prusti_specs/type_model/mod.rs.html#138">item</a>, <a href="../../../src/prusti_specs/type_model/mod.rs.html#148">path</a> }
+        <span class="self">Self </span>{ <a href="../../../src/prusti_specs/type_model/mod.rs.html#140">item</a>, <a href="../../../src/prusti_specs/type_model/mod.rs.html#150">path</a> }
     }
 }
 
 <span class="kw">fn </span>create_model_impl(
     item_struct: <span class="kw-2">&amp;</span><a href="../../../syn/item/struct.ItemStruct.html">syn::ItemStruct</a>,
-    model_struct: <span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/type_model/mod.rs.html#54">ModelStruct</a>,
-    to_model_trait: <span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/type_model/mod.rs.html#112">ToModelTrait</a>,
+    model_struct: <span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/type_model/mod.rs.html#56">ModelStruct</a>,
+    to_model_trait: <span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/type_model/mod.rs.html#114">ToModelTrait</a>,
 ) -&gt; TypeModelGenerationResult&lt;<a href="../../../syn/item/struct.ItemImpl.html">syn::ItemImpl</a>&gt; {
-    <span class="kw">let </span>ident = <span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/type_model/mod.rs.html#157">item_struct</a>.ident;
+    <span class="kw">let </span>ident = <span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/type_model/mod.rs.html#159">item_struct</a>.ident;
 
     <span class="kw">let </span><span class="kw-2">mut </span>rewritten_generics: Vec&lt;<a href="../../../syn/generics/enum.GenericParam.html">syn::GenericParam</a>&gt; = Vec::new();
     <span class="kw">for </span>param <span class="kw">in </span><span class="kw-2">&amp;</span>item_struct.generics.params {
@@ -716,14 +729,15 @@
     }
 
     <span class="kw">let </span>generic_params: Vec&lt;<a href="../../../syn/generics/enum.GenericParam.html">syn::GenericParam</a>&gt; =
-        <a href="../../../src/prusti_specs/type_model/mod.rs.html#158">model_struct</a>.item.generics.params.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <a href="../../../src/prusti_specs/type_model/mod.rs.html#160">model_struct</a>.item.generics.params.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
 
     <span class="kw">let </span>impl_path: <a href="../../../syn/path/struct.Path.html">syn::Path</a> = <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote!</a>(
         #ident &lt; #(#rewritten_generics),* &gt;
     );
 
-    <span class="kw">let </span>to_model_trait_path = <span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/type_model/mod.rs.html#159">to_model_trait</a>.path;
-    <span class="kw">let </span>model_struct_path = <span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/type_model/mod.rs.html#158">model_struct</a>.path;
+    <span class="kw">let </span>to_model_trait_path = <span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/type_model/mod.rs.html#161">to_model_trait</a>.path;
+    <span class="kw">let </span>model_struct_path = <span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/type_model/mod.rs.html#160">model_struct</a>.path;
+    <span class="kw">let </span>to_model_trait_str = <span class="kw-2">&amp;</span><a href="../../../src/prusti_specs/type_model/mod.rs.html#161">to_model_trait</a>.item.ident.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
 
     <span class="prelude-val">Ok</span>(<a class="macro" href="../../../src/prusti_specs/parse_quote_spanned.rs.html#23-28">parse_quote_spanned! </a>{item_struct.span()=&gt;
         <span class="attribute">#[prusti::type_models_to_model_impl]
@@ -731,6 +745,7 @@
         </span><span class="kw">impl</span>&lt;#(#generic_params),<span class="kw-2">*</span>&gt; #to_model_trait_path <span class="kw">for </span>#impl_path {
             <span class="attribute">#[trusted]
             #[pure]
+            #[prusti::type_models_to_model_fn = #to_model_trait_str]
             </span><span class="kw">fn </span>model(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; #model_struct_path {
                 <span class="macro">unimplemented!</span>(<span class="string">&quot;Models can only be used in specifications&quot;</span>)
             }
@@ -744,9 +759,9 @@
     to_model_trait_ident: <a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
 }
 
-<span class="kw">impl </span><a href="../../../src/prusti_specs/type_model/mod.rs.html#205">GeneratedIdents</a> {
+<span class="kw">impl </span><a href="../../../src/prusti_specs/type_model/mod.rs.html#209">GeneratedIdents</a> {
     <span class="kw">fn </span>generate(item_struct: <span class="kw-2">&amp;</span><a href="../../../syn/item/struct.ItemStruct.html">syn::ItemStruct</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>name = <a href="../../../src/prusti_specs/type_model/mod.rs.html#211">item_struct</a>.ident.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>name = <a href="../../../src/prusti_specs/type_model/mod.rs.html#215">item_struct</a>.ident.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
 
         <span class="kw">for </span>param <span class="kw">in </span>item_struct.generics.params.iter() {
             <span class="kw">if let </span>syn::GenericParam::Type(ty_param) = param {
@@ -756,14 +771,14 @@
 
         <span class="kw">let </span>uuid = Uuid::new_v4().simple();
 
-        <a href="../../../src/prusti_specs/type_model/mod.rs.html#205">GeneratedIdents</a> {
+        <a href="../../../src/prusti_specs/type_model/mod.rs.html#209">GeneratedIdents</a> {
             model_struct_ident: Ident::new(
                 <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;Prusti{}Model_{}&quot;</span>, name, uuid).as_str(),
-                <a href="../../../src/prusti_specs/type_model/mod.rs.html#211">item_struct</a>.ident.span(),
+                <a href="../../../src/prusti_specs/type_model/mod.rs.html#215">item_struct</a>.ident.span(),
             ),
             to_model_trait_ident: Ident::new(
                 <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;Prusti{}ToModel_{}&quot;</span>, name, uuid).as_str(),
-                <a href="../../../src/prusti_specs/type_model/mod.rs.html#211">item_struct</a>.ident.span(),
+                <a href="../../../src/prusti_specs/type_model/mod.rs.html#215">item_struct</a>.ident.span(),
             ),
         }
     }
@@ -783,16 +798,16 @@
     </span>NonParsableTypeParam(<a href="../../../src/prusti_specs/user_provided_type_params.rs.html#72">UserAnnotatedTypeParamParserError</a>),
 }
 
-<span class="kw">impl </span>std::convert::From&lt;<a href="../../../src/prusti_specs/type_model/mod.rs.html#238">TypeModelGenerationError</a>&gt; <span class="kw">for </span><a href="../../../syn/error/struct.Error.html">syn::Error</a> {
-    <span class="kw">fn </span>from(err: <a href="../../../src/prusti_specs/type_model/mod.rs.html#238">TypeModelGenerationError</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span><a href="../../../src/prusti_specs/type_model/mod.rs.html#250">err</a> {
-            <a href="../../../src/prusti_specs/type_model/mod.rs.html#240">TypeModelGenerationError::MissingStructFields</a>(span) =&gt; {
-                syn::Error::new(<a href="../../../src/prusti_specs/type_model/mod.rs.html#252">span</a>, <span class="string">&quot;Type model must have at least one field&quot;</span>)
+<span class="kw">impl </span>std::convert::From&lt;<a href="../../../src/prusti_specs/type_model/mod.rs.html#242">TypeModelGenerationError</a>&gt; <span class="kw">for </span><a href="../../../syn/error/struct.Error.html">syn::Error</a> {
+    <span class="kw">fn </span>from(err: <a href="../../../src/prusti_specs/type_model/mod.rs.html#242">TypeModelGenerationError</a>) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span><a href="../../../src/prusti_specs/type_model/mod.rs.html#254">err</a> {
+            <a href="../../../src/prusti_specs/type_model/mod.rs.html#244">TypeModelGenerationError::MissingStructFields</a>(span) =&gt; {
+                syn::Error::new(<a href="../../../src/prusti_specs/type_model/mod.rs.html#256">span</a>, <span class="string">&quot;Type model must have at least one field&quot;</span>)
             }
-            <a href="../../../src/prusti_specs/type_model/mod.rs.html#243">TypeModelGenerationError::ConstParamDisallowed</a>(span) =&gt; {
-                syn::Error::new(<a href="../../../src/prusti_specs/type_model/mod.rs.html#255">span</a>, <span class="string">&quot;Const generics are disallowed for models&quot;</span>)
+            <a href="../../../src/prusti_specs/type_model/mod.rs.html#247">TypeModelGenerationError::ConstParamDisallowed</a>(span) =&gt; {
+                syn::Error::new(<a href="../../../src/prusti_specs/type_model/mod.rs.html#259">span</a>, <span class="string">&quot;Const generics are disallowed for models&quot;</span>)
             }
-            <a href="../../../src/prusti_specs/type_model/mod.rs.html#246">TypeModelGenerationError::NonParsableTypeParam</a>(parse_err) =&gt; <a href="../../../src/prusti_specs/type_model/mod.rs.html#258">parse_err</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            <a href="../../../src/prusti_specs/type_model/mod.rs.html#250">TypeModelGenerationError::NonParsableTypeParam</a>(parse_err) =&gt; <a href="../../../src/prusti_specs/type_model/mod.rs.html#262">parse_err</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
         }
     }
 }
@@ -810,11 +825,11 @@
     </span>model_impl: <a href="../../../syn/item/struct.ItemImpl.html">syn::ItemImpl</a>,
 }
 
-<span class="kw">impl </span><a href="../../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../../src/prusti_specs/type_model/mod.rs.html#264">TypeModel</a> {
+<span class="kw">impl </span><a href="../../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="../../../src/prusti_specs/type_model/mod.rs.html#268">TypeModel</a> {
     <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-        <a class="self" href="../../../src/prusti_specs/type_model/mod.rs.html#277">self</a>.to_model_trait.<a href="../../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../../src/prusti_specs/type_model/mod.rs.html#277">tokens</a>);
-        <a class="self" href="../../../src/prusti_specs/type_model/mod.rs.html#277">self</a>.model_struct.<a href="../../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../../src/prusti_specs/type_model/mod.rs.html#277">tokens</a>);
-        <a class="self" href="../../../src/prusti_specs/type_model/mod.rs.html#277">self</a>.model_impl.<a href="../../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../../src/prusti_specs/type_model/mod.rs.html#277">tokens</a>);
+        <a class="self" href="../../../src/prusti_specs/type_model/mod.rs.html#281">self</a>.to_model_trait.<a href="../../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../../src/prusti_specs/type_model/mod.rs.html#281">tokens</a>);
+        <a class="self" href="../../../src/prusti_specs/type_model/mod.rs.html#281">self</a>.model_struct.<a href="../../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../../src/prusti_specs/type_model/mod.rs.html#281">tokens</a>);
+        <a class="self" href="../../../src/prusti_specs/type_model/mod.rs.html#281">self</a>.model_impl.<a href="../../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="../../../src/prusti_specs/type_model/mod.rs.html#281">tokens</a>);
     }
 }
 
@@ -909,12 +924,15 @@
 
         <span class="kw">let </span>model_ident = check_model_ident(<span class="kw-2">&amp;</span>model, <span class="string">&quot;PrustiFooModel&quot;</span>);
         <span class="kw">let </span>trait_ident = check_trait_ident(<span class="kw-2">&amp;</span>model, <span class="string">&quot;PrustiFooToModel&quot;</span>);
+        <span class="kw">let </span>trait_ident_str = trait_ident.to_string();
+
         <span class="kw">let </span>expected: syn::ItemImpl = <span class="macro">parse_quote!</span>(
             <span class="attribute">#[prusti::type_models_to_model_impl]
             #[prusti::specs_version = #SPECS_VERSION]
             </span><span class="kw">impl </span>#trait_ident&lt;&gt; <span class="kw">for </span>Foo &lt;&gt; {
                 <span class="attribute">#[trusted]
                 #[pure]
+                #[prusti::type_models_to_model_fn = #trait_ident_str]
                 </span><span class="kw">fn </span>model(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; #model_ident&lt;&gt; {
                     <span class="macro">unimplemented!</span>(<span class="string">&quot;Models can only be used in specifications&quot;</span>)
                 }
@@ -933,6 +951,7 @@
 
         <span class="kw">let </span>model_ident = check_model_ident(<span class="kw-2">&amp;</span>model, <span class="string">&quot;PrustiFooModel&quot;</span>);
         <span class="kw">let </span>trait_ident = check_trait_ident(<span class="kw-2">&amp;</span>model, <span class="string">&quot;PrustiFooToModel&quot;</span>);
+        <span class="kw">let </span>trait_ident_str = trait_ident.to_string();
 
         <span class="kw">let </span>expected_struct: syn::ItemStruct = <span class="macro">parse_quote!</span>(
             <span class="attribute">#[derive(Copy, Clone)]
@@ -945,6 +964,7 @@
             </span><span class="kw">impl </span>#trait_ident&lt;&gt; <span class="kw">for </span>Foo&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
                 <span class="attribute">#[trusted]
                 #[pure]
+                #[prusti::type_models_to_model_fn = #trait_ident_str]
                 </span><span class="kw">fn </span>model(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; #model_ident&lt;&gt; {
                     <span class="macro">unimplemented!</span>(<span class="string">&quot;Models can only be used in specifications&quot;</span>)
                 }
@@ -964,6 +984,7 @@
 
         <span class="kw">let </span>model_ident = check_model_ident(<span class="kw-2">&amp;</span>model, <span class="string">&quot;PrustiFooi32TusizeUModel&quot;</span>);
         <span class="kw">let </span>trait_ident = check_trait_ident(<span class="kw-2">&amp;</span>model, <span class="string">&quot;PrustiFooi32TusizeUToModel&quot;</span>);
+        <span class="kw">let </span>trait_ident_str = trait_ident.to_string();
 
         <span class="kw">let </span>expected_struct: syn::ItemStruct = <span class="macro">parse_quote!</span>(
             <span class="attribute">#[derive(Copy, Clone)]
@@ -987,6 +1008,7 @@
             </span><span class="kw">impl</span>&lt;T, U&gt; #trait_ident&lt;T, U&gt; <span class="kw">for </span>Foo&lt;i32, T, usize, U&gt; {
                 <span class="attribute">#[trusted]
                 #[pure]
+                #[prusti::type_models_to_model_fn = #trait_ident_str]
                 </span><span class="kw">fn </span>model(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; #model_ident&lt;T, U&gt; {
                     <span class="macro">unimplemented!</span>(<span class="string">&quot;Models can only be used in specifications&quot;</span>)
                 }
