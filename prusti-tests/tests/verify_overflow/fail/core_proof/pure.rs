@@ -3,6 +3,7 @@
 use prusti_contracts::*;
 
 #[pure]
+#[terminates]
 fn identity(a: usize) -> usize {
     a
 }
@@ -21,6 +22,7 @@ fn test1_neg(a: usize) -> usize {
 fn test2(a: usize) {}
 
 #[pure]
+#[terminates]
 fn identity2(a: usize) -> usize {
     identity(a)
 }
@@ -32,7 +34,9 @@ fn test3(a: usize) {}
 fn test4(a: usize) {}
 
 #[pure]
+#[requires(n >= 0)]
 #[ensures(result <= n)]
+#[terminates(Int::new_usize(n))]
 fn count(n: usize) -> usize {
     if n == 0 { 0 }
     else { count(n-1) + 1 }

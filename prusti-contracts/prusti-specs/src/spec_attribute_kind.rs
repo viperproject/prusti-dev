@@ -15,7 +15,8 @@ pub enum SpecAttributeKind {
     Predicate = 7,
     Invariant = 8,
     GhostConstraint = 9,
-    PrintCounterexample = 10,
+    Terminates = 10,
+    PrintCounterexample = 11,
 }
 
 impl TryFrom<String> for SpecAttributeKind {

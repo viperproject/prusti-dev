@@ -54,7 +54,7 @@ pub(crate) trait SpecificationEncoderInterface<'tcx> {
         substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_high::Expression>;
 
-    fn encode_invariant_high(
+    fn encode_loop_spec_high(
         &self,
         mir: &mir::Body<'tcx>, // body of the method containing the loop
         invariant_block: mir::BasicBlock, // in which the invariant is defined
@@ -138,7 +138,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         Ok(encoded_assertion.set_default_position(position.into()))
     }
 
-    fn encode_invariant_high(
+    fn encode_loop_spec_high(
         &self,
         mir: &mir::Body<'tcx>, // body of the method containing the loop
         invariant_block: mir::BasicBlock, // in which the invariant is defined
