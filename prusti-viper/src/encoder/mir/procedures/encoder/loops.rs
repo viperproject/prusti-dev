@@ -7,11 +7,13 @@ use crate::encoder::{
     },
 };
 use prusti_interface::environment::LoopAnalysisError;
+use prusti_interface::specs::typed::LoopSpecification;
 use prusti_rustc_interface::middle::mir;
 use vir_crate::high::{self as vir_high};
 
 impl<'p, 'v: 'p, 'tcx: 'v> super::ProcedureEncoder<'p, 'v, 'tcx> {
-    pub(super) fn encode_loop_invariant(
+    /// Encode loop invariants and loop variants
+    pub(super) fn encode_loop_specs(
         &mut self,
         loop_head: mir::BasicBlock,
         invariant_block: mir::BasicBlock,
@@ -22,7 +24,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> super::ProcedureEncoder<'p, 'v, 'tcx> {
             statement_index: self.mir[invariant_block].statements.len(),
         };
         // Encode functional specification.
-        let mut encoded_specs = Vec::new();
+        let mut encoded_invariant_specs = Vec::new();
+        let mut encoded_variant_specs = Vec::new();
         for block in specification_blocks {
             for statement in &self.mir[block].statements {
                 if let mir::StatementKind::Assign(box (
@@ -34,21 +37,27 @@ impl<'p, 'v: 'p, 'tcx: 'v> super::ProcedureEncoder<'p, 'v, 'tcx> {
                 )) = statement.kind
                 {
                     let specification = self.encoder.get_loop_specs(cl_def_id.to_def_id()).unwrap();
-                    let span = self
-                        .encoder
-                        .get_definition_span(specification.invariant.to_def_id());
+                    let (spec, encoding_vec, err_ctxt) = match specification {
+                        LoopSpecification::Invariant(inv) => {
+                            (inv, &mut encoded_invariant_specs, ErrorCtxt::LoopInvariant)
+                        }
+                        LoopSpecification::Variant(var) => {
+                            (var, &mut encoded_variant_specs, ErrorCtxt::LoopVariant)
+                        }
+                    };
+                    let span = self.encoder.get_definition_span(spec.to_def_id());
                     let encoded_specification = self.encoder.set_expression_error_ctxt(
-                        self.encoder.encode_invariant_high(
+                        self.encoder.encode_loop_spec_high(
                             self.mir,
                             block,
                             self.def_id,
                             cl_substs,
                         )?,
                         span,
-                        ErrorCtxt::LoopInvariant,
+                        err_ctxt,
                         self.def_id,
                     );
-                    encoded_specs.push(encoded_specification);
+                    encoding_vec.push(encoded_specification);
                 }
             }
         }
@@ -125,15 +134,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> super::ProcedureEncoder<'p, 'v, 'tcx> {
                 .into(),
                 intersect_expr,
             );
-            encoded_specs.push(equality_expr);
+            encoded_invariant_specs.push(equality_expr);
         }
 
-        // Construct the info.
+        // Construct the variant info.
+        let loop_variant = encoded_variant_specs.into_iter().next().map(|spec| {
+            let var = self.fresh_ghost_variable(
+                "loop_variant",
+                vir_high::Type::Int(vir_high::ty::Int::Unbounded),
+            );
+            vir_high::ast::statement::LoopVariant { var, expr: spec }
+        });
+
+        // Construct the invariant info.
         let loop_invariant = vir_high::Statement::loop_invariant_no_pos(
             self.encode_basic_block_label(loop_head),
             encoded_back_edges,
             maybe_modified_places,
-            encoded_specs,
+            encoded_invariant_specs,
+            loop_variant,
         );
         let statement = self.set_statement_error(
             invariant_location,

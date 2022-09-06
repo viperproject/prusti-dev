@@ -5,7 +5,7 @@ use crate::encoder::{
 };
 use std::collections::{BTreeMap, BTreeSet};
 use vir_crate::{
-    common::cfg::Cfg,
+    common::{cfg::Cfg, expression::BinaryOperationHelpers},
     high::{
         self as vir_high,
         ast::{expression::visitors::ExpressionFolder, statement::visitors::StatementFolder},
@@ -52,6 +52,18 @@ pub(in super::super) fn desugar_loops<'v, 'tcx: 'v>(
             .unwrap()
             .unwrap_loop_invariant();
 
+        if let Some(variant) = &loop_invariant.variant {
+            let stmt = encoder.set_surrounding_error_context_for_statement(
+                vir_high::Statement::ghost_assign_no_pos(
+                    vir_high::Expression::local_no_pos(variant.var.clone()),
+                    variant.expr.clone(),
+                ),
+                loop_invariant.position,
+                ErrorCtxt::LoopVariant,
+            )?;
+            invariant_block.statements.push(stmt);
+        }
+
         invariant_block
             .statements
             .push(vir_high::Statement::comment(
@@ -64,6 +76,21 @@ pub(in super::super) fn desugar_loops<'v, 'tcx: 'v>(
                 ErrorCtxt::AssertLoopInvariantOnEntry,
             )?;
             invariant_block.statements.push(statement);
+        }
+
+        if let Some(variant) = &loop_invariant.variant {
+            let stmt = encoder.set_surrounding_error_context_for_statement(
+                vir_high::Statement::assert_no_pos(vir_high::Expression::greater_than(
+                    vir_high::Expression::local_no_pos(variant.var.clone()),
+                    vir_high::Expression::constant_no_pos(
+                        vir_high::expression::ConstantValue::Int(0),
+                        variant.var.ty.clone(),
+                    ),
+                )),
+                loop_invariant.position,
+                ErrorCtxt::LoopVariantOnEntry,
+            )?;
+            invariant_block.statements.push(stmt);
         }
 
         // Note: It is important for soundness that we havoc here everything
@@ -84,6 +111,15 @@ pub(in super::super) fn desugar_loops<'v, 'tcx: 'v>(
             invariant_block.statements.push(statement);
         }
 
+        if let Some(variant) = &loop_invariant.variant {
+            let stmt = encoder.set_surrounding_error_context_for_statement(
+                vir_high::Statement::ghost_havoc_no_pos(variant.var.clone()),
+                loop_invariant.position,
+                ErrorCtxt::LoopVariant,
+            )?;
+            invariant_block.statements.push(stmt);
+        }
+
         for assertion in loop_invariant.functional_specifications {
             let statement = encoder.set_surrounding_error_context_for_statement(
                 vir_high::Statement::assume_no_pos(assertion),
@@ -91,6 +127,18 @@ pub(in super::super) fn desugar_loops<'v, 'tcx: 'v>(
                 ErrorCtxt::UnexpectedAssumeLoopInvariantOnEntry,
             )?;
             invariant_block.statements.push(statement);
+        }
+
+        if let Some(variant) = &loop_invariant.variant {
+            let stmt = encoder.set_surrounding_error_context_for_statement(
+                vir_high::Statement::assume_no_pos(vir_high::Expression::equals(
+                    vir_high::Expression::local_no_pos(variant.var.clone()),
+                    variant.expr.clone(),
+                )),
+                loop_invariant.position,
+                ErrorCtxt::LoopVariant,
+            )?;
+            invariant_block.statements.push(stmt);
         }
     }
     Ok(procedure)
@@ -155,6 +203,32 @@ fn duplicate_blocks<'v, 'tcx: 'v>(
                     ErrorCtxt::AssertLoopInvariantAfterIteration,
                 )?;
                 block.statements.push(statement);
+            }
+            if let Some(variant) = &loop_invariant.variant {
+                block
+                    .statements
+                    .push(encoder.set_surrounding_error_context_for_statement(
+                        vir_high::Statement::assert_no_pos(vir_high::Expression::less_than(
+                            variant.expr.clone(),
+                            vir_high::Expression::local_no_pos(variant.var.clone()),
+                        )),
+                        loop_invariant.position,
+                        ErrorCtxt::LoopVariantNonDecreased,
+                    )?);
+
+                block
+                    .statements
+                    .push(encoder.set_surrounding_error_context_for_statement(
+                        vir_high::Statement::assert_no_pos(vir_high::Expression::greater_equals(
+                            variant.expr.clone(),
+                            vir_high::Expression::constant_no_pos(
+                                vir_high::expression::ConstantValue::Int(0),
+                                variant.var.ty.clone(),
+                            ),
+                        )),
+                        loop_invariant.position,
+                        ErrorCtxt::LoopVariantAfterIteration,
+                    )?);
             }
             let statement = encoder.set_surrounding_error_context_for_statement(
                 vir_high::Statement::assume_no_pos(false.into()),

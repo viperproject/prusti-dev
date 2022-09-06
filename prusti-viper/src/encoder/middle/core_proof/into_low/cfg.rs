@@ -83,6 +83,15 @@ impl IntoLow for vir_mid::Statement {
                 )?;
                 Ok(statements)
             }
+            Self::GhostHavoc(statement) => {
+                let mut statements = Vec::new();
+                lowerer.encode_ghost_havoc_method_call(
+                    &mut statements,
+                    statement.variable,
+                    statement.position,
+                )?;
+                Ok(statements)
+            }
             Self::Assume(statement) => Ok(vec![Statement::assume(
                 statement.expression.to_procedure_bool_expression(lowerer)?,
                 statement.position,
@@ -580,6 +589,17 @@ impl IntoLow for vir_mid::Statement {
                 statements.push(stmtp! { statement.position =>
                 assume ([discriminant] == [discriminant_value]) });
                 Ok(statements)
+            }
+            Self::GhostAssign(statement) => {
+                let mut stmts = Vec::new();
+                let value = statement.value.to_procedure_snapshot(lowerer)?;
+                lowerer.encode_snapshot_update(
+                    &mut stmts,
+                    &statement.target,
+                    value,
+                    statement.position,
+                )?;
+                Ok(stmts)
             }
             Self::NewLft(statement) => {
                 let targets = vec![vir_low::Expression::local_no_pos(
