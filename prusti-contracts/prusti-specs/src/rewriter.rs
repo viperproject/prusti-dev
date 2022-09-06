@@ -20,6 +20,7 @@ pub enum SpecItemType {
     Postcondition,
     Pledge,
     Predicate,
+    Termination,
 }
 
 impl std::fmt::Display for SpecItemType {
@@ -29,6 +30,7 @@ impl std::fmt::Display for SpecItemType {
             SpecItemType::Postcondition => write!(f, "post"),
             SpecItemType::Pledge => write!(f, "pledge"),
             SpecItemType::Predicate => write!(f, "pred"),
+            SpecItemType::Termination => write!(f, "term"),
         }
     }
 }
@@ -110,12 +112,17 @@ impl AstRewriter {
         //   of a single identifier; without the double negation, the `Return`
         //   terminator in MIR has a span set to the one character just after
         //   the identifier
+        let (return_type, return_modifier) = if spec_type == SpecItemType::Termination {
+            (quote! {Int}, quote! {Int::new(0) + })
+        } else {
+            (quote! {bool}, quote! {!!})
+        };
         let mut spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
             #[allow(unused_must_use, unused_parens, unused_variables, dead_code)]
             #[prusti::spec_only]
             #[prusti::spec_id = #spec_id_str]
-            fn #item_name() -> bool {
-                !!((#expr) : bool)
+            fn #item_name() -> #return_type {
+                #return_modifier ((#expr) : #return_type)
             }
         };
 
@@ -169,6 +176,26 @@ impl AstRewriter {
         let lhs_item = self.generate_spec_item_fn(SpecItemType::Pledge, spec_id_lhs, lhs, item)?;
         let rhs_item = self.generate_spec_item_fn(SpecItemType::Pledge, spec_id_rhs, rhs, item)?;
         Ok((lhs_item, rhs_item))
+    }
+
+    /// Parse a loop invariant into a Rust expression
+    pub fn process_loop_variant(
+        &mut self,
+        spec_id: SpecificationId,
+        tokens: TokenStream,
+    ) -> syn::Result<TokenStream> {
+        let expr = parse_prusti(tokens)?;
+        let spec_id_str = spec_id.to_string();
+        Ok(quote_spanned! {expr.span()=>
+            {
+                #[prusti::spec_only]
+                #[prusti::loop_body_variant_spec]
+                #[prusti::spec_id = #spec_id_str]
+                || -> Int {
+                    #expr
+                };
+            }
+        })
     }
 
     /// Parse a loop invariant into a Rust expression

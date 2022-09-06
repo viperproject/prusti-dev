@@ -54,6 +54,12 @@ pub use prusti_contracts_proc_macros::ghost;
 /// A macro to customize how a struct or enum should be printed in a counterexample
 pub use prusti_contracts_proc_macros::print_counterexample;
 
+/// A macro to annotate termination of a function
+pub use prusti_contracts_proc_macros::terminates;
+
+/// A macro to annotate body variant of a loop to prove termination
+pub use prusti_contracts_proc_macros::body_variant;
+
 #[cfg(not(feature = "prusti"))]
 mod private {
     use core::marker::PhantomData;

@@ -3,6 +3,7 @@
 use prusti_contracts::*;
 
 #[pure]
+#[terminates]
 fn tuple1() -> (i32, i32) {
     (1, 2)
 }
@@ -15,6 +16,7 @@ fn test2() {
 }
 
 #[pure]
+#[terminates]
 fn first(x: (i32, i32)) -> i32 {
     x.0
 }
