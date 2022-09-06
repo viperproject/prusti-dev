@@ -14,8 +14,10 @@ use nix::{
 use serde::Deserialize;
 use std::{
     env,
+    io::{Read, Write},
     path::{Path, PathBuf},
-    process::Command,
+    process::{Command, Output, Stdio},
+    thread,
 };
 
 pub const PRUSTI_HELPERS: [&str; 4] = [
@@ -296,4 +298,59 @@ pub fn set_viper_home_setting(cmd: &mut Command, current_executable_dir: &Path) 
 
 pub fn set_java_home_setting(cmd: &mut Command, java_home: &Path) {
     cmd.env("PRUSTI_JAVA_HOME", java_home);
+}
+
+/// Required for when running with our tee, otherwise cargo would detect
+/// that the pipe doesn't lead to a terminal and stop printing colors
+pub fn set_cargo_terminal_options(cmd: &mut Command) {
+    // Checks if stdout is a terminal and gets the width
+    // Not ideal since this gets the stdout and not stderr size
+    if let Some((w, _)) = terminal_size::terminal_size() {
+        // The `--color` flag will overpower the env variable so no need to check for it
+        if std::env::var_os("CARGO_TERM_COLOR").is_none() {
+            cmd.env("CARGO_TERM_COLOR", "always");
+        }
+        if std::env::var_os("CARGO_TERM_PROGRESS_WHEN").is_none() {
+            cmd.env("CARGO_TERM_PROGRESS_WHEN", "always");
+        }
+        if std::env::var_os("CARGO_TERM_PROGRESS_WIDTH").is_none() {
+            cmd.env("CARGO_TERM_PROGRESS_WIDTH", w.0.to_string());
+        }
+    }
+}
+
+/// Runs a command with stdout and stderr forwarded (i.e. as if with `Stdio::inherit()`)
+/// But also captures and returns the data (i.e. as if with `Stdio::piped()`).
+/// Taken from: https://stackoverflow.com/a/72862682
+pub fn run_command_tee(cmd: &mut Command) -> std::io::Result<Output> {
+    let mut child = cmd.stdout(Stdio::piped()).stderr(Stdio::piped()).spawn()?;
+
+    fn communicate(mut stream: impl Read, mut output: impl Write) -> std::io::Result<Vec<u8>> {
+        let mut data = Vec::new();
+        let mut buf = [0u8; 1024];
+        loop {
+            let num_read = stream.read(&mut buf)?;
+            if num_read == 0 {
+                break;
+            }
+            let buf = &buf[..num_read];
+            output.write_all(buf)?;
+            data.extend(buf);
+        }
+        Ok(data)
+    }
+
+    let child_out = child.stdout.take().expect("cannot attach to child stdout");
+    let child_err = child.stderr.take().expect("cannot attach to child stderr");
+
+    let thread_out = thread::spawn(move || communicate(child_out, std::io::stdout()));
+    let thread_err = thread::spawn(move || communicate(child_err, std::io::stderr()));
+    let status = child.wait()?;
+    let stdout = thread_out.join().unwrap()?;
+    let stderr = thread_err.join().unwrap()?;
+    Ok(Output {
+        status,
+        stdout,
+        stderr,
+    })
 }

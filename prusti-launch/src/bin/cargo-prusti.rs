@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_launch::get_rust_toolchain_channel;
+use prusti_launch::{get_rust_toolchain_channel, run_command_tee, set_cargo_terminal_options};
 use std::{env, fs, io, path::PathBuf, process::Command};
 
 fn main() {
@@ -29,30 +29,39 @@ where
     let args = args.skip_while(|arg| arg == "prusti");
 
     let cargo_path = env::var("CARGO_PATH").unwrap_or_else(|_| "cargo".to_string());
+    let mut cmd = Command::new(cargo_path);
+
     let mut cargo_target =
         PathBuf::from(env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string()));
     cargo_target.push("verify");
     let command = env::var("CARGO_PRUSTI_COMMAND").unwrap_or_else(|_| "check".to_string());
-    let exit_status = Command::new(cargo_path)
-        .arg(&command)
+    cmd.arg(&command)
         .args(args)
+        .args(["--features", "prusti-contracts/prusti"])
         .env("RUST_TOOLCHAIN", get_rust_toolchain_channel())
         .env("RUSTC_WRAPPER", prusti_rustc_path)
         .env("DEFAULT_PRUSTI_QUIET", "true")
         .env("DEFAULT_PRUSTI_FULL_COMPILATION", "true")
         .env("DEFAULT_PRUSTI_LOG_DIR", cargo_target.join("log"))
         .env("DEFAULT_PRUSTI_CACHE_PATH", cargo_target.join("cache.bin"))
-        .env("CARGO_TARGET_DIR", &cargo_target)
-        .status()
-        .expect("could not run cargo");
-
-    if exit_status.success() {
+        .env("CARGO_TARGET_DIR", &cargo_target);
+    set_cargo_terminal_options(&mut cmd);
+    let out = run_command_tee(&mut cmd).expect("could not run cargo");
+    if out.status.success() {
         if command == "build" {
             copy_exported_specs(cargo_target).ok();
         }
         Ok(())
     } else {
-        Err(exit_status.code().unwrap_or(-1))
+        let stderr = String::from_utf8_lossy(&out.stderr);
+        if stderr.contains(
+            "none of the selected packages contains these features: prusti-contracts/prusti",
+        ) {
+            panic!("\n\nPrusti requires that the crate `prusti-contracts` is included as a direct dependency of the \
+                    current crate, so that it can enable the required features.\nPlease change the `[dependencies]` \
+                    section of your `Cargo.toml` to include `prusti-contracts = ...`\n\n");
+        }
+        Err(out.status.code().unwrap_or(-1))
     }
 }
 

@@ -39,7 +39,7 @@ fn main() {
         let modified = modified_times(&exes);
         let should_write_build_info =
             check_exes_modified(target.as_path(), &modified).unwrap_or(true);
-        let args = ["--release", "--features", "prusti"];
+        let args = ["--release"];
         match Command::new(&exes[0])
             .current_dir(&prusti_contrats)
             .args(&args)
