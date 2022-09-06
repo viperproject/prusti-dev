@@ -3,7 +3,7 @@
 use super::encoder::{FunctionCallInfo, FunctionCallInfoHigh, PureFunctionEncoder};
 use crate::encoder::{
     errors::{SpannedEncodingResult, WithSpan},
-    mir::{generics::MirGenericsEncoderInterface, specifications::SpecificationsInterface},
+    mir::specifications::SpecificationsInterface,
     snapshot::interface::SnapshotEncoderInterface,
     stub_function_encoder::StubFunctionEncoder,
 };
@@ -23,11 +23,7 @@ use vir_crate::{common::identifier::WithIdentifier, high as vir_high, polymorphi
 /// to account for different monomorphisations resulting from the function
 /// being called from callers (with different parameter environments). Each
 /// variant of a pure function will be encoded as a separate Viper function.
-type Key<'tcx> = (
-    ProcedureDefId,
-    SubstsRef<'tcx>,
-    ty::PolyFnSig<'tcx>,
-);
+type Key<'tcx> = (ProcedureDefId, SubstsRef<'tcx>, ty::PolyFnSig<'tcx>);
 
 /// Compute the key for the given call.
 fn compute_key<'v, 'tcx: 'v>(
@@ -39,7 +35,10 @@ fn compute_key<'v, 'tcx: 'v>(
     Ok((
         proc_def_id,
         substs,
-        encoder.env().query.get_fn_sig_resolved(proc_def_id, substs, caller_def_id),
+        encoder
+            .env()
+            .query
+            .get_fn_sig_resolved(proc_def_id, substs, caller_def_id),
     ))
     /*
     let tcx = encoder.env().tcx();
@@ -364,7 +363,10 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                 Err(error) => {
                     self.register_encoding_error(error);
                     debug!("Error encoding pure function: {:?}", proc_def_id);
-                    let body = self.env().body.get_pure_fn_body(proc_def_id, substs, parent_def_id);
+                    let body = self
+                        .env()
+                        .body
+                        .get_pure_fn_body(proc_def_id, substs, parent_def_id);
                     // TODO(tymap): does stub encoder need substs?
                     let stub_encoder = StubFunctionEncoder::new(self, proc_def_id, &body, substs);
                     let function = stub_encoder.encode_function()?;

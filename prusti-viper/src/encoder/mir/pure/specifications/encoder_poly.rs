@@ -82,7 +82,10 @@ pub(super) fn inline_spec_item<'tcx>(
         encoder.env().query.identity_substs(def_id).len()
     );
 
-    let mir = encoder.env().body.get_expression_body(def_id, substs, parent_def_id);
+    let mir = encoder
+        .env()
+        .body
+        .get_expression_body(def_id, substs, parent_def_id);
     assert_eq!(
         mir.arg_count,
         target_args.len() + if target_return.is_some() { 1 } else { 0 }
