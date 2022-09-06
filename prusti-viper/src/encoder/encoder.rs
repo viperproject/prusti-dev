@@ -60,6 +60,8 @@ use super::mir::{
     }
 };
 use super::high::types::{HighTypeEncoderState, HighTypeEncoderInterface};
+use super::counterexamples::{MirProcedureMappingInterface, MirProcedureMapping};
+use super::counterexamples::DiscriminantsState;
 use super::high::to_typed::types::HighToTypedTypeEncoderState;
 
 pub struct Encoder<'v, 'tcx: 'v> {
@@ -92,7 +94,8 @@ pub struct Encoder<'v, 'tcx: 'v> {
     encoding_errors_counter: RefCell<usize>,
     name_interner: RefCell<NameInterner>,
     /// Maps locals to the local of their discriminant.
-    discriminants_info: RefCell<FxHashMap<(ProcedureDefId, String), Vec<String>>>,
+    pub(super) discriminants_state: DiscriminantsState,
+    pub(super) mir_procedure_mapping: MirProcedureMapping,
     /// Whether the current pure expression that's being encoded sits inside a trigger closure.
     /// Viper limits the type of expressions that are allowed in quantifier triggers and
     /// this requires special care when encoding array/slice accesses which may come with
@@ -162,9 +165,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             mirror_encoder: RefCell::new(MirrorEncoder::new()),
             encoding_errors_counter: RefCell::new(0),
             name_interner: RefCell::new(NameInterner::new()),
-            discriminants_info: RefCell::new(FxHashMap::default()),
             is_encoding_trigger: Cell::new(false),
-            specifications_state: SpecificationsState::new(def_spec)
+            specifications_state: SpecificationsState::new(def_spec),
+            mir_procedure_mapping: Default::default(),
+            discriminants_state: Default::default(),
         }
     }
 
@@ -223,7 +227,15 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn get_core_proof_programs(&mut self) -> Vec<prusti_common::vir::program::Program> {
-        self.take_core_proof_programs().into_iter().map(prusti_common::vir::program::Program::Low).collect()
+        if config::counterexample() && config::unsafe_core_proof(){
+            self.take_core_proof_programs().into_iter().map(
+                | program | {
+                    self.add_mapping(&program);
+                    prusti_common::vir::program::Program::Low(program)
+            }).collect()
+        } else {
+            self.take_core_proof_programs().into_iter().map(prusti_common::vir::program::Program::Low).collect()
+        }
     }
 
     pub(in crate::encoder) fn register_encoding_error(&self, encoding_error: SpannedEncodingError) {
@@ -791,22 +803,5 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     ) -> EncodingResult<vir::Expr> {
         let field = strct.field(self.encode_struct_field(field_name, ty)?);
         self.encode_value_expr(field, ty)
-    }
-
-    pub fn add_discriminant_info(
-        &self,
-        enum_id: String,
-        discr_id: String,
-        proc_def_id: ProcedureDefId,
-    ) {
-        self.discriminants_info
-            .borrow_mut()
-            .entry((proc_def_id, enum_id))
-            .or_default()
-            .push(discr_id);
-    }
-
-    pub fn discriminants_info(&self) -> FxHashMap<(ProcedureDefId, String), Vec<String>> {
-        self.discriminants_info.borrow().clone()
     }
 }

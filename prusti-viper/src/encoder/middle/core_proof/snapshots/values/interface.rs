@@ -8,7 +8,7 @@ use crate::encoder::{
     },
 };
 use vir_crate::{
-    common::{expression::UnaryOperationHelpers, identifier::WithIdentifier},
+    common::expression::UnaryOperationHelpers,
     low::{self as vir_low},
     middle::{self as vir_mid},
 };
@@ -151,12 +151,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValuesInterface for Lowerer<'p, 'v, 'tcx> {
             .set_default_position(position))
     }
     fn encode_discriminant_name(&mut self, domain_name: &str) -> SpannedEncodingResult<String> {
-        let ty = if let Some(decoded_type) = self.try_decoding_snapshot_type(domain_name)? {
-            decoded_type
-        } else {
-            unreachable!("Failed to decode the snapshot: {}", domain_name);
-        };
-        Ok(format!("discriminant${}", ty.get_identifier()))
+        Ok(format!("discriminant${}", domain_name))
     }
     fn obtain_enum_discriminant(
         &mut self,

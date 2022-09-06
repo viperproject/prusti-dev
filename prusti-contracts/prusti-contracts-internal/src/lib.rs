@@ -95,3 +95,8 @@ pub fn ghost_constraint(attr: TokenStream, tokens: TokenStream) -> TokenStream {
 pub fn ghost(tokens: TokenStream) -> TokenStream {
     prusti_specs::ghost(tokens.into()).into()
 }
+
+#[proc_macro_attribute]
+pub fn print_counterexample(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    prusti_specs::print_counterexample(attr.into(), tokens.into()).into()
+}
