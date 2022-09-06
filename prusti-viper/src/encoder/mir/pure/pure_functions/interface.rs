@@ -108,6 +108,8 @@ pub(crate) struct PureFunctionEncoderState<'v, 'tcx: 'v> {
     functions: RefCell<FxHashMap<String, std::rc::Rc<vir_high::FunctionDecl>>>,
     /// Callbacks that know how to lazily construct the specified function.
     function_constructors: RefCell<FxHashMap<String, FunctionConstructor<'v, 'tcx>>>,
+    /// Stores the procedure id such that it can be used to create a counterexample
+    function_proc_ids: RefCell<FxHashMap<String, ProcedureDefId>>,
 }
 
 /// The information necessary to encode a function definition.
@@ -185,11 +187,21 @@ pub(crate) trait PureFunctionEncoderInterface<'v, 'tcx> {
         function_identifier: String,
         constructor: FunctionConstructor<'v, 'tcx>,
     ) -> SpannedEncodingResult<()>;
+
+    fn get_proc_def_id(&self, identifier: String) -> Option<ProcedureDefId>;
 }
 
 impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
     for crate::encoder::encoder::Encoder<'v, 'tcx>
 {
+    fn get_proc_def_id(&self, identifier: String) -> Option<ProcedureDefId> {
+        self.pure_function_encoder_state
+            .function_proc_ids
+            .borrow()
+            .get(&identifier)
+            .cloned()
+    }
+
     fn encode_pure_expression_high(
         &self,
         proc_def_id: ProcedureDefId,
@@ -497,6 +509,14 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             )?;
 
             let identifier = function_call_info.get_identifier();
+
+            if prusti_common::config::counterexample() {
+                self.pure_function_encoder_state
+                    .function_proc_ids
+                    .borrow_mut()
+                    .insert(identifier.clone(), proc_def_id);
+            }
+
             self.register_function_constructor_mir(
                 identifier,
                 Box::new(move |encoder| {

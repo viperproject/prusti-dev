@@ -254,6 +254,8 @@ pub struct TypeSpecification {
     pub source: DefId,
     pub invariant: SpecificationItem<Vec<DefId>>,
     pub trusted: SpecificationItem<bool>,
+    pub model: Option<(String, LocalDefId)>,
+    pub counterexample_print: Vec<(Option<String>, LocalDefId)>,
 }
 
 impl TypeSpecification {
@@ -262,6 +264,8 @@ impl TypeSpecification {
             source,
             invariant: SpecificationItem::Empty,
             trusted: SpecificationItem::Inherent(false),
+            model: None,
+            counterexample_print: vec![],
         }
     }
 }

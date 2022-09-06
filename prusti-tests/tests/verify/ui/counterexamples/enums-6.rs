@@ -18,7 +18,8 @@ fn apply(op: BinOp) -> i32 {
             } else {
                 0
             }
-        }
+        },
+        _ => 0
     }
 }
 
