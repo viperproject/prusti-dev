@@ -226,22 +226,35 @@ impl<'ce, 'tcx, 'v> VarMappingInterface
                 op_kind: BinaryOpKind::EqCmp,
                 left: box vir_low::Expression::Local(local),
                 ..
-            })
-            | vir_low::Expression::BinaryOp(BinaryOp {
-                op_kind: BinaryOpKind::EqCmp,
-                left:
-                    box vir_low::Expression::ContainerOp(ContainerOp {
-                        op_kind: ContainerOpKind::SeqIndex,
-                        left: box vir_low::Expression::Local(local),
-                        ..
-                    }),
-                ..
             }) => {
                 if local.variable.name.contains("snapshot") {
                     Some(SnapshotVar {
                         name: local.variable.name.clone(),
                         position: local.position,
                     })
+                } else {
+                    None
+                }
+            }
+            vir_low::Expression::BinaryOp(BinaryOp {
+                op_kind: BinaryOpKind::EqCmp,
+                left:
+                    box vir_low::Expression::ContainerOp(ContainerOp {
+                        kind: ContainerOpKind::SeqIndex,
+                        operands,
+                        ..
+                    }),
+                ..
+            }) => {
+                if let Some(vir_low::Expression::Local(local)) = operands.first() {
+                    if local.variable.name.contains("snapshot") {
+                        Some(SnapshotVar {
+                            name: local.variable.name.clone(),
+                            position: local.position,
+                        })
+                    } else {
+                        None
+                    }
                 } else {
                     None
                 }

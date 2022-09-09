@@ -1,6 +1,6 @@
 pub(crate) use super::{
     expression::{BinaryOpKind, Expression, UnaryOpKind, VariableDecl},
-    ty::{LifetimeConst, Type},
+    ty::{LifetimeConst, Type, Uniqueness},
 };
 use crate::common::{display, position::Position};
 
@@ -33,35 +33,27 @@ pub struct Repeat {
     pub count: u64,
 }
 
-#[display(
-    fmt = "&{} {}<{}>",
-    operand_lifetime,
-    place,
-    "display::cjoin(place_lifetimes)"
-)]
+#[display(fmt = "&{} {} {}", new_borrow_lifetime, uniqueness, place)]
 pub struct Ref {
+    pub new_borrow_lifetime: LifetimeConst,
     pub place: Expression,
-    pub operand_lifetime: LifetimeConst,
-    pub place_lifetimes: Vec<LifetimeConst>,
-    pub is_mut: bool,
+    pub uniqueness: Uniqueness,
     pub lifetime_token_permission: Expression,
-    pub target: Expression,
 }
 
 #[display(
-    fmt = "{} := &'{} (*{}<{}>)",
-    target,
-    operand_lifetime,
-    place,
-    "display::cjoin(place_lifetimes)"
+    fmt = "&'{} {} *'{} {}",
+    new_borrow_lifetime,
+    uniqueness,
+    deref_lifetime,
+    deref_place
 )]
 pub struct Reborrow {
-    pub place: Expression,
-    pub operand_lifetime: LifetimeConst,
-    pub place_lifetimes: Vec<LifetimeConst>,
-    pub is_mut: bool,
+    pub new_borrow_lifetime: LifetimeConst,
+    pub deref_lifetime: LifetimeConst,
+    pub deref_place: Expression,
+    pub uniqueness: Uniqueness,
     pub lifetime_token_permission: Expression,
-    pub target: Expression,
 }
 
 #[display(fmt = "&raw({})", place)]

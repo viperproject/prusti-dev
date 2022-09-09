@@ -23,6 +23,7 @@ pub(super) fn derive(
                 if let Some(variant_enum) = find_variant_enum(&items, variant_type) {
                     let variant_enum_ident = &variant_enum.ident;
                     parse_quote! {
+                        #[allow(clippy::too_many_arguments)]
                         #[must_use]
                         pub fn #method_name(arg: #variant_enum_ident) -> #enum_ident {
                             #enum_ident::#variant_ident(arg)
@@ -77,6 +78,7 @@ pub(super) fn derive(
                     if parameters.len() != parameters_no_pos.len() {
                         let new_method_name = append_ident(&method_name, "_no_pos");
                         let additional_method = parse_quote! {
+                            #[allow(clippy::too_many_arguments)]
                             #[must_use]
                             pub fn #new_method_name(#(#parameters_no_pos),*) -> #enum_ident {
                                 #enum_ident::#variant_ident(#variant_struct_ident {
@@ -88,6 +90,7 @@ pub(super) fn derive(
                         helpers.push(additional_method);
                     }
                     parse_quote! {
+                        #[allow(clippy::too_many_arguments)]
                         #[must_use]
                         pub fn #method_name(#(#parameters),*) -> #enum_ident {
                             #enum_ident::#variant_ident(#variant_struct_ident {
@@ -98,6 +101,7 @@ pub(super) fn derive(
                 }
             } else {
                 parse_quote! {
+                    #[allow(clippy::too_many_arguments)]
                     #[must_use]
                     pub fn #method_name() -> #enum_ident {
                         #enum_ident::#variant_ident

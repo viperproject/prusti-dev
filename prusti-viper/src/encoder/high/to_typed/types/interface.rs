@@ -49,11 +49,10 @@ impl<'v, 'tcx: 'v> HighToTypedTypeEncoderInterface
                 .insert(ty.clone());
             let low_type =
                 vir_typed::operations::default_high_to_typed_type_type(ty.clone(), self)?;
-            assert!(self
-                .typed_type_encoder_state
-                .encoded_types_inverse
-                .insert(low_type.clone(), ty)
-                .is_none());
+            self.typed_type_encoder_state.encoded_types_inverse.insert(
+                low_type.erase_lifetimes().erase_const_generics(),
+                ty.erase_lifetimes().erase_const_generics(),
+            );
             Ok(low_type)
         } else {
             vir_typed::operations::default_high_to_typed_type_type(ty, self)
@@ -87,7 +86,7 @@ impl<'v, 'tcx: 'v> HighToTypedTypeEncoderInterface
         } else if let Some(ty) = self.typed_type_encoder_state.encoded_types_inverse.get(ty) {
             Ok(ty.clone())
         } else {
-            unreachable!("failed to decode: {}", ty)
+            unreachable!("failed to decode: {}\n{:?}", ty, ty)
         }
     }
 

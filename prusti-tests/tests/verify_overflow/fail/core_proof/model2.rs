@@ -80,7 +80,7 @@ impl LinkedList {
         }
     }
     #[pure]
-    // FIXME: This function should be #[ghost].
+    // FIXME: This function should be “predicate!”.
     #[ensures(result >= Int::new(1))]
     fn len(&self) -> Int {
         match &self.next {
@@ -138,7 +138,7 @@ impl LinkedList {
         }
     }
     #[pure]
-    // FIXME: This function should be #[ghost].
+    // FIXME: This function should be “predicate!”.
     #[requires(Int::new(0) <= index && index < self.len())]
     fn lookup(&self, index: Int) -> Int {
         if index == Int::new(0) {

@@ -38,6 +38,13 @@ pub fn to_legal_file_name_of_max_length(name: String, max_length: usize) -> Stri
             })
             .collect();
     }
+    name_string = name_string
+        .chars()
+        .map(|x| match x {
+            '$' => '-',
+            _ => x,
+        })
+        .collect();
     if name_string.len() > max_length {
         let mut end = name_string.rfind('.').unwrap();
         if name_string.len() - end > 5 {

@@ -5,8 +5,10 @@ use super::super::ast::{
         *,
     },
     type_decl::DiscriminantValue,
+    variable::VariableDecl,
 };
 use rustc_hash::FxHashMap;
+use std::collections::BTreeMap;
 
 impl Type {
     /// Return a type that represents a variant of the given enum.
@@ -15,31 +17,19 @@ impl Type {
         match self {
             Type::Enum(Enum {
                 name,
+                safety,
                 arguments,
                 variant: None,
                 lifetimes,
             }) => Type::Enum(Enum {
                 name,
-                arguments,
-                variant: Some(variant),
-                lifetimes,
-            }),
-            Type::Union(Union {
-                name,
-                arguments,
-                variant: None,
-                lifetimes,
-            }) => Type::Union(Union {
-                name,
+                safety,
                 arguments,
                 variant: Some(variant),
                 lifetimes,
             }),
             Type::Enum(_) => {
                 unreachable!("setting variant on enum type that already has variant set");
-            }
-            Type::Union(_) => {
-                unreachable!("setting variant on union type that already has variant set");
             }
             _ => {
                 unreachable!("setting variant on non-enum type");
@@ -52,22 +42,13 @@ impl Type {
         match self {
             Type::Enum(Enum {
                 name,
+                safety,
                 arguments,
                 variant: Some(_),
                 lifetimes,
             }) => Some(Type::Enum(Enum {
                 name: name.clone(),
-                arguments: arguments.clone(),
-                variant: None,
-                lifetimes: lifetimes.clone(),
-            })),
-            Type::Union(Union {
-                name,
-                arguments,
-                variant: Some(_),
-                lifetimes,
-            }) => Some(Type::Union(Union {
-                name: name.clone(),
+                safety: *safety,
                 arguments: arguments.clone(),
                 variant: None,
                 lifetimes: lifetimes.clone(),
@@ -81,26 +62,14 @@ impl Type {
         match self {
             Type::Enum(Enum {
                 name,
+                safety,
                 arguments,
                 variant: Some(variant),
                 lifetimes,
             }) => Some((
                 Type::Enum(Enum {
                     name: name.clone(),
-                    arguments: arguments.clone(),
-                    variant: None,
-                    lifetimes: lifetimes.clone(),
-                }),
-                variant,
-            )),
-            Type::Union(Union {
-                name,
-                arguments,
-                variant: Some(variant),
-                lifetimes,
-            }) => Some((
-                Type::Union(Union {
-                    name: name.clone(),
+                    safety: *safety,
                     arguments: arguments.clone(),
                     variant: None,
                     lifetimes: lifetimes.clone(),
@@ -116,7 +85,6 @@ impl Type {
     pub fn has_variants(&self) -> bool {
         match self {
             Type::Enum(enum_ty) => enum_ty.variant.is_none(),
-            Type::Union(union_ty) => union_ty.variant.is_none(),
             _ => false,
         }
     }
@@ -130,6 +98,70 @@ impl Type {
         }
         DefaultLifetimeEraser {}.fold_type(self.clone())
     }
+    #[must_use]
+    pub fn replace_lifetimes(
+        self,
+        lifetime_replacement_map: &BTreeMap<LifetimeConst, LifetimeConst>,
+    ) -> Self {
+        struct Replacer<'a> {
+            lifetime_replacement_map: &'a BTreeMap<LifetimeConst, LifetimeConst>,
+        }
+        impl<'a> TypeFolder for Replacer<'a> {
+            fn fold_lifetime_const(&mut self, lifetime: LifetimeConst) -> LifetimeConst {
+                self.lifetime_replacement_map
+                    .get(&lifetime)
+                    .unwrap_or_else(|| panic!("Not found lifetime: {}", lifetime))
+                    .clone()
+            }
+        }
+        Replacer {
+            lifetime_replacement_map,
+        }
+        .fold_type(self)
+    }
+    #[must_use]
+    pub fn replace_lifetime(
+        self,
+        old_lifetime: &LifetimeConst,
+        new_lifetime: &LifetimeConst,
+    ) -> Self {
+        struct Replacer<'a> {
+            old_lifetime: &'a LifetimeConst,
+            new_lifetime: &'a LifetimeConst,
+        }
+        impl<'a> TypeFolder for Replacer<'a> {
+            fn fold_lifetime_const(&mut self, lifetime: LifetimeConst) -> LifetimeConst {
+                if &lifetime == self.old_lifetime {
+                    self.new_lifetime.clone()
+                } else {
+                    lifetime
+                }
+            }
+        }
+        Replacer {
+            old_lifetime,
+            new_lifetime,
+        }
+        .fold_type(self)
+    }
+    #[must_use]
+    pub fn erase_const_generics(self) -> Self {
+        struct Eraser {}
+        impl TypeFolder for Eraser {
+            fn fold_const_generic_argument(
+                &mut self,
+                mut argument: ConstGenericArgument,
+            ) -> ConstGenericArgument {
+                argument.value = None;
+                argument
+            }
+        }
+        Eraser {}.fold_type(self)
+    }
+    #[must_use]
+    pub fn normalize_type(&self) -> Self {
+        self.erase_lifetimes().erase_const_generics()
+    }
     pub fn contains_type_variables(&self) -> bool {
         match self {
             Self::Sequence(Sequence { element_type, .. })
@@ -142,7 +174,6 @@ impl Type {
             Self::Trusted(Trusted { arguments, .. })
             | Self::Struct(Struct { arguments, .. })
             | Self::Enum(Enum { arguments, .. })
-            | Self::Union(Union { arguments, .. })
             | Self::Projection(Projection { arguments, .. }) => {
                 arguments.iter().any(|arg| arg.is_type_var())
             }
@@ -194,24 +225,17 @@ impl super::super::ast::type_decl::Enum {
     }
 }
 
-impl super::super::ast::type_decl::Union {
-    pub fn get_discriminant(&self, variant_index: &VariantIndex) -> Option<DiscriminantValue> {
-        self.iter_discriminant_variants()
-            .find(|(_, variant)| variant_index.as_ref() == variant.name)
-            .map(|(discriminant, _)| discriminant)
-    }
-    pub fn iter_discriminant_variants(
-        &self,
-    ) -> impl Iterator<Item = (DiscriminantValue, &super::super::ast::type_decl::Struct)> {
-        self.discriminant_values.iter().cloned().zip(&self.variants)
-    }
-}
-
 impl LifetimeConst {
     pub fn erased() -> Self {
         LifetimeConst {
             name: String::from("pure_erased"),
         }
+    }
+}
+
+impl From<LifetimeConst> for VariableDecl {
+    fn from(lifetime: LifetimeConst) -> Self {
+        Self::new(lifetime.name, Type::Lifetime)
     }
 }
 

@@ -115,6 +115,7 @@ lazy_static::lazy_static! {
         settings.set_default("unsafe_core_proof", false).unwrap();
         settings.set_default("verify_core_proof", true).unwrap();
         settings.set_default("verify_specifications", true).unwrap();
+        settings.set_default("verify_types", false).unwrap();
         settings.set_default("verify_specifications_with_core_proof", false).unwrap();
         settings.set_default("verify_specifications_backend", "Silicon").unwrap();
         settings.set_default("use_eval_axioms", true).unwrap();
@@ -795,6 +796,14 @@ pub fn verify_core_proof() -> bool {
 /// true.
 pub fn verify_specifications() -> bool {
     read_setting("verify_specifications")
+}
+
+/// Whether the types should be verified.
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof` is
+/// true.
+pub fn verify_types() -> bool {
+    read_setting("verify_types")
 }
 
 /// Whether when verifying functional specifications, the core proof should be
