@@ -72,6 +72,12 @@ impl BinaryOperationHelpers for Expression {
     }
 }
 
+impl ConditionalHelpers for Expression {
+    fn conditional(guard: Self, then_expr: Self, else_expr: Self) -> Self {
+        Self::conditional_no_pos(guard, then_expr, else_expr)
+    }
+}
+
 impl QuantifierHelpers for Expression {
     type QuantifierKind = QuantifierKind;
     type BoundedVariableDecl = VariableDecl;

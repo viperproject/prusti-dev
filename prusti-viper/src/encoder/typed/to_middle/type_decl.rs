@@ -51,4 +51,28 @@ impl<'v, 'tcx> TypedToMiddleTypeDeclLowerer for crate::encoder::Encoder<'v, 'tcx
     ) -> Result<vir_mid::Expression, Self::Error> {
         expression.typed_to_middle_expression(self)
     }
+
+    fn typed_to_middle_type_decl_lifetime_const(
+        &self,
+        lifetime: vir_typed::ty::LifetimeConst,
+    ) -> Result<vir_mid::ty::LifetimeConst, Self::Error> {
+        lifetime.typed_to_middle_type(self)
+    }
+
+    fn typed_to_middle_type_decl_variable_decl(
+        &self,
+        variable: vir_typed::VariableDecl,
+    ) -> Result<vir_mid::VariableDecl, Self::Error> {
+        variable.typed_to_middle_expression(self)
+    }
+
+    fn typed_to_middle_type_decl_enum_safety(
+        &self,
+        safety: vir_typed::ty::EnumSafety,
+    ) -> Result<vir_mid::ty::EnumSafety, Self::Error> {
+        Ok(match safety {
+            vir_typed::ty::EnumSafety::Enum => vir_mid::ty::EnumSafety::Enum,
+            vir_typed::ty::EnumSafety::Union => vir_mid::ty::EnumSafety::Union,
+        })
+    }
 }

@@ -8,12 +8,7 @@ impl WithLifetimes for ty::Type {
     fn get_lifetimes(&self) -> Vec<LifetimeConst> {
         match self {
             ty::Type::Reference(reference) => reference.get_lifetimes(),
-            ty::Type::Union(ty::Union {
-                arguments,
-                lifetimes,
-                ..
-            })
-            | ty::Type::Projection(ty::Projection {
+            ty::Type::Projection(ty::Projection {
                 arguments,
                 lifetimes,
                 ..

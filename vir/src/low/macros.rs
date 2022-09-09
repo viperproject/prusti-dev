@@ -232,6 +232,28 @@ pub macro expr {
             Default::default(),
         )
     },
+    ($lhs: tt subset $rhs: tt) => {
+        {
+            let lhs = $crate::low::macros::expr!( $lhs );
+            $crate::low::ast::expression::Expression::container_op(
+                $crate::low::ast::expression::ContainerOpKind::SetSubset,
+                ($crate::low::operations::ty::Typed::get_type(&lhs).clone()),
+                vec![lhs, $crate::low::macros::expr!( $rhs )],
+                Default::default(),
+            )
+        }
+    },
+    ($lhs: tt in $rhs: tt) => {
+        {
+            let lhs = $crate::low::macros::expr!( $lhs );
+            $crate::low::ast::expression::Expression::container_op(
+                $crate::low::ast::expression::ContainerOpKind::SetContains,
+                ($crate::low::operations::ty::Typed::get_type(&lhs).clone()),
+                vec![lhs, $crate::low::macros::expr!( $rhs )],
+                Default::default(),
+            )
+        }
+    },
     ($lhs: tt || $rhs: tt) => {
         $crate::low::ast::expression::Expression::binary_op(
             $crate::low::ast::expression::BinaryOpKind::Or,

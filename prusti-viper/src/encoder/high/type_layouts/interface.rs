@@ -3,15 +3,11 @@ use crate::encoder::{
     mir::type_layouts::MirTypeLayoutsEncoderInterface,
 };
 use prusti_rustc_interface::middle::ty;
-use vir_crate::{
-    high as vir_high,
-    middle::{self as vir_mid},
-};
+use vir_crate::middle::{self as vir_mid};
 
 pub(crate) trait HighTypeLayoutsEncoderInterface<'tcx> {
-    fn encode_type_size_expression_mid(
+    fn encode_type_padding_size_expression_mid(
         &mut self,
-        count: vir_high::Expression,
         ty: ty::Ty<'tcx>,
     ) -> SpannedEncodingResult<vir_mid::Expression>;
 }
@@ -19,12 +15,11 @@ pub(crate) trait HighTypeLayoutsEncoderInterface<'tcx> {
 impl<'v, 'tcx: 'v> HighTypeLayoutsEncoderInterface<'tcx>
     for super::super::super::Encoder<'v, 'tcx>
 {
-    fn encode_type_size_expression_mid(
+    fn encode_type_padding_size_expression_mid(
         &mut self,
-        count: vir_high::Expression,
         ty: ty::Ty<'tcx>,
     ) -> SpannedEncodingResult<vir_mid::Expression> {
-        let expression = self.encode_type_size_expression_with_reps(count, ty)?;
+        let expression = self.encode_type_padding_size_expression(ty)?;
         expression.high_to_middle(self)
     }
 }

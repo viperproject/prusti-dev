@@ -12,6 +12,7 @@ use super::{
     },
     ty::Typed,
 };
+use std::collections::BTreeMap;
 
 impl From<VariableDecl> for Expression {
     fn from(variable: VariableDecl) -> Self {
@@ -66,6 +67,24 @@ impl Expression {
                 arguments,
                 ..
             }) => Some(&arguments[0]),
+            expr => unreachable!("{}", expr),
+        }
+    }
+    /// Only defined for places.
+    pub fn try_into_parent(self) -> Option<Self> {
+        debug_assert!(self.is_place());
+        match self {
+            Expression::Local(_) => None,
+            Expression::Variant(Variant { box base, .. })
+            | Expression::Field(Field { box base, .. })
+            | Expression::Deref(Deref { box base, .. })
+            | Expression::AddrOf(AddrOf { box base, .. }) => Some(base),
+            Expression::LabelledOld(_) => None,
+            Expression::BuiltinFuncApp(BuiltinFuncApp {
+                function: BuiltinFunc::Index,
+                arguments,
+                ..
+            }) => Some(arguments[0].clone()),
             expr => unreachable!("{}", expr),
         }
     }
@@ -127,7 +146,7 @@ impl Expression {
 
     pub fn is_deref_of_lifetime(&self, searched_lifetime: &ty::LifetimeConst) -> bool {
         if let Some(parent) = self.get_parent_ref() {
-            if self.is_deref() {
+            if self.is_deref() || self.is_field() {
                 if let Type::Reference(ty::Reference { lifetime, .. }) = parent.get_type() {
                     return searched_lifetime == lifetime
                         || parent.is_deref_of_lifetime(searched_lifetime);
@@ -136,6 +155,27 @@ impl Expression {
             parent.is_deref_of_lifetime(searched_lifetime)
         } else {
             false
+        }
+    }
+
+    /// Precondition: `self.is_deref_of_lifetime(searched_lifetime)`.
+    pub fn into_ref_with_lifetime(self, searched_lifetime: &ty::LifetimeConst) -> Self {
+        match self {
+            Self::Deref(Deref { base, .. }) | Self::Field(Field { base, .. }) => {
+                if let Type::Reference(ty::Reference { lifetime, .. }) = base.get_type() {
+                    if searched_lifetime == lifetime {
+                        *base
+                    } else {
+                        base.into_ref_with_lifetime(searched_lifetime)
+                    }
+                } else {
+                    base.into_ref_with_lifetime(searched_lifetime)
+                }
+            }
+            _ => self
+                .try_into_parent()
+                .unwrap()
+                .into_ref_with_lifetime(searched_lifetime),
         }
     }
 
@@ -175,6 +215,83 @@ impl Expression {
             }
         }
         DefaultLifetimeEraser {}.fold_expression(self)
+    }
+
+    #[must_use]
+    pub fn replace_lifetimes(
+        self,
+        lifetime_replacement_map: &BTreeMap<LifetimeConst, LifetimeConst>,
+    ) -> Self {
+        struct Replacer<'a> {
+            lifetime_replacement_map: &'a BTreeMap<LifetimeConst, LifetimeConst>,
+        }
+        impl<'a> ExpressionFolder for Replacer<'a> {
+            fn fold_type(&mut self, ty: Type) -> Type {
+                ty.replace_lifetimes(self.lifetime_replacement_map)
+            }
+            fn fold_variable_decl(&mut self, variable_decl: VariableDecl) -> VariableDecl {
+                VariableDecl {
+                    name: variable_decl.name,
+                    ty: variable_decl
+                        .ty
+                        .replace_lifetimes(self.lifetime_replacement_map),
+                }
+            }
+            fn fold_field_decl(&mut self, field_decl: FieldDecl) -> FieldDecl {
+                // FIXME: Fix the visitor generator to follow relative imports
+                // when generating visitors.
+                FieldDecl {
+                    ty: field_decl
+                        .ty
+                        .replace_lifetimes(self.lifetime_replacement_map),
+                    ..field_decl
+                }
+            }
+        }
+        Replacer {
+            lifetime_replacement_map,
+        }
+        .fold_expression(self)
+    }
+
+    #[must_use]
+    pub fn replace_lifetime(
+        self,
+        old_lifetime: &LifetimeConst,
+        new_lifetime: &LifetimeConst,
+    ) -> Self {
+        struct Replacer<'a> {
+            old_lifetime: &'a LifetimeConst,
+            new_lifetime: &'a LifetimeConst,
+        }
+        impl<'a> ExpressionFolder for Replacer<'a> {
+            fn fold_type(&mut self, ty: Type) -> Type {
+                ty.replace_lifetime(self.old_lifetime, self.new_lifetime)
+            }
+            fn fold_variable_decl(&mut self, variable_decl: VariableDecl) -> VariableDecl {
+                VariableDecl {
+                    name: variable_decl.name,
+                    ty: variable_decl
+                        .ty
+                        .replace_lifetime(self.old_lifetime, self.new_lifetime),
+                }
+            }
+            fn fold_field_decl(&mut self, field_decl: FieldDecl) -> FieldDecl {
+                // FIXME: Fix the visitor generator to follow relative imports
+                // when generating visitors.
+                FieldDecl {
+                    ty: field_decl
+                        .ty
+                        .replace_lifetime(self.old_lifetime, self.new_lifetime),
+                    ..field_decl
+                }
+            }
+        }
+        Replacer {
+            old_lifetime,
+            new_lifetime,
+        }
+        .fold_expression(self)
     }
 
     #[must_use]
@@ -484,14 +601,21 @@ impl Expression {
         }
         Checker.walk_expression(self)
     }
-    pub fn has_prefix(&self, potential_prefix: &Expression) -> bool {
+    pub fn has_prefix_with_lifetimes(&self, potential_prefix: &Expression) -> bool {
         if self == potential_prefix {
             true
         } else {
             self.get_parent_ref()
-                .map(|parent| parent.has_prefix(potential_prefix))
+                .map(|parent| parent.has_prefix_with_lifetimes(potential_prefix))
                 .unwrap_or(false)
         }
+    }
+    /// Note: this function ignores lifetimes.
+    pub fn has_prefix(&self, potential_prefix: &Expression) -> bool {
+        // FIXME: Avoid clone.
+        self.clone()
+            .erase_lifetime()
+            .has_prefix_with_lifetimes(&potential_prefix.clone().erase_lifetime())
     }
 
     /// Assuming that `self` is an enum and is a prefix of `guiding_place`

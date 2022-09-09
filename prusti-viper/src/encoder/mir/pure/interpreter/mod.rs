@@ -531,7 +531,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         span: Span,
         substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<Option<ExprBackwardInterpreterState>> {
-        let lifetimes = self.encoder.get_lifetimes_substs(&substs)?;
+        let lifetimes = self.encoder.get_lifetimes_from_substs(substs)?;
         use vir_high::{expression::BuiltinFunc::*, ty::*};
         let type_arguments = self
             .encoder

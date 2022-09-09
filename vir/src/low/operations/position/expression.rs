@@ -16,14 +16,12 @@ impl Positioned for Expression {
             Self::BinaryOp(expression) => expression.position(),
             Self::PermBinaryOp(expression) => expression.position(),
             Self::ContainerOp(expression) => expression.position(),
-            Self::Seq(expression) => expression.position(),
             Self::Conditional(expression) => expression.position(),
             Self::Quantifier(expression) => expression.position(),
             Self::LetExpr(expression) => expression.position(),
             Self::FuncApp(expression) => expression.position(),
             Self::DomainFuncApp(expression) => expression.position(),
             Self::InhaleExhale(expression) => expression.position(),
-            Self::MapOp(expression) => expression.position(),
         }
     }
 }
@@ -100,12 +98,6 @@ impl Positioned for ContainerOp {
     }
 }
 
-impl Positioned for Seq {
-    fn position(&self) -> Position {
-        self.position
-    }
-}
-
 impl Positioned for Conditional {
     fn position(&self) -> Position {
         self.position
@@ -137,12 +129,6 @@ impl Positioned for DomainFuncApp {
 }
 
 impl Positioned for InhaleExhale {
-    fn position(&self) -> Position {
-        self.position
-    }
-}
-
-impl Positioned for MapOp {
     fn position(&self) -> Position {
         self.position
     }

@@ -805,12 +805,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
                 vec![], // NOTE: we ignore argument_types for LifetimeIncluded
                 vec![
                     vir_high::VariableDecl {
-                        name: lifetime_lhs,
+                        name: lifetime_rhs,
                         ty: vir_high::ty::Type::Lifetime,
                     }
                     .into(),
                     vir_high::VariableDecl {
-                        name: lifetime_rhs,
+                        name: lifetime_lhs,
                         ty: vir_high::ty::Type::Lifetime,
                     }
                     .into(),

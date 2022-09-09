@@ -181,6 +181,7 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encod
             .borrow()
             .contains_key(ty_kind)
         {
+            self.queue_type_encoding(ty);
             let high_type = self.encode_type_high(ty)?;
             let polymorphic_type = high_type.lower(self);
             self.high_type_encoder_state
@@ -271,22 +272,22 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encod
             | vir_mid::TypeDecl::Map(_) => false,
             vir_mid::TypeDecl::Struct(decl) => decl.fields.is_empty(),
             vir_mid::TypeDecl::Enum(decl) => decl.variants.is_empty(),
-            vir_mid::TypeDecl::Union(decl) => decl.variants.is_empty(),
-            vir_mid::TypeDecl::Array(decl) => decl.length == 0,
+            vir_mid::TypeDecl::Array(_decl) => unimplemented!(),
             vir_mid::TypeDecl::Never => true,
             vir_mid::TypeDecl::Closure(_) => unimplemented!(),
             vir_mid::TypeDecl::Unsupported(_) => unimplemented!(),
         })
     }
     fn get_type_definition_span_mid(&self, ty: &vir_mid::Type) -> SpannedEncodingResult<MultiSpan> {
-        let high_type = self.decode_type_mid_into_high(ty.clone())?;
+        let high_type = self.decode_type_mid_into_high(ty.normalize_type())?;
         Ok(self.get_type_definition_span_high(&high_type))
     }
     fn get_type_decl_mid(
         &mut self,
         ty: &vir_mid::Type,
     ) -> SpannedEncodingResult<vir_mid::TypeDecl> {
-        let high_type = self.decode_type_mid_into_high(ty.clone())?;
+        let high_type =
+            self.decode_type_mid_into_high(ty.erase_lifetimes().erase_const_generics())?;
         let high_type_decl = self.encode_type_def_high(&high_type)?;
         high_type_decl.high_to_middle(self)
     }

@@ -3,6 +3,7 @@ copy_module!(crate::high::operations_internal::expression);
 copy_module!(crate::high::operations_internal::function);
 copy_module!(crate::high::operations_internal::graphviz);
 copy_module!(crate::high::operations_internal::helpers);
+pub mod const_generics;
 pub mod identifier;
 pub mod lifetimes;
 copy_module!(crate::high::operations_internal::position);

@@ -19,7 +19,6 @@ pub(crate) trait MirProcedureEncoderInterface<'tcx> {
         check_mode: CheckMode,
     ) -> SpannedEncodingResult<vir_high::ProcedureDecl>;
     fn get_span_of_location(&self, mir: &mir::Body<'tcx>, location: mir::Location) -> Span;
-    fn decode_procedure_def_id(&self, procedure_name: &str) -> DefId;
 }
 
 impl<'v, 'tcx: 'v> MirProcedureEncoderInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
@@ -42,8 +41,5 @@ impl<'v, 'tcx: 'v> MirProcedureEncoderInterface<'tcx> for super::super::super::E
     }
     fn get_span_of_location(&self, mir: &mir::Body<'tcx>, location: mir::Location) -> Span {
         self.get_mir_location_span(mir, location)
-    }
-    fn decode_procedure_def_id(&self, procedure_name: &str) -> DefId {
-        self.mir_procedure_encoder_state.encoded_procedure_def_ids[procedure_name].0
     }
 }

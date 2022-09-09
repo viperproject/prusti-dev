@@ -35,9 +35,15 @@ pub enum PanicCause {
 /// The kind of the method whose proof failed.
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub enum BuiltinMethodKind {
-    WritePlace,
+    WriteConstant,
     MovePlace,
     IntoMemoryBlock,
+    SplitMemoryBlock,
+    JoinMemoryBlock,
+    CopyMemoryBlock,
+    ChangeUniqueRefPlace,
+    DuplicateFracRef,
+    Assign,
 }
 
 /// In case of verification error, this enum will contain additional information

@@ -4,22 +4,23 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::environment::Environment;
+use super::{EnvName, EnvQuery};
+use crate::{
+    environment::Environment,
+    utils::{has_extern_spec_attr, has_spec_only_attr},
+};
+use log::trace;
 use prusti_rustc_interface::{
     hir,
     hir::{def_id::DefId, intravisit::Visitor},
+    middle::ty,
 };
-
-use log::trace;
-
-use crate::utils::{has_extern_spec_attr, has_spec_only_attr};
-
-use super::{EnvName, EnvQuery};
 
 pub struct CollectPrustiSpecVisitor<'tcx> {
     env_query: EnvQuery<'tcx>,
     env_name: EnvName<'tcx>,
-    result: Vec<DefId>,
+    procedures: Vec<DefId>,
+    types: Vec<ty::Ty<'tcx>>,
 }
 
 impl<'tcx> CollectPrustiSpecVisitor<'tcx> {
@@ -27,11 +28,13 @@ impl<'tcx> CollectPrustiSpecVisitor<'tcx> {
         CollectPrustiSpecVisitor {
             env_query: env.query,
             env_name: env.name,
-            result: Vec::new(),
+            procedures: Vec::new(),
+            types: Vec::new(),
         }
     }
-    pub fn get_annotated_procedures(self) -> Vec<DefId> {
-        self.result
+
+    pub fn into_result(self) -> (Vec<DefId>, Vec<ty::Ty<'tcx>>) {
+        (self.procedures, self.types)
     }
 
     pub fn visit_all_item_likes(&mut self) {
@@ -60,8 +63,20 @@ impl<'tcx> Visitor<'tcx> for CollectPrustiSpecVisitor<'tcx> {
         if let hir::ItemKind::Fn(..) = item.kind {
             let def_id = self.env_query.as_local_def_id(item.hir_id()).to_def_id();
             let item_def_path = self.env_name.get_item_def_path(def_id);
-            trace!("Add {} to result", item_def_path);
-            self.result.push(def_id);
+            trace!("Add {} to procedures", item_def_path);
+            self.procedures.push(def_id);
+        }
+        if matches!(
+            item.kind,
+            hir::ItemKind::Enum(..) | hir::ItemKind::Struct(..) | hir::ItemKind::Union(..)
+        ) {
+            let def_id = self.env_query.as_local_def_id(item.hir_id()).to_def_id();
+            let adt_def = self.env_query.tcx().adt_def(def_id);
+            let ty = self
+                .env_query
+                .tcx()
+                .mk_adt(adt_def, self.env_query.identity_substs(def_id));
+            self.types.push(ty);
         }
     }
 
@@ -87,8 +102,8 @@ impl<'tcx> Visitor<'tcx> for CollectPrustiSpecVisitor<'tcx> {
             .as_local_def_id(trait_item.hir_id())
             .to_def_id();
         let item_def_path = self.env_name.get_item_def_path(def_id);
-        trace!("Add {} to result", item_def_path);
-        self.result.push(def_id);
+        trace!("Add {} to procedures", item_def_path);
+        self.procedures.push(def_id);
     }
 
     fn visit_impl_item(&mut self, impl_item: &hir::ImplItem) {
@@ -109,8 +124,8 @@ impl<'tcx> Visitor<'tcx> for CollectPrustiSpecVisitor<'tcx> {
             .as_local_def_id(impl_item.hir_id())
             .to_def_id();
         let item_def_path = self.env_name.get_item_def_path(def_id);
-        trace!("Add {} to result", item_def_path);
-        self.result.push(def_id);
+        trace!("Add {} to procedures", item_def_path);
+        self.procedures.push(def_id);
     }
 
     fn visit_foreign_item(&mut self, _foreign_item: &hir::ForeignItem) {

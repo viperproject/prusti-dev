@@ -7,6 +7,7 @@ copy_module!(crate::typed::operations_internal::procedure);
 copy_module!(crate::typed::operations_internal::successor);
 copy_module!(crate::typed::operations_internal::ty);
 copy_module!(crate::typed::operations_internal::lifetimes);
+copy_module!(crate::typed::operations_internal::const_generics);
 copy_module!(crate::typed::operations_internal::type_decl);
 copy_module!(crate::typed::operations_internal::special_variables);
 copy_module!(crate::typed::operations_internal::rvalue);
