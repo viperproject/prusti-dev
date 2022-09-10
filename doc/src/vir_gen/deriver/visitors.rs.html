@@ -617,6 +617,21 @@
 <span id="617">617</span>
 <span id="618">618</span>
 <span id="619">619</span>
+<span id="620">620</span>
+<span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
+<span id="625">625</span>
+<span id="626">626</span>
+<span id="627">627</span>
+<span id="628">628</span>
+<span id="629">629</span>
+<span id="630">630</span>
+<span id="631">631</span>
+<span id="632">632</span>
+<span id="633">633</span>
+<span id="634">634</span>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::common::{<a href="../../../src/vir_gen/deriver/common.rs.html#159">get_option_vec_type_arg</a>, <a href="../../../src/vir_gen/deriver/common.rs.html#4">DeriveInfo</a>};
 <span class="kw">use crate</span>::{
     deriver::common::{
@@ -626,7 +641,7 @@
     helpers::{<a href="../../../src/vir_gen/helpers.rs.html#43">append_ident</a>, <a href="../../../src/vir_gen/helpers.rs.html#10">method_name_from_camel</a>, <a href="../../../src/vir_gen/helpers.rs.html#15">prefixed_method_name_from_camel</a>, <a href="../../../src/vir_gen/helpers.rs.html#49">unbox_type</a>},
 };
 <span class="kw">use </span><a href="../../../proc_macro2/struct.Span.html">proc_macro2::Span</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/collections/hash/set/struct.HashSet.html">std::collections::HashSet</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/set/struct.BTreeSet.html">std::collections::BTreeSet</a>;
 <span class="kw">use </span><a href="../../../syn/macro.parse_quote.html">syn::parse_quote</a>;
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>derive(
@@ -648,13 +663,11 @@
 
         <span class="kw">for </span><span class="kw-2">mut </span>deriver <span class="kw">in </span>derivers {
             deriver.create_walk_method(<span class="kw-2">&amp;</span>enum_ident, <span class="prelude-val">None</span>);
-            <span class="kw">if </span>deriver.kind.is_folder() {
-                deriver.create_enum_boxed_walk_method(<span class="kw-2">&amp;</span>enum_ident);
-            }
             deriver.create_default_enum_function(<span class="kw-2">&amp;</span>variants)<span class="question-mark">?</span>;
 
-            <span class="kw">let </span><span class="kw-2">mut </span>all_walked_types = HashSet::new();
-            <span class="kw">let </span><span class="kw-2">mut </span>all_created_methods = HashSet::new();
+            <span class="kw">let </span><span class="kw-2">mut </span>all_walked_types = BTreeSet::new();
+            <span class="kw">let </span><span class="kw-2">mut </span>all_created_methods = BTreeSet::new();
+            <span class="kw">let </span><span class="kw-2">mut </span>unboxed_args = BTreeSet::new();
             all_created_methods.insert(enum_ident.clone());
 
             <span class="kw">for </span>variant <span class="kw">in </span><span class="kw-2">&amp;</span>variants {
@@ -665,7 +678,11 @@
                     } <span class="kw">else </span>{
                         deriver.create_walk_method(ty, <span class="prelude-val">None</span>);
                     }
-                    <span class="kw">let </span>walked_types = deriver.create_default_struct_function(items, variant)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>walked_types = deriver.create_default_struct_function(
+                        <span class="kw-2">&amp;mut </span>unboxed_args,
+                        items,
+                        variant,
+                    )<span class="question-mark">?</span>;
                     all_walked_types.extend(walked_types);
                 } <span class="kw">else </span>{
                     deriver.create_argless_walk_method(<span class="kw-2">&amp;</span>variant.ident);
@@ -673,6 +690,11 @@
             }
             <span class="kw">for </span>ty <span class="kw">in </span>all_walked_types.difference(<span class="kw-2">&amp;</span>all_created_methods) {
                 deriver.create_empty_walk_method(ty);
+            }
+            <span class="kw">if </span>deriver.kind.is_folder() {
+                <span class="kw">for </span>ty <span class="kw">in </span>unboxed_args {
+                    deriver.create_enum_boxed_walk_method(<span class="kw-2">&amp;</span>ty);
+                }
             }
 
             module_items.push(deriver.generate_trait());
@@ -700,7 +722,7 @@
     FallibleFolder,
 }
 
-<span class="kw">impl </span><a href="../../../src/vir_gen/deriver/visitors.rs.html#77">DeriverKind</a> {
+<span class="kw">impl </span><a href="../../../src/vir_gen/deriver/visitors.rs.html#84">DeriverKind</a> {
     <span class="kw">fn </span>is_fallible(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(
             <span class="self">self</span>,
@@ -717,11 +739,11 @@
     trait_ident: <a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
     trait_items: Vec&lt;<a href="../../../syn/item/enum.TraitItem.html">syn::TraitItem</a>&gt;,
     default_functions: Vec&lt;<a href="../../../syn/item/enum.Item.html">syn::Item</a>&gt;,
-    kind: <a href="../../../src/vir_gen/deriver/visitors.rs.html#77">DeriverKind</a>,
+    kind: <a href="../../../src/vir_gen/deriver/visitors.rs.html#84">DeriverKind</a>,
 }
 
-<span class="kw">impl </span><a href="../../../src/vir_gen/deriver/visitors.rs.html#96">Deriver</a> {
-    <span class="kw">fn </span>new(enum_ident: <a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>, kind: <a href="../../../src/vir_gen/deriver/visitors.rs.html#77">DeriverKind</a>) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span><a href="../../../src/vir_gen/deriver/visitors.rs.html#103">Deriver</a> {
+    <span class="kw">fn </span>new(enum_ident: <a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>, kind: <a href="../../../src/vir_gen/deriver/visitors.rs.html#84">DeriverKind</a>) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>trait_items = <span class="kw">if </span>kind.is_fallible() {
             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="macro">parse_quote! </span>{
                 <span class="kw">type </span>Error;
@@ -730,26 +752,26 @@
             Vec::new()
         };
         <span class="self">Self </span>{
-            trait_ident: <a href="../../../src/vir_gen/helpers.rs.html#43">append_ident</a>(<span class="kw-2">&amp;</span><a href="../../../src/vir_gen/deriver/visitors.rs.html#105">enum_ident</a>, <span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{:?}&quot;</span>, kind)),
-            <a href="../../../src/vir_gen/deriver/visitors.rs.html#105">enum_ident</a>,
-            <a href="../../../src/vir_gen/deriver/visitors.rs.html#106">trait_items</a>,
+            trait_ident: <a href="../../../src/vir_gen/helpers.rs.html#43">append_ident</a>(<span class="kw-2">&amp;</span><a href="../../../src/vir_gen/deriver/visitors.rs.html#112">enum_ident</a>, <span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{:?}&quot;</span>, kind)),
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#112">enum_ident</a>,
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#113">trait_items</a>,
             default_functions: Vec::new(),
-            <a href="../../../src/vir_gen/deriver/visitors.rs.html#105">kind</a>,
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#112">kind</a>,
         }
     }
     <span class="kw">fn </span>create_walk_method(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>, variant: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../syn/data/struct.Variant.html">syn::Variant</a>&gt;) {
-        <span class="kw">let </span>method_name = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#121">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#517">create_method_name</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#121">ty</a>);
-        <span class="kw">let </span>method_name_enum = <a href="../../../src/vir_gen/helpers.rs.html#43">append_ident</a>(<span class="kw-2">&amp;</span><a href="../../../src/vir_gen/deriver/visitors.rs.html#122">method_name</a>, <span class="string">&quot;_enum&quot;</span>);
-        <span class="kw">let </span>parameter_name = <a href="../../../src/vir_gen/helpers.rs.html#10">method_name_from_camel</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#121">ty</a>);
-        <span class="kw">let </span>default_method_name = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#121">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#543">create_default_method_name</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#121">ty</a>);
-        <span class="kw">let </span>parameter_type = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#121">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#599">create_parameter_type</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#121">ty</a>);
-        <span class="kw">let </span>result_type_enum = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#121">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#555">create_result_type</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#121">self</a>.enum_ident, <span class="bool-val">false</span>);
+        <span class="kw">let </span>method_name = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#128">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#530">create_method_name</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#128">ty</a>);
+        <span class="kw">let </span>method_name_enum = <a href="../../../src/vir_gen/helpers.rs.html#43">append_ident</a>(<span class="kw-2">&amp;</span><a href="../../../src/vir_gen/deriver/visitors.rs.html#129">method_name</a>, <span class="string">&quot;_enum&quot;</span>);
+        <span class="kw">let </span>parameter_name = <a href="../../../src/vir_gen/helpers.rs.html#10">method_name_from_camel</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#128">ty</a>);
+        <span class="kw">let </span>default_method_name = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#128">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#558">create_default_method_name</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#128">ty</a>);
+        <span class="kw">let </span>parameter_type = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#128">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#614">create_parameter_type</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#128">ty</a>);
+        <span class="kw">let </span>result_type_enum = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#128">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#570">create_result_type</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#128">self</a>.enum_ident, <span class="bool-val">false</span>);
         <span class="kw">let </span>call_enum: <a href="../../../syn/expr/enum.Expr.html">syn::Expr</a> = <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
             <span class="self">self</span>.#method_name(#parameter_name)
         };
-        <span class="kw">let </span>body_enum: <a href="../../../syn/expr/enum.Expr.html">syn::Expr</a> = <span class="kw">if let </span><span class="prelude-val">Some</span>(variant) = <a href="../../../src/vir_gen/deriver/visitors.rs.html#121">variant</a> {
-            <span class="kw">let </span>enum_ident = <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#121">self</a>.enum_ident;
-            <span class="kw">let </span>variant_ident = <span class="kw-2">&amp;</span><a href="../../../src/vir_gen/deriver/visitors.rs.html#131">variant</a>.ident;
+        <span class="kw">let </span>body_enum: <a href="../../../syn/expr/enum.Expr.html">syn::Expr</a> = <span class="kw">if let </span><span class="prelude-val">Some</span>(variant) = <a href="../../../src/vir_gen/deriver/visitors.rs.html#128">variant</a> {
+            <span class="kw">let </span>enum_ident = <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#128">self</a>.enum_ident;
+            <span class="kw">let </span>variant_ident = <span class="kw-2">&amp;</span><a href="../../../src/vir_gen/deriver/visitors.rs.html#138">variant</a>.ident;
             <span class="kw">if </span><span class="self">self</span>.kind.is_fallible() {
                 <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
                     #call_enum.map(#enum_ident::#variant_ident)
@@ -760,28 +782,28 @@
                 }
             }
         } <span class="kw">else </span>{
-            <a href="../../../src/vir_gen/deriver/visitors.rs.html#128">call_enum</a>
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#135">call_enum</a>
         };
         <span class="kw">let </span>method_enum = <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
             <span class="kw">fn </span>#method_name_enum(<span class="kw-2">&amp;mut </span><span class="self">self</span>, #parameter_name: #parameter_type) -&gt; #result_type_enum {
                 #body_enum
             }
         };
-        <span class="kw">let </span>result_type = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#121">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#555">create_result_type</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#121">ty</a>, <span class="bool-val">false</span>);
-        <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#121">self</a>.trait_items.push(<a href="../../../src/vir_gen/deriver/visitors.rs.html#146">method_enum</a>);
+        <span class="kw">let </span>result_type = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#128">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#570">create_result_type</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#128">ty</a>, <span class="bool-val">false</span>);
+        <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#128">self</a>.trait_items.push(<a href="../../../src/vir_gen/deriver/visitors.rs.html#153">method_enum</a>);
         <span class="kw">let </span>method = <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
             <span class="kw">fn </span>#method_name(<span class="kw-2">&amp;mut </span><span class="self">self</span>, #parameter_name: #parameter_type) -&gt; #result_type {
                 #default_method_name(<span class="self">self</span>, #parameter_name)
             }
         };
-        <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#121">self</a>.trait_items.push(<a href="../../../src/vir_gen/deriver/visitors.rs.html#153">method</a>);
+        <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#128">self</a>.trait_items.push(<a href="../../../src/vir_gen/deriver/visitors.rs.html#160">method</a>);
     }
     <span class="kw">fn </span>create_enum_boxed_walk_method(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) {
-        <span class="kw">let </span>method_name = <a href="../../../src/vir_gen/helpers.rs.html#43">append_ident</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#160">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#517">create_method_name</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#160">ty</a>), <span class="string">&quot;_boxed&quot;</span>);
-        <span class="kw">let </span>parameter_name = <a href="../../../src/vir_gen/helpers.rs.html#10">method_name_from_camel</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#160">ty</a>);
-        <span class="kw">let </span>called_method_name = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#160">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#517">create_method_name</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#160">ty</a>);
-        <span class="kw">let </span>parameter_type = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#160">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#599">create_parameter_type</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#160">ty</a>);
-        <span class="kw">let </span>result_type = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#160">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#558">create_boxed_result_type</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#160">ty</a>, <span class="bool-val">false</span>);
+        <span class="kw">let </span>method_name = <a href="../../../src/vir_gen/helpers.rs.html#43">append_ident</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#167">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#530">create_method_name</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#167">ty</a>), <span class="string">&quot;_boxed&quot;</span>);
+        <span class="kw">let </span>parameter_name = <a href="../../../src/vir_gen/helpers.rs.html#10">method_name_from_camel</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#167">ty</a>);
+        <span class="kw">let </span>called_method_name = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#167">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#530">create_method_name</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#167">ty</a>);
+        <span class="kw">let </span>parameter_type = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#167">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#614">create_parameter_type</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#167">ty</a>);
+        <span class="kw">let </span>result_type = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#167">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#573">create_boxed_result_type</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#167">ty</a>, <span class="bool-val">false</span>);
         <span class="kw">let </span>body: <a href="../../../syn/expr/enum.Expr.html">syn::Expr</a> = <span class="kw">if </span><span class="self">self</span>.kind.is_fallible() {
             <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
                 <span class="self">self</span>.#called_method_name(<span class="kw-2">*</span>#parameter_name).map(Box::new)
@@ -797,29 +819,29 @@
                 #body
             }
         };
-        <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#160">self</a>.trait_items.push(<a href="../../../src/vir_gen/deriver/visitors.rs.html#175">method</a>);
+        <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#167">self</a>.trait_items.push(<a href="../../../src/vir_gen/deriver/visitors.rs.html#182">method</a>);
     }
     <span class="kw">fn </span>create_argless_walk_method(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) {
-        <span class="kw">let </span>method_name = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#183">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#517">create_method_name</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#183">ty</a>);
-        <span class="kw">let </span>enum_ident = <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#183">self</a>.enum_ident;
-        <span class="kw">let </span>result_type = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#183">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#555">create_result_type</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#185">enum_ident</a>, <span class="bool-val">false</span>);
-        <span class="kw">let </span>result: <a href="../../../syn/expr/enum.Expr.html">syn::Expr</a> = <span class="kw">match </span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#183">self</a>.kind {
-            <a href="../../../src/vir_gen/deriver/visitors.rs.html#78">DeriverKind::Walker</a> =&gt; {
+        <span class="kw">let </span>method_name = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#190">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#530">create_method_name</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#190">ty</a>);
+        <span class="kw">let </span>enum_ident = <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#190">self</a>.enum_ident;
+        <span class="kw">let </span>result_type = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#190">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#570">create_result_type</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#192">enum_ident</a>, <span class="bool-val">false</span>);
+        <span class="kw">let </span>result: <a href="../../../syn/expr/enum.Expr.html">syn::Expr</a> = <span class="kw">match </span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#190">self</a>.kind {
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#85">DeriverKind::Walker</a> =&gt; {
                 <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
                     ()
                 }
             }
-            <a href="../../../src/vir_gen/deriver/visitors.rs.html#79">DeriverKind::FallibleWalker</a> =&gt; {
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#86">DeriverKind::FallibleWalker</a> =&gt; {
                 <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
                     <span class="prelude-val">Ok</span>(())
                 }
             }
-            <a href="../../../src/vir_gen/deriver/visitors.rs.html#80">DeriverKind::Folder</a> =&gt; {
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#87">DeriverKind::Folder</a> =&gt; {
                 <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
                     #enum_ident::#ty
                 }
             }
-            <a href="../../../src/vir_gen/deriver/visitors.rs.html#81">DeriverKind::FallibleFolder</a> =&gt; {
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#88">DeriverKind::FallibleFolder</a> =&gt; {
                 <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
                     <span class="prelude-val">Ok</span>(#enum_ident::#ty)
                 }
@@ -830,30 +852,30 @@
                 #result
             }
         };
-        <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#183">self</a>.trait_items.push(<a href="../../../src/vir_gen/deriver/visitors.rs.html#209">method</a>);
+        <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#190">self</a>.trait_items.push(<a href="../../../src/vir_gen/deriver/visitors.rs.html#216">method</a>);
     }
     <span class="kw">fn </span>create_empty_walk_method(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) {
-        <span class="kw">let </span>method_name = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#216">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#517">create_method_name</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#216">ty</a>);
-        <span class="kw">let </span>parameter_name = <a href="../../../src/vir_gen/helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="string">&quot;_&quot;</span>, <a href="../../../src/vir_gen/deriver/visitors.rs.html#216">ty</a>);
-        <span class="kw">let </span>parameter_type = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#216">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#599">create_parameter_type</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#216">ty</a>);
-        <span class="kw">let </span>result_type = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#216">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#555">create_result_type</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#216">ty</a>, <span class="bool-val">false</span>);
-        <span class="kw">let </span>result: <a href="../../../syn/expr/enum.Expr.html">syn::Expr</a> = <span class="kw">match </span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#216">self</a>.kind {
-            <a href="../../../src/vir_gen/deriver/visitors.rs.html#78">DeriverKind::Walker</a> =&gt; {
+        <span class="kw">let </span>method_name = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#223">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#530">create_method_name</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#223">ty</a>);
+        <span class="kw">let </span>parameter_name = <a href="../../../src/vir_gen/helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="string">&quot;_&quot;</span>, <a href="../../../src/vir_gen/deriver/visitors.rs.html#223">ty</a>);
+        <span class="kw">let </span>parameter_type = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#223">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#614">create_parameter_type</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#223">ty</a>);
+        <span class="kw">let </span>result_type = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#223">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#570">create_result_type</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#223">ty</a>, <span class="bool-val">false</span>);
+        <span class="kw">let </span>result: <a href="../../../syn/expr/enum.Expr.html">syn::Expr</a> = <span class="kw">match </span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#223">self</a>.kind {
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#85">DeriverKind::Walker</a> =&gt; {
                 <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
                     ()
                 }
             }
-            <a href="../../../src/vir_gen/deriver/visitors.rs.html#79">DeriverKind::FallibleWalker</a> =&gt; {
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#86">DeriverKind::FallibleWalker</a> =&gt; {
                 <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
                     <span class="prelude-val">Ok</span>(())
                 }
             }
-            <a href="../../../src/vir_gen/deriver/visitors.rs.html#80">DeriverKind::Folder</a> =&gt; {
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#87">DeriverKind::Folder</a> =&gt; {
                 <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
                     #parameter_name
                 }
             }
-            <a href="../../../src/vir_gen/deriver/visitors.rs.html#81">DeriverKind::FallibleFolder</a> =&gt; {
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#88">DeriverKind::FallibleFolder</a> =&gt; {
                 <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
                     <span class="prelude-val">Ok</span>(#parameter_name)
                 }
@@ -864,16 +886,16 @@
                 #result
             }
         };
-        <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#216">self</a>.trait_items.push(<a href="../../../src/vir_gen/deriver/visitors.rs.html#243">method</a>);
+        <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#223">self</a>.trait_items.push(<a href="../../../src/vir_gen/deriver/visitors.rs.html#250">method</a>);
     }
     <span class="kw">fn </span>create_default_enum_function(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         variants: <span class="kw-2">&amp;</span>[<a href="../../../syn/data/struct.Variant.html">syn::Variant</a>],
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../../../syn/error/struct.Error.html">syn::Error</a>&gt; {
-        <span class="kw">let </span>enum_ident = <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#251">self</a>.enum_ident;
-        <span class="kw">let </span>trait_ident = <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#251">self</a>.trait_ident;
-        <span class="kw">let </span>parameter_name = <a href="../../../src/vir_gen/helpers.rs.html#10">method_name_from_camel</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#254">enum_ident</a>);
-        <span class="kw">let </span>default_method_name = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#251">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#543">create_default_method_name</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#254">enum_ident</a>);
+        <span class="kw">let </span>enum_ident = <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#258">self</a>.enum_ident;
+        <span class="kw">let </span>trait_ident = <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#258">self</a>.trait_ident;
+        <span class="kw">let </span>parameter_name = <a href="../../../src/vir_gen/helpers.rs.html#10">method_name_from_camel</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#261">enum_ident</a>);
+        <span class="kw">let </span>default_method_name = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#258">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#558">create_default_method_name</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#261">enum_ident</a>);
         <span class="kw">let </span><span class="kw-2">mut </span>arms: Vec&lt;<a href="../../../syn/expr/struct.Arm.html">syn::Arm</a>&gt; = Vec::new();
         <span class="kw">for </span>variant <span class="kw">in </span>variants {
             <span class="kw">let </span>variant_ident = <span class="kw-2">&amp;</span>variant.ident;
@@ -896,8 +918,8 @@
             };
             arms.push(arm);
         }
-        <span class="kw">let </span>parameter_type = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#251">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#599">create_parameter_type</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#254">enum_ident</a>);
-        <span class="kw">let </span>result_type = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#251">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#555">create_result_type</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#254">enum_ident</a>, <span class="bool-val">true</span>);
+        <span class="kw">let </span>parameter_type = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#258">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#614">create_parameter_type</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#261">enum_ident</a>);
+        <span class="kw">let </span>result_type = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#258">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#570">create_result_type</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#261">enum_ident</a>, <span class="bool-val">true</span>);
         <span class="kw">let </span>result: <a href="../../../syn/expr/enum.Expr.html">syn::Expr</a> = <span class="kw">if </span><span class="self">self</span>.kind.is_fallible() {
             <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
                 <span class="prelude-val">Ok</span>(<span class="kw">match </span>#parameter_name {
@@ -917,36 +939,36 @@
                 #result
             }
         };
-        <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#251">self</a>.default_functions.push(<a href="../../../src/vir_gen/deriver/visitors.rs.html#295">default_function</a>);
+        <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#258">self</a>.default_functions.push(<a href="../../../src/vir_gen/deriver/visitors.rs.html#302">default_function</a>);
         <span class="prelude-val">Ok</span>(())
     }
     <span class="kw">fn </span>create_default_empty_enum_function(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         variant: <span class="kw-2">&amp;</span><a href="../../../syn/data/struct.Variant.html">syn::Variant</a>,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>&gt;, <a href="../../../syn/error/struct.Error.html">syn::Error</a>&gt; {
-        <span class="kw">let </span>trait_ident = <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#305">self</a>.trait_ident;
+        <span class="kw">let </span>trait_ident = <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#312">self</a>.trait_ident;
         <span class="kw">let </span>variant_type = extract_variant_type(variant)<span class="question-mark">?</span>.unwrap();
-        <span class="kw">let </span>parameter_name = <a href="../../../src/vir_gen/helpers.rs.html#10">method_name_from_camel</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#309">variant_type</a>);
-        <span class="kw">let </span>default_method_name = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#305">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#543">create_default_method_name</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#309">variant_type</a>);
-        <span class="kw">let </span>parameter_type = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#305">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#599">create_parameter_type</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#309">variant_type</a>);
-        <span class="kw">let </span>result_type = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#305">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#555">create_result_type</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#309">variant_type</a>, <span class="bool-val">true</span>);
-        <span class="kw">let </span>result: <a href="../../../syn/expr/enum.Expr.html">syn::Expr</a> = <span class="kw">match </span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#305">self</a>.kind {
-            <a href="../../../src/vir_gen/deriver/visitors.rs.html#78">DeriverKind::Walker</a> =&gt; {
+        <span class="kw">let </span>parameter_name = <a href="../../../src/vir_gen/helpers.rs.html#10">method_name_from_camel</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#316">variant_type</a>);
+        <span class="kw">let </span>default_method_name = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#312">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#558">create_default_method_name</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#316">variant_type</a>);
+        <span class="kw">let </span>parameter_type = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#312">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#614">create_parameter_type</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#316">variant_type</a>);
+        <span class="kw">let </span>result_type = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#312">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#570">create_result_type</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#316">variant_type</a>, <span class="bool-val">true</span>);
+        <span class="kw">let </span>result: <a href="../../../syn/expr/enum.Expr.html">syn::Expr</a> = <span class="kw">match </span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#312">self</a>.kind {
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#85">DeriverKind::Walker</a> =&gt; {
                 <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
                     ()
                 }
             }
-            <a href="../../../src/vir_gen/deriver/visitors.rs.html#79">DeriverKind::FallibleWalker</a> =&gt; {
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#86">DeriverKind::FallibleWalker</a> =&gt; {
                 <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
                     <span class="prelude-val">Ok</span>(())
                 }
             }
-            <a href="../../../src/vir_gen/deriver/visitors.rs.html#80">DeriverKind::Folder</a> =&gt; {
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#87">DeriverKind::Folder</a> =&gt; {
                 <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
                     #parameter_name
                 }
             }
-            <a href="../../../src/vir_gen/deriver/visitors.rs.html#81">DeriverKind::FallibleFolder</a> =&gt; {
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#88">DeriverKind::FallibleFolder</a> =&gt; {
                 <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
                     <span class="prelude-val">Ok</span>(#parameter_name)
                 }
@@ -961,22 +983,23 @@
                 #result
             }
         };
-        <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#305">self</a>.default_functions.push(<a href="../../../src/vir_gen/deriver/visitors.rs.html#336">default_function</a>);
+        <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#312">self</a>.default_functions.push(<a href="../../../src/vir_gen/deriver/visitors.rs.html#343">default_function</a>);
         <span class="prelude-val">Ok</span>(Vec::new())
     }
     <span class="kw">fn </span>create_default_struct_function(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        unboxed_args: <span class="kw-2">&amp;mut </span>BTreeSet&lt;<a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>&gt;,
         items: <span class="kw-2">&amp;</span>[<a href="../../../syn/item/enum.Item.html">syn::Item</a>],
         variant: <span class="kw-2">&amp;</span><a href="../../../syn/data/struct.Variant.html">syn::Variant</a>,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>&gt;, <a href="../../../syn/error/struct.Error.html">syn::Error</a>&gt; {
-        <span class="kw">let </span>trait_ident = <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#349">self</a>.trait_ident;
+        <span class="kw">let </span>trait_ident = <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#356">self</a>.trait_ident;
         <span class="kw">let </span>variant_type = extract_variant_type(variant)<span class="question-mark">?</span>.unwrap();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(_variant_enum) = <a href="../../../src/vir_gen/deriver/common.rs.html#69-72">find_variant_enum</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#350">items</a>, <a href="../../../src/vir_gen/deriver/visitors.rs.html#354">variant_type</a>) {
-            <span class="kw">return </span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#349">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#304-307">create_default_empty_enum_function</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#351">variant</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(_variant_enum) = <a href="../../../src/vir_gen/deriver/common.rs.html#69-72">find_variant_enum</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#358">items</a>, <a href="../../../src/vir_gen/deriver/visitors.rs.html#362">variant_type</a>) {
+            <span class="kw">return </span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#356">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#311-314">create_default_empty_enum_function</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#359">variant</a>);
         }
         <span class="kw">let </span>variant_struct = find_variant_struct(items, variant_type)<span class="question-mark">?</span>;
-        <span class="kw">let </span>parameter_name = <a href="../../../src/vir_gen/helpers.rs.html#10">method_name_from_camel</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#354">variant_type</a>);
-        <span class="kw">let </span>default_method_name = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#349">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#543">create_default_method_name</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#354">variant_type</a>);
+        <span class="kw">let </span>parameter_name = <a href="../../../src/vir_gen/helpers.rs.html#10">method_name_from_camel</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#362">variant_type</a>);
+        <span class="kw">let </span>default_method_name = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#356">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#558">create_default_method_name</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#362">variant_type</a>);
         <span class="kw">let </span><span class="kw-2">mut </span>field_names = Vec::&lt;<a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>&gt;::new();
         <span class="kw">let </span><span class="kw-2">mut </span>visit_fields = Vec::&lt;<a href="../../../syn/stmt/enum.Stmt.html">syn::Stmt</a>&gt;::new();
         <span class="kw">let </span><span class="kw-2">mut </span>walked_types = Vec::new();
@@ -987,7 +1010,8 @@
 
             <span class="kw">let </span>statement = <span class="kw">if let </span><span class="prelude-val">Some</span>(inner_type) = get_vec_type_arg(<span class="kw-2">&amp;</span>parameter_type) {
                 <span class="kw">let </span>element = syn::Ident::new(<span class="string">&quot;element&quot;</span>, Span::call_site());
-                <span class="kw">let </span>method_call = <span class="self">self</span>.create_method_call(<span class="kw-2">&amp;</span>element, inner_type, <span class="bool-val">false</span>);
+                <span class="kw">let </span>method_call =
+                    <span class="self">self</span>.create_method_call(<span class="kw-2">&amp;</span>element, inner_type, <span class="bool-val">false</span>, unboxed_args);
                 walked_types.push(inner_type.clone());
                 <span class="kw">if </span><span class="self">self</span>.kind.is_folder() {
                     <span class="macro">parse_quote! </span>{
@@ -1008,7 +1032,8 @@
                 }
             } <span class="kw">else if let </span><span class="prelude-val">Some</span>(inner_type) = get_option_box_type_arg(<span class="kw-2">&amp;</span>parameter_type) {
                 <span class="kw">let </span>element = syn::Ident::new(<span class="string">&quot;element&quot;</span>, Span::call_site());
-                <span class="kw">let </span>method_call = <span class="self">self</span>.create_method_call(<span class="kw-2">&amp;</span>element, inner_type, <span class="bool-val">false</span>);
+                <span class="kw">let </span>method_call =
+                    <span class="self">self</span>.create_method_call(<span class="kw-2">&amp;</span>element, inner_type, <span class="bool-val">false</span>, unboxed_args);
                 walked_types.push(inner_type.clone());
                 <span class="kw">if </span><span class="self">self</span>.kind.is_folder() {
                     <span class="macro">parse_quote! </span>{
@@ -1028,7 +1053,8 @@
                 }
             } <span class="kw">else if let </span><span class="prelude-val">Some</span>(inner_type) = get_option_vec_type_arg(<span class="kw-2">&amp;</span>parameter_type) {
                 <span class="kw">let </span>element = syn::Ident::new(<span class="string">&quot;element&quot;</span>, Span::call_site());
-                <span class="kw">let </span>method_call = <span class="self">self</span>.create_method_call(<span class="kw-2">&amp;</span>element, inner_type, <span class="bool-val">false</span>);
+                <span class="kw">let </span>method_call =
+                    <span class="self">self</span>.create_method_call(<span class="kw-2">&amp;</span>element, inner_type, <span class="bool-val">false</span>, unboxed_args);
                 walked_types.push(inner_type.clone());
                 <span class="kw">if </span><span class="self">self</span>.kind.is_folder() {
                     <span class="macro">parse_quote! </span>{
@@ -1053,7 +1079,8 @@
                 }
             } <span class="kw">else if let </span><span class="prelude-val">Some</span>(inner_type) = get_option_type_arg(<span class="kw-2">&amp;</span>parameter_type) {
                 <span class="kw">let </span>element = syn::Ident::new(<span class="string">&quot;element&quot;</span>, Span::call_site());
-                <span class="kw">let </span>method_call = <span class="self">self</span>.create_method_call(<span class="kw-2">&amp;</span>element, inner_type, <span class="bool-val">false</span>);
+                <span class="kw">let </span>method_call =
+                    <span class="self">self</span>.create_method_call(<span class="kw-2">&amp;</span>element, inner_type, <span class="bool-val">false</span>, unboxed_args);
                 walked_types.push(inner_type.clone());
                 <span class="kw">if </span><span class="self">self</span>.kind.is_folder() {
                     <span class="macro">parse_quote! </span>{
@@ -1077,6 +1104,7 @@
                     name,
                     inner_type,
                     field.ty != parameter_type &amp;&amp; <span class="self">self</span>.kind.is_folder(),
+                    unboxed_args,
                 );
                 <span class="kw">if </span><span class="self">self</span>.kind.is_folder() {
                     <span class="macro">parse_quote! </span>{
@@ -1091,27 +1119,27 @@
 
             visit_fields.push(statement);
         }
-        <span class="kw">let </span>parameter_type = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#349">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#599">create_parameter_type</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#354">variant_type</a>);
-        <span class="kw">let </span>result_type = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#349">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#555">create_result_type</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#354">variant_type</a>, <span class="bool-val">true</span>);
-        <span class="kw">let </span>result: <a href="../../../syn/expr/enum.Expr.html">syn::Expr</a> = <span class="kw">match </span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#349">self</a>.kind {
-            <a href="../../../src/vir_gen/deriver/visitors.rs.html#78">DeriverKind::Walker</a> =&gt; {
+        <span class="kw">let </span>parameter_type = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#356">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#614">create_parameter_type</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#362">variant_type</a>);
+        <span class="kw">let </span>result_type = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#356">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#570">create_result_type</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#362">variant_type</a>, <span class="bool-val">true</span>);
+        <span class="kw">let </span>result: <a href="../../../syn/expr/enum.Expr.html">syn::Expr</a> = <span class="kw">match </span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#356">self</a>.kind {
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#85">DeriverKind::Walker</a> =&gt; {
                 <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
                     ()
                 }
             }
-            <a href="../../../src/vir_gen/deriver/visitors.rs.html#79">DeriverKind::FallibleWalker</a> =&gt; {
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#86">DeriverKind::FallibleWalker</a> =&gt; {
                 <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
                     <span class="prelude-val">Ok</span>(())
                 }
             }
-            <a href="../../../src/vir_gen/deriver/visitors.rs.html#80">DeriverKind::Folder</a> =&gt; {
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#87">DeriverKind::Folder</a> =&gt; {
                 <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
                     #variant_type {
                         #(#field_names),*
                     }
                 }
             }
-            <a href="../../../src/vir_gen/deriver/visitors.rs.html#81">DeriverKind::FallibleFolder</a> =&gt; {
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#88">DeriverKind::FallibleFolder</a> =&gt; {
                 <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
                     <span class="prelude-val">Ok</span>(#variant_type {
                         #(#field_names),*
@@ -1130,15 +1158,15 @@
                 #result
             }
         };
-        <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#349">self</a>.default_functions.push(<a href="../../../src/vir_gen/deriver/visitors.rs.html#503">default_function</a>);
-        <span class="prelude-val">Ok</span>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#363">walked_types</a>)
+        <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#356">self</a>.default_functions.push(<a href="../../../src/vir_gen/deriver/visitors.rs.html#516">default_function</a>);
+        <span class="prelude-val">Ok</span>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#371">walked_types</a>)
     }
     <span class="kw">fn </span>create_method_name(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) -&gt; <a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a> {
-        <span class="kw">match </span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#517">self</a>.kind {
-            <a href="../../../src/vir_gen/deriver/visitors.rs.html#78">DeriverKind::Walker</a> =&gt; <a href="../../../src/vir_gen/helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="string">&quot;walk_&quot;</span>, <a href="../../../src/vir_gen/deriver/visitors.rs.html#517">ty</a>),
-            <a href="../../../src/vir_gen/deriver/visitors.rs.html#79">DeriverKind::FallibleWalker</a> =&gt; <a href="../../../src/vir_gen/helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="string">&quot;fallible_walk_&quot;</span>, <a href="../../../src/vir_gen/deriver/visitors.rs.html#517">ty</a>),
-            <a href="../../../src/vir_gen/deriver/visitors.rs.html#80">DeriverKind::Folder</a> =&gt; <a href="../../../src/vir_gen/helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="string">&quot;fold_&quot;</span>, <a href="../../../src/vir_gen/deriver/visitors.rs.html#517">ty</a>),
-            <a href="../../../src/vir_gen/deriver/visitors.rs.html#81">DeriverKind::FallibleFolder</a> =&gt; <a href="../../../src/vir_gen/helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="string">&quot;fallible_fold_&quot;</span>, <a href="../../../src/vir_gen/deriver/visitors.rs.html#517">ty</a>),
+        <span class="kw">match </span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#530">self</a>.kind {
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#85">DeriverKind::Walker</a> =&gt; <a href="../../../src/vir_gen/helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="string">&quot;walk_&quot;</span>, <a href="../../../src/vir_gen/deriver/visitors.rs.html#530">ty</a>),
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#86">DeriverKind::FallibleWalker</a> =&gt; <a href="../../../src/vir_gen/helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="string">&quot;fallible_walk_&quot;</span>, <a href="../../../src/vir_gen/deriver/visitors.rs.html#530">ty</a>),
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#87">DeriverKind::Folder</a> =&gt; <a href="../../../src/vir_gen/helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="string">&quot;fold_&quot;</span>, <a href="../../../src/vir_gen/deriver/visitors.rs.html#530">ty</a>),
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#88">DeriverKind::FallibleFolder</a> =&gt; <a href="../../../src/vir_gen/helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="string">&quot;fallible_fold_&quot;</span>, <a href="../../../src/vir_gen/deriver/visitors.rs.html#530">ty</a>),
         }
     }
     <span class="kw">fn </span>create_method_call(
@@ -1146,12 +1174,14 @@
         element: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
         ty: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>,
         unbox_arg: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+        unboxed_args: <span class="kw-2">&amp;mut </span>BTreeSet&lt;<a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>&gt;,
     ) -&gt; <a href="../../../syn/expr/enum.Expr.html">syn::Expr</a> {
-        <span class="kw">let </span>method_name = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#526">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#517">create_method_name</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#528">ty</a>);
+        <span class="kw">let </span>method_name = <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#539">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#530">create_method_name</a>(<a href="../../../src/vir_gen/deriver/visitors.rs.html#541">ty</a>);
         <span class="kw">let </span>method_name = <span class="kw">if </span>unbox_arg {
-            <a href="../../../src/vir_gen/helpers.rs.html#43">append_ident</a>(<span class="kw-2">&amp;</span><a href="../../../src/vir_gen/deriver/visitors.rs.html#531">method_name</a>, <span class="string">&quot;_boxed&quot;</span>)
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#543">unboxed_args</a>.insert(<a href="../../../src/vir_gen/deriver/visitors.rs.html#541">ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            <a href="../../../src/vir_gen/helpers.rs.html#43">append_ident</a>(<span class="kw-2">&amp;</span><a href="../../../src/vir_gen/deriver/visitors.rs.html#545">method_name</a>, <span class="string">&quot;_boxed&quot;</span>)
         } <span class="kw">else </span>{
-            <a href="../../../src/vir_gen/deriver/visitors.rs.html#531">method_name</a>
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#545">method_name</a>
         };
         <span class="kw">if </span><span class="self">self</span>.kind.is_fallible() {
             <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{ this.#method_name(#element)<span class="question-mark">? </span>}
@@ -1160,33 +1190,33 @@
         }
     }
     <span class="kw">fn </span>create_default_method_name(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>) -&gt; <a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a> {
-        <span class="kw">match </span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#543">self</a>.kind {
-            <a href="../../../src/vir_gen/deriver/visitors.rs.html#78">DeriverKind::Walker</a> =&gt; <a href="../../../src/vir_gen/helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="string">&quot;default_walk_&quot;</span>, <a href="../../../src/vir_gen/deriver/visitors.rs.html#543">ty</a>),
-            <a href="../../../src/vir_gen/deriver/visitors.rs.html#79">DeriverKind::FallibleWalker</a> =&gt; {
-                <a href="../../../src/vir_gen/helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="string">&quot;default_fallible_walk_&quot;</span>, <a href="../../../src/vir_gen/deriver/visitors.rs.html#543">ty</a>)
+        <span class="kw">match </span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#558">self</a>.kind {
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#85">DeriverKind::Walker</a> =&gt; <a href="../../../src/vir_gen/helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="string">&quot;default_walk_&quot;</span>, <a href="../../../src/vir_gen/deriver/visitors.rs.html#558">ty</a>),
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#86">DeriverKind::FallibleWalker</a> =&gt; {
+                <a href="../../../src/vir_gen/helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="string">&quot;default_fallible_walk_&quot;</span>, <a href="../../../src/vir_gen/deriver/visitors.rs.html#558">ty</a>)
             }
-            <a href="../../../src/vir_gen/deriver/visitors.rs.html#80">DeriverKind::Folder</a> =&gt; <a href="../../../src/vir_gen/helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="string">&quot;default_fold_&quot;</span>, <a href="../../../src/vir_gen/deriver/visitors.rs.html#543">ty</a>),
-            <a href="../../../src/vir_gen/deriver/visitors.rs.html#81">DeriverKind::FallibleFolder</a> =&gt; {
-                <a href="../../../src/vir_gen/helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="string">&quot;default_fallible_fold_&quot;</span>, <a href="../../../src/vir_gen/deriver/visitors.rs.html#543">ty</a>)
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#87">DeriverKind::Folder</a> =&gt; <a href="../../../src/vir_gen/helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="string">&quot;default_fold_&quot;</span>, <a href="../../../src/vir_gen/deriver/visitors.rs.html#558">ty</a>),
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#88">DeriverKind::FallibleFolder</a> =&gt; {
+                <a href="../../../src/vir_gen/helpers.rs.html#15">prefixed_method_name_from_camel</a>(<span class="string">&quot;default_fallible_fold_&quot;</span>, <a href="../../../src/vir_gen/deriver/visitors.rs.html#558">ty</a>)
             }
         }
     }
     <span class="kw">fn </span>create_result_type(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>, in_default: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="../../../syn/ty/enum.Type.html">syn::Type</a> {
-        <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#555">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#561">create_result_type_with</a>(<a class="macro" href="../../../syn/macro.parse_quote.html">syn::parse_quote! </a>{ #ty }, <a href="../../../src/vir_gen/deriver/visitors.rs.html#555">in_default</a>)
+        <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#570">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#576">create_result_type_with</a>(<a class="macro" href="../../../syn/macro.parse_quote.html">syn::parse_quote! </a>{ #ty }, <a href="../../../src/vir_gen/deriver/visitors.rs.html#570">in_default</a>)
     }
     <span class="kw">fn </span>create_boxed_result_type(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span><a href="../../../proc_macro2/struct.Ident.html">syn::Ident</a>, in_default: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="../../../syn/ty/enum.Type.html">syn::Type</a> {
-        <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#558">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#561">create_result_type_with</a>(<a class="macro" href="../../../syn/macro.parse_quote.html">syn::parse_quote! </a>{ Box&lt;#ty&gt; }, <a href="../../../src/vir_gen/deriver/visitors.rs.html#558">in_default</a>)
+        <a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#573">self</a>.<a href="../../../src/vir_gen/deriver/visitors.rs.html#576">create_result_type_with</a>(<a class="macro" href="../../../syn/macro.parse_quote.html">syn::parse_quote! </a>{ Box&lt;#ty&gt; }, <a href="../../../src/vir_gen/deriver/visitors.rs.html#573">in_default</a>)
     }
     <span class="kw">fn </span>create_result_type_with(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: <a href="../../../syn/ty/enum.Type.html">syn::Type</a>, in_default: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="../../../syn/ty/enum.Type.html">syn::Type</a> {
-        <span class="kw">match </span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#561">self</a>.kind {
-            <a href="../../../src/vir_gen/deriver/visitors.rs.html#78">DeriverKind::Walker</a> =&gt; {
+        <span class="kw">match </span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#576">self</a>.kind {
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#85">DeriverKind::Walker</a> =&gt; {
                 <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
                     ()
                 }
             }
-            <a href="../../../src/vir_gen/deriver/visitors.rs.html#79">DeriverKind::FallibleWalker</a> =&gt; {
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#86">DeriverKind::FallibleWalker</a> =&gt; {
                 <span class="kw">if </span>in_default {
-                    <span class="kw">let </span>trait_ident = <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#561">self</a>.trait_ident;
+                    <span class="kw">let </span>trait_ident = <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#576">self</a>.trait_ident;
                     <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
                         <span class="prelude-ty">Result</span>&lt;(), &lt;T <span class="kw">as </span>#trait_ident&gt;::Error&gt;
                     }
@@ -1196,14 +1226,14 @@
                     }
                 }
             }
-            <a href="../../../src/vir_gen/deriver/visitors.rs.html#80">DeriverKind::Folder</a> =&gt; {
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#87">DeriverKind::Folder</a> =&gt; {
                 <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
                     #ty
                 }
             }
-            <a href="../../../src/vir_gen/deriver/visitors.rs.html#81">DeriverKind::FallibleFolder</a> =&gt; {
+            <a href="../../../src/vir_gen/deriver/visitors.rs.html#88">DeriverKind::FallibleFolder</a> =&gt; {
                 <span class="kw">if </span>in_default {
-                    <span class="kw">let </span>trait_ident = <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#561">self</a>.trait_ident;
+                    <span class="kw">let </span>trait_ident = <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#576">self</a>.trait_ident;
                     <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
                         <span class="prelude-ty">Result</span>&lt;#ty, &lt;T <span class="kw">as </span>#trait_ident&gt;::Error&gt;
                     }
@@ -1227,8 +1257,8 @@
         }
     }
     <span class="kw">fn </span>generate_trait(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../syn/item/enum.Item.html">syn::Item</a> {
-        <span class="kw">let </span>trait_ident = <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#610">self</a>.trait_ident;
-        <span class="kw">let </span>trait_items = <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#610">self</a>.trait_items;
+        <span class="kw">let </span>trait_ident = <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#625">self</a>.trait_ident;
+        <span class="kw">let </span>trait_items = <span class="kw-2">&amp;</span><a class="self" href="../../../src/vir_gen/deriver/visitors.rs.html#625">self</a>.trait_items;
         <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
             <span class="kw">pub trait </span>#trait_ident: Sized {
                 #(#trait_items)*

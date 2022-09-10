@@ -147,12 +147,12 @@
 
 </span><span class="doccomment">//! This module defines the interface provided to a verifier.
 
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">prusti_rustc_interface::middle::ty::TyCtxt</a>;
+</span><span class="kw">use </span>prusti_rustc_interface::middle::ty::{<a class="self" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">TyCtxt</a>};
 
 <span class="kw">pub mod </span><a href="../../../src/prusti_interface/environment/body.rs.html#1-335">body</a>;
 <span class="kw">pub mod </span><a href="../../../src/prusti_interface/environment/borrowck/mod.rs.html#7-8">borrowck</a>;
 <span class="kw">mod </span><a href="../../../src/prusti_interface/environment/collect_closure_defs_visitor.rs.html#1-53">collect_closure_defs_visitor</a>;
-<span class="kw">mod </span><a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#7-119">collect_prusti_spec_visitor</a>;
+<span class="kw">mod </span><a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#7-134">collect_prusti_spec_visitor</a>;
 <span class="kw">pub mod </span><a href="../../../src/prusti_interface/environment/debug_utils/mod.rs.html#1">debug_utils</a>;
 <span class="kw">mod </span><a href="../../../src/prusti_interface/environment/diagnostic.rs.html#1-85">diagnostic</a>;
 <span class="kw">mod </span><a href="../../../src/prusti_interface/environment/dump_borrowck_info.rs.html#7-21">dump_borrowck_info</a>;
@@ -229,18 +229,18 @@
     }
 
     <span class="doccomment">/// Get ids of Rust procedures that are annotated with a Prusti specification
-    </span><span class="kw">pub fn </span>get_annotated_procedures(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<a href="../../../src/prusti_interface/data.rs.html#13">ProcedureDefId</a>&gt; {
+    </span><span class="kw">pub fn </span>get_annotated_procedures_and_types(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (Vec&lt;<a href="../../../src/prusti_interface/data.rs.html#13">ProcedureDefId</a>&gt;, Vec&lt;ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;) {
         <span class="kw">let </span><span class="kw-2">mut </span>visitor = CollectPrustiSpecVisitor::new(<a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#91">self</a>);
-        <a href="../../../src/prusti_interface/environment/mod.rs.html#92">visitor</a>.<a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#37">visit_all_item_likes</a>();
+        <a href="../../../src/prusti_interface/environment/mod.rs.html#92">visitor</a>.<a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#40">visit_all_item_likes</a>();
 
         <span class="kw">let </span><span class="kw-2">mut </span>cl_visitor = CollectClosureDefsVisitor::new(<a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#91">self</a>);
         <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#91">self</a>.query
             .<a href="../../../src/prusti_interface/environment/query.rs.html#42">hir</a>()
             .visit_all_item_likes_in_crate(<span class="kw-2">&amp;mut </span><a href="../../../src/prusti_interface/environment/mod.rs.html#95">cl_visitor</a>);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>result: Vec&lt;<span class="kw">_</span>&gt; = <a href="../../../src/prusti_interface/environment/mod.rs.html#92">visitor</a>.<a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#33">get_annotated_procedures</a>();
-        <a href="../../../src/prusti_interface/environment/mod.rs.html#100">result</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../src/prusti_interface/environment/mod.rs.html#95">cl_visitor</a>.<a href="../../../src/prusti_interface/environment/collect_closure_defs_visitor.rs.html#28">get_closure_defs</a>());
-        <a href="../../../src/prusti_interface/environment/mod.rs.html#100">result</a>
+        <span class="kw">let </span>(<span class="kw-2">mut </span>procedures, types) = <a href="../../../src/prusti_interface/environment/mod.rs.html#92">visitor</a>.<a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#36">into_result</a>();
+        <a href="../../../src/prusti_interface/environment/mod.rs.html#100">procedures</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="../../../src/prusti_interface/environment/mod.rs.html#95">cl_visitor</a>.<a href="../../../src/prusti_interface/environment/collect_closure_defs_visitor.rs.html#28">get_closure_defs</a>());
+        (<a href="../../../src/prusti_interface/environment/mod.rs.html#100">procedures</a>, <a href="../../../src/prusti_interface/environment/mod.rs.html#100">types</a>)
     }
 
     <span class="doccomment">/// Compare the current version of the `prusti` crate to the given other version

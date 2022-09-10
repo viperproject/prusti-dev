@@ -245,23 +245,12 @@
 <span id="245">245</span>
 <span id="246">246</span>
 <span id="247">247</span>
-<span id="248">248</span>
-<span id="249">249</span>
-<span id="250">250</span>
-<span id="251">251</span>
-<span id="252">252</span>
-<span id="253">253</span>
-<span id="254">254</span>
-<span id="255">255</span>
-<span id="256">256</span>
-<span id="257">257</span>
-<span id="258">258</span>
-<span id="259">259</span>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::encoder::{
     <a href="../../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#23">errors::SpannedEncodingResult</a>,
     <a href="../../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#127">high::types::HighTypeEncoderInterface</a>,
     middle::core_proof::{
-        <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/addresses/interface.rs.html#17">addresses::AddressesInterface</a>, <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/mod.rs.html#63">lowerer::Lowerer</a>, <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#24">places::PlacesInterface</a>,
+        <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/addresses/interface.rs.html#17">addresses::AddressesInterface</a>, <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/mod.rs.html#80">lowerer::Lowerer</a>, <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#24">places::PlacesInterface</a>,
+        <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/references/interface.rs.html#45">references::ReferencesInterface</a>, <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/context_independent/traits.rs.html#13">snapshots::IntoSnapshot</a>,
     },
 };
 <span class="kw">use </span><a href="../../../../../../rustc_hash/type.FxHashSet.html">rustc_hash::FxHashSet</a>;
@@ -274,7 +263,7 @@
     <span class="kw">pub</span>(<span class="kw">super</span>) axioms: Vec&lt;<a href="../../../../../../vir/gen/low/domain/struct.DomainAxiomDecl.html">vir_low::DomainAxiomDecl</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#12">ComputeAddressState</a> {
+<span class="kw">impl </span><a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#13">ComputeAddressState</a> {
     <span class="doccomment">/// Construct the final domain.
     </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>destruct(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../../../../vir/gen/low/domain/struct.DomainDecl.html">vir_low::DomainDecl</a>&gt; {
         <span class="kw">if </span><span class="self">self</span>.encoded_types.is_empty() &amp;&amp; <span class="self">self</span>.encoded_roots.is_empty() {
@@ -291,7 +280,7 @@
                     },
                     return_type: <span class="macro">vir_low::macros::ty! </span>{ Address },
                 }],
-                axioms: <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#20">self</a>.axioms,
+                axioms: <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#21">self</a>.axioms,
             })
         }
     }
@@ -305,13 +294,13 @@
     ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../vir/gen/low/domain/struct.DomainAxiomDecl.html">vir_low::DomainAxiomDecl</a>&gt;;
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#41">Private</a> <span class="kw">for </span>Lowerer&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#42">Private</a> <span class="kw">for </span>Lowerer&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">fn </span>encode_compute_address_axiom_for_field(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         ty: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/middle/ast/ty/enum.Type.html">vir_mid::Type</a>,
         field: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/middle/ast/field/struct.FieldDecl.html">vir_mid::FieldDecl</a>,
     ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../vir/gen/low/domain/struct.DomainAxiomDecl.html">vir_low::DomainAxiomDecl</a>&gt; {
-        <span class="kw">use </span><a href="../../../../../../vir/low/macros/index.html">vir_low::macros</a>::<span class="kw-2">*</span>;
+        <span class="kw">use </span>vir_low::macros::<span class="kw-2">*</span>;
         <span class="kw">let </span>compute_address = <a class="macro" href="../../../../../../vir/vir/low/macros/macro.ty.html">ty!</a>(Address);
         <span class="kw">let </span>body = <a class="macro" href="../../../../../../vir/vir/low/macros/macro.expr.html">expr! </a>{
             forall(
@@ -340,7 +329,7 @@
                 ty.get_identifier(),
                 field.name
             ),
-            <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#57">body</a>,
+            <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#58">body</a>,
         })
     }
 }
@@ -353,20 +342,20 @@
     ) -&gt; SpannedEncodingResult&lt;()&gt;;
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#89">ComputeAddressInterface</a> <span class="kw">for </span>Lowerer&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#90">ComputeAddressInterface</a> <span class="kw">for </span>Lowerer&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">fn </span>encode_compute_address(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/middle/ast/ty/enum.Type.html">vir_mid::Type</a>) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <span class="kw">let </span>ty_without_lifetime = <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#98">ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().erase_lifetimes();
+        <span class="kw">let </span>ty_without_lifetime = <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#99">ty</a>.normalize_type();
         <span class="kw">if </span>!<span class="self">self
             </span>.compute_address_state
             .encoded_types
             .contains(<span class="kw-2">&amp;</span>ty_without_lifetime)
         {
-            <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#98">self</a>.compute_address_state
+            <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#99">self</a>.compute_address_state
                 .encoded_types
-                .insert(<a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#99">ty_without_lifetime</a>);
+                .insert(<a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#100">ty_without_lifetime</a>);
 
             <span class="kw">let </span>type_decl = <span class="self">self</span>.encoder.get_type_decl_mid(ty)<span class="question-mark">?</span>;
-            <span class="kw">match </span><a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#109">type_decl</a> {
+            <span class="kw">match </span><a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#110">type_decl</a> {
                 vir_mid::TypeDecl::Bool
                 | vir_mid::TypeDecl::Int(<span class="kw">_</span>)
                 | vir_mid::TypeDecl::Float(<span class="kw">_</span>)
@@ -385,50 +374,12 @@
                     }
                 }
                 vir_mid::TypeDecl::Enum(decl) =&gt; {
-                    <span class="kw">let </span>discriminant_field = <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#128">decl</a>.discriminant_field();
-                    <span class="kw">let </span>axiom =
-                        <span class="self">self</span>.encode_compute_address_axiom_for_field(ty, <span class="kw-2">&amp;</span>discriminant_field)<span class="question-mark">?</span>;
-                    <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#98">self</a>.compute_address_state.axioms.push(<a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#130">axiom</a>);
-                    <span class="self">self</span>.encode_compute_address(<span class="kw-2">&amp;</span>decl.discriminant_type)<span class="question-mark">?</span>;
-                    <span class="kw">for </span>variant <span class="kw">in </span><span class="kw-2">&amp;</span>decl.variants {
-                        <span class="kw">use </span>vir_low::macros::<span class="kw-2">*</span>;
-                        <span class="kw">let </span>compute_address = <span class="macro">ty!</span>(Address);
-                        <span class="kw">let </span>body = <span class="macro">expr! </span>{
-                            forall(
-                                place: Place, address: Address ::
-                                raw_code {
-                                    <span class="kw">let </span>variant_index = variant.name.clone().into();
-                                    <span class="kw">let </span>variant_place = <span class="self">self</span>.encode_enum_variant_place(
-                                        ty,
-                                        <span class="kw-2">&amp;</span>variant_index,
-                                        place.clone().into(),
-                                        Default::default()
-                                    )<span class="question-mark">?</span>;
-                                    <span class="kw">let </span>variant_address = <span class="self">self</span>.encode_enum_variant_address(
-                                        ty,
-                                        <span class="kw-2">&amp;</span>variant_index,
-                                        <span class="macro">expr! </span>{ ComputeAddress::compute_address(place, address) },
-                                        Default::default(),
-                                    )<span class="question-mark">?</span>;
-                                }
-                                [ { (ComputeAddress::compute_address([variant_place.clone()], address)) } ]
-                                (ComputeAddress::compute_address([variant_place], address)) == [variant_address]
-                            )
-                        };
-                        <span class="kw">let </span>axiom = vir_low::DomainAxiomDecl {
-                            name: <span class="macro">format!</span>(
-                                <span class="string">&quot;{}${}$compute_address_axiom&quot;</span>,
-                                ty.get_identifier(),
-                                variant.name
-                            ),
-                            body,
-                        };
-                        <span class="self">self</span>.compute_address_state.axioms.push(axiom);
-                        <span class="kw">let </span>variant_ty = ty.clone().variant(variant.name.clone().into());
-                        <span class="self">self</span>.encode_compute_address(<span class="kw-2">&amp;</span>variant_ty)<span class="question-mark">?</span>;
+                    <span class="kw">if </span>decl.safety.is_enum() {
+                        <span class="kw">let </span>discriminant_field = <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#129">decl</a>.discriminant_field();
+                        <span class="kw">let </span>axiom =
+                            <span class="self">self</span>.encode_compute_address_axiom_for_field(ty, <span class="kw-2">&amp;</span>discriminant_field)<span class="question-mark">?</span>;
+                        <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#99">self</a>.compute_address_state.axioms.push(<a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#132">axiom</a>);
                     }
-                }
-                vir_mid::TypeDecl::Union(decl) =&gt; {
                     <span class="self">self</span>.encode_compute_address(<span class="kw-2">&amp;</span>decl.discriminant_type)<span class="question-mark">?</span>;
                     <span class="kw">for </span>variant <span class="kw">in </span><span class="kw-2">&amp;</span>decl.variants {
                         <span class="kw">use </span>vir_low::macros::<span class="kw-2">*</span>;
@@ -472,8 +423,33 @@
                     <span class="comment">// FIXME: Doing nothing is probably wrong.
                 </span>}
                 vir_mid::TypeDecl::Reference(_reference) =&gt; {
-                    <span class="comment">// Do nothing
-                </span>}
+                    <span class="kw">use </span>vir_low::macros::<span class="kw-2">*</span>;
+                    <span class="kw">let </span>compute_address = <a class="macro" href="../../../../../../vir/vir/low/macros/macro.ty.html">ty!</a>(Address);
+                    <span class="kw">let </span>body = <a class="macro" href="../../../../../../vir/vir/low/macros/macro.expr.html">expr! </a>{
+                        forall(
+                            place: Place, snapshot: {ty.to_snapshot(<span class="self">self</span>)<span class="question-mark">?</span>} ::
+                            raw_code {
+                                <span class="kw">let </span>position = vir_low::Position::default();
+                                <span class="kw">let </span>deref_place = <span class="self">self</span>.reference_deref_place(
+                                    place.clone().into(), position)<span class="question-mark">?</span>;
+                                <span class="kw">let </span>address = <span class="self">self</span>.reference_address(
+                                    ty,
+                                    snapshot.clone().into(),
+                                    position,
+                                )<span class="question-mark">?</span>;
+                            }
+                            [ { (ComputeAddress::compute_address(
+                                [deref_place.clone()], [address.clone()])) } ]
+                            (ComputeAddress::compute_address(
+                                [deref_place], [address.clone()])) == [address]
+                        )
+                    };
+                    <span class="kw">let </span>axiom = <a href="../../../../../../vir/gen/low/domain/struct.DomainAxiomDecl.html">vir_low::DomainAxiomDecl</a> {
+                        name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}$compute_address_axiom&quot;</span>, ty.get_identifier(),),
+                        <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#181">body</a>,
+                    };
+                    <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#99">self</a>.compute_address_state.axioms.push(<a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#200">axiom</a>);
+                }
                 <span class="comment">// vir_mid::TypeDecl::Never =&gt; {},
                 // vir_mid::TypeDecl::Closure(Closure) =&gt; {},
                 // vir_mid::TypeDecl::Unsupported(Unsupported) =&gt; {},
@@ -493,10 +469,10 @@
         {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#227">self</a>.compute_address_state
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#215">self</a>.compute_address_state
             .encoded_roots
-            .insert(<a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#228">place_root</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <span class="kw">use </span><a href="../../../../../../vir/low/macros/index.html">vir_low::macros</a>::<span class="kw-2">*</span>;
+            .insert(<a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#216">place_root</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <span class="kw">use </span>vir_low::macros::<span class="kw-2">*</span>;
         <span class="kw">let </span>compute_address = <a class="macro" href="../../../../../../vir/vir/low/macros/macro.ty.html">ty! </a>{ Address };
         <span class="kw">let </span>body = <a class="macro" href="../../../../../../vir/vir/low/macros/macro.expr.html">expr! </a>{
             forall(
@@ -510,9 +486,9 @@
                 <span class="string">&quot;root${}$compute_address_axiom&quot;</span>,
                 <span class="self">self</span>.compute_address_state.encoded_roots.len()
             ),
-            <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#242">body</a>,
+            <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#230">body</a>,
         };
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#227">self</a>.compute_address_state.axioms.push(<a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#249">axiom</a>);
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#215">self</a>.compute_address_state.axioms.push(<a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/compute_address/interface.rs.html#237">axiom</a>);
         <span class="prelude-val">Ok</span>(())
     }
 }

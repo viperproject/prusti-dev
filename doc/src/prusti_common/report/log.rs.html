@@ -94,6 +94,13 @@
 <span id="94">94</span>
 <span id="95">95</span>
 <span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -110,7 +117,7 @@
 };
 
 <span class="kw">fn </span>log_dir() -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>&gt; {
-    <span class="kw">let </span>log_dir = <a href="../../../src/prusti_common/config.rs.html#400">config::log_dir</a>();
+    <span class="kw">let </span>log_dir = <a href="../../../src/prusti_common/config.rs.html#401">config::log_dir</a>();
     fs::create_dir_all(<span class="kw-2">&amp;</span>log_dir).ok()<span class="question-mark">?</span>;
     <span class="kw">if </span>log_dir.is_dir() {
         <span class="prelude-val">Some</span>(<a href="../../../src/prusti_common/report/log.rs.html#17">log_dir</a>)
@@ -120,7 +127,7 @@
 }
 
 <span class="kw">pub fn </span>to_legal_file_name&lt;S: <a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>&gt;(name: S) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <a href="../../../src/prusti_common/report/log.rs.html#30">to_legal_file_name_of_max_length</a>(<a href="../../../src/prusti_common/report/log.rs.html#26">name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <a href="../../../src/prusti_common/config.rs.html#370">config::max_log_file_name_length</a>())
+    <a href="../../../src/prusti_common/report/log.rs.html#30">to_legal_file_name_of_max_length</a>(<a href="../../../src/prusti_common/report/log.rs.html#26">name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <a href="../../../src/prusti_common/config.rs.html#371">config::max_log_file_name_length</a>())
 }
 
 <span class="kw">pub fn </span>to_legal_file_name_of_max_length(name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, max_length: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
@@ -134,13 +141,20 @@
             })
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
     }
+    <a href="../../../src/prusti_common/report/log.rs.html#31">name_string</a> = <a href="../../../src/prusti_common/report/log.rs.html#31">name_string</a>
+        .chars()
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| <span class="kw">match </span><a href="../../../src/prusti_common/report/log.rs.html#43">x</a> {
+            <span class="string">&#39;$&#39; </span>=&gt; <span class="string">&#39;-&#39;</span>,
+            <span class="kw">_ </span>=&gt; <a href="../../../src/prusti_common/report/log.rs.html#43">x</a>,
+        })
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
     <span class="kw">if </span>name_string.len() &gt; max_length {
         <span class="kw">let </span><span class="kw-2">mut </span>end = <a href="../../../src/prusti_common/report/log.rs.html#31">name_string</a>.rfind(<span class="string">&#39;.&#39;</span>).unwrap();
         <span class="kw">if </span>name_string.len() - end &gt; <span class="number">5 </span>{
-            <a href="../../../src/prusti_common/report/log.rs.html#42">end</a> = <a href="../../../src/prusti_common/report/log.rs.html#31">name_string</a>.len() - <span class="number">1</span>;
+            <a href="../../../src/prusti_common/report/log.rs.html#49">end</a> = <a href="../../../src/prusti_common/report/log.rs.html#31">name_string</a>.len() - <span class="number">1</span>;
         };
-        <span class="kw">let </span>start = <a href="../../../src/prusti_common/report/log.rs.html#42">end</a> - (<a href="../../../src/prusti_common/report/log.rs.html#31">name_string</a>.len() - <a href="../../../src/prusti_common/report/log.rs.html#30">max_length</a>);
-        <a href="../../../src/prusti_common/report/log.rs.html#31">name_string</a>.drain(<a href="../../../src/prusti_common/report/log.rs.html#46">start</a>..<a href="../../../src/prusti_common/report/log.rs.html#42">end</a>);
+        <span class="kw">let </span>start = <a href="../../../src/prusti_common/report/log.rs.html#49">end</a> - (<a href="../../../src/prusti_common/report/log.rs.html#31">name_string</a>.len() - <a href="../../../src/prusti_common/report/log.rs.html#30">max_length</a>);
+        <a href="../../../src/prusti_common/report/log.rs.html#31">name_string</a>.drain(<a href="../../../src/prusti_common/report/log.rs.html#53">start</a>..<a href="../../../src/prusti_common/report/log.rs.html#49">end</a>);
     }
     <a href="../../../src/prusti_common/report/log.rs.html#31">name_string</a>
 }
@@ -148,34 +162,34 @@
 <span class="kw">pub fn </span>build_writer&lt;S: <a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>&gt;(namespace: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, name: S) -&gt; io::Result&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt;&gt; {
     <span class="prelude-val">Ok</span>(<span class="kw">match </span><a href="../../../src/prusti_common/report/log.rs.html#16">log_dir</a>() {
         <span class="prelude-val">Some</span>(log_dir) =&gt; {
-            <span class="kw">let </span><span class="kw-2">mut </span>path = <a href="../../../src/prusti_common/report/log.rs.html#54">log_dir</a>.join(<a href="../../../src/prusti_common/report/log.rs.html#52">namespace</a>);
+            <span class="kw">let </span><span class="kw-2">mut </span>path = <a href="../../../src/prusti_common/report/log.rs.html#61">log_dir</a>.join(<a href="../../../src/prusti_common/report/log.rs.html#59">namespace</a>);
             fs::create_dir_all(<span class="kw-2">&amp;</span>path)<span class="question-mark">?</span>;
-            <span class="kw">let </span>name_string = <a href="../../../src/prusti_common/report/log.rs.html#26">to_legal_file_name</a>(<a href="../../../src/prusti_common/report/log.rs.html#52">name</a>);
-            <span class="kw">let </span>name_path = PathBuf::from(<a href="../../../src/prusti_common/report/log.rs.html#57">name_string</a>);
+            <span class="kw">let </span>name_string = <a href="../../../src/prusti_common/report/log.rs.html#26">to_legal_file_name</a>(<a href="../../../src/prusti_common/report/log.rs.html#59">name</a>);
+            <span class="kw">let </span>name_path = PathBuf::from(<a href="../../../src/prusti_common/report/log.rs.html#64">name_string</a>);
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(!name_path.is_absolute(), <span class="string">&quot;The name cannot be absolute&quot;</span>);
-            <a href="../../../src/prusti_common/report/log.rs.html#55">path</a>.push(<a href="../../../src/prusti_common/report/log.rs.html#58">name_path</a>);
+            <a href="../../../src/prusti_common/report/log.rs.html#62">path</a>.push(<a href="../../../src/prusti_common/report/log.rs.html#65">name_path</a>);
             <span class="kw">box </span>fs::File::create(path)<span class="question-mark">?
         </span>}
         <span class="comment">// fallback
         </span><span class="prelude-val">None </span>=&gt; {
             <span class="kw">let </span><span class="kw-2">mut </span>stdout = io::stdout();
             <span class="macro">write!</span>(stdout, <span class="string">&quot;# {}: {}\n\n&quot;</span>, namespace, name.to_string())<span class="question-mark">?</span>;
-            <span class="kw">box </span><a href="../../../src/prusti_common/report/log.rs.html#65">stdout</a>
+            <span class="kw">box </span><a href="../../../src/prusti_common/report/log.rs.html#72">stdout</a>
         }
     })
 }
 
 <span class="kw">pub fn </span>report&lt;S1: <a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>, S2: <a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>&gt;(namespace: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, name: S1, data: S2) {
-    <span class="kw">let </span><span class="kw-2">mut </span>writer = <a href="../../../src/prusti_common/report/log.rs.html#52">build_writer</a>(<a href="../../../src/prusti_common/report/log.rs.html#72">namespace</a>, <a href="../../../src/prusti_common/report/log.rs.html#72">name</a>)
+    <span class="kw">let </span><span class="kw-2">mut </span>writer = <a href="../../../src/prusti_common/report/log.rs.html#59">build_writer</a>(<a href="../../../src/prusti_common/report/log.rs.html#79">namespace</a>, <a href="../../../src/prusti_common/report/log.rs.html#79">name</a>)
         .map_err(|e| <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;{}&quot;</span>, e))
         .ok()
         .unwrap();
-    <a href="../../../src/prusti_common/report/log.rs.html#73">writer</a>
-        .<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<a href="../../../src/prusti_common/report/log.rs.html#72">data</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>().as_bytes())
+    <a href="../../../src/prusti_common/report/log.rs.html#80">writer</a>
+        .<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<a href="../../../src/prusti_common/report/log.rs.html#79">data</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>().as_bytes())
         .map_err(|e| <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;{}&quot;</span>, e))
         .ok()
         .unwrap();
-    <a href="../../../src/prusti_common/report/log.rs.html#73">writer</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>().map_err(|e| <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;{}&quot;</span>, e)).ok().unwrap();
+    <a href="../../../src/prusti_common/report/log.rs.html#80">writer</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>().map_err(|e| <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;{}&quot;</span>, e)).ok().unwrap();
 }
 
 <span class="kw">pub fn </span>report_with_writer&lt;S: <a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>, F: FnOnce(<span class="kw-2">&amp;mut </span>Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt;)&gt;(
@@ -183,12 +197,12 @@
     name: S,
     func: F,
 ) {
-    <span class="kw">let </span><span class="kw-2">mut </span>writer = <a href="../../../src/prusti_common/report/log.rs.html#52">build_writer</a>(<a href="../../../src/prusti_common/report/log.rs.html#86">namespace</a>, <a href="../../../src/prusti_common/report/log.rs.html#87">name</a>)
+    <span class="kw">let </span><span class="kw-2">mut </span>writer = <a href="../../../src/prusti_common/report/log.rs.html#59">build_writer</a>(<a href="../../../src/prusti_common/report/log.rs.html#93">namespace</a>, <a href="../../../src/prusti_common/report/log.rs.html#94">name</a>)
         .map_err(|e| <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;{}&quot;</span>, e))
         .ok()
         .unwrap();
-    <a href="../../../src/prusti_common/report/log.rs.html#88">func</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/prusti_common/report/log.rs.html#90">writer</a>);
-    <a href="../../../src/prusti_common/report/log.rs.html#90">writer</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>().map_err(|e| <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;{}&quot;</span>, e)).ok().unwrap();
+    <a href="../../../src/prusti_common/report/log.rs.html#95">func</a>(<span class="kw-2">&amp;mut </span><a href="../../../src/prusti_common/report/log.rs.html#97">writer</a>);
+    <a href="../../../src/prusti_common/report/log.rs.html#97">writer</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>().map_err(|e| <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;{}&quot;</span>, e)).ok().unwrap();
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="prusti_common" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (bc4b39c27 2022-08-29)" ></div></body></html>

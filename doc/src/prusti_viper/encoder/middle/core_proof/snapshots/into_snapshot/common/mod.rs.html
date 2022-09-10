@@ -646,7 +646,25 @@
 <span id="646">646</span>
 <span id="647">647</span>
 <span id="648">648</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/mod.rs.html#63"><span class="kw">super</span>::<span class="kw">super</span>::<span class="kw">super</span>::lowerer::Lowerer</a>;
+<span id="649">649</span>
+<span id="650">650</span>
+<span id="651">651</span>
+<span id="652">652</span>
+<span id="653">653</span>
+<span id="654">654</span>
+<span id="655">655</span>
+<span id="656">656</span>
+<span id="657">657</span>
+<span id="658">658</span>
+<span id="659">659</span>
+<span id="660">660</span>
+<span id="661">661</span>
+<span id="662">662</span>
+<span id="663">663</span>
+<span id="664">664</span>
+<span id="665">665</span>
+<span id="666">666</span>
+</pre><pre class="rust"><code><span class="kw">use </span><a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/mod.rs.html#80"><span class="kw">super</span>::<span class="kw">super</span>::<span class="kw">super</span>::lowerer::Lowerer</a>;
 <span class="kw">use </span><span class="kw">crate</span>::encoder::{
     <a href="../../../../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#23">errors::SpannedEncodingResult</a>,
     <a href="../../../../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#127">high::types::HighTypeEncoderInterface</a>,
@@ -655,7 +673,7 @@
         <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/domains/interface.rs.html#79">lowerer::DomainsLowererInterface</a>,
         <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/references/interface.rs.html#45">references::ReferencesInterface</a>,
         snapshots::{<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/context_independent/traits.rs.html#13">IntoSnapshot</a>, <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/domains/interface.rs.html#43">SnapshotDomainsInterface</a>, <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/values/interface.rs.html#16">SnapshotValuesInterface</a>},
-        <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/types/interface.rs.html#310">types::TypesInterface</a>,
+        <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/types/interface.rs.html#286">types::TypesInterface</a>,
     },
 };
 <span class="kw">use </span>vir_crate::{
@@ -1095,7 +1113,7 @@
         app: <span class="kw-2">&amp;</span><a href="../../../../../../../../vir/gen/middle/ast/expression/struct.BuiltinFuncApp.html">vir_crate::middle::expression::BuiltinFuncApp</a>,
         expect_math_bool: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a>&gt; {
-        <span class="kw">use </span>vir_low::expression::{<a href="../../../../../../../../vir/gen/low/ast/expression/enum.ContainerOpKind.html">ContainerOpKind</a>, <a href="../../../../../../../../vir/gen/low/ast/expression/enum.MapOpKind.html">MapOpKind</a>};
+        <span class="kw">use </span><a href="../../../../../../../../vir/gen/low/ast/expression/enum.ContainerOpKind.html">vir_low::expression::ContainerOpKind</a>;
         <span class="kw">use </span><a href="../../../../../../../../vir/gen/middle/ast/expression/enum.BuiltinFunc.html">vir_mid::expression::BuiltinFunc</a>;
 
         <span class="kw">let </span>ty_args = app
@@ -1121,9 +1139,9 @@
         <span class="kw">let </span>map = |low_kind| {
             <span class="kw">let </span>map_ty = vir_low::Type::map(<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#453">ty_args</a>[<span class="number">0</span>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#453">ty_args</a>[<span class="number">1</span>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
             <span class="kw">let </span>args = <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#458">args</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-            <span class="prelude-val">Ok</span>(vir_low::Expression::map_op(
-                <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#474">map_ty</a>,
+            <span class="prelude-val">Ok</span>(vir_low::Expression::container_op(
                 <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#473">low_kind</a>,
+                <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#474">map_ty</a>,
                 <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#475">args</a>,
                 <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.position,
             ))
@@ -1132,21 +1150,31 @@
         <span class="kw">let </span>seq = |low_kind| {
             <span class="prelude-val">Ok</span>(vir_low::Expression::container_op(
                 <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#484">low_kind</a>,
-                <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#458">args</a>[<span class="number">0</span>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#458">args</a>.get(<span class="number">1</span>).cloned().unwrap_or_else(|| <span class="bool-val">false</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                vir_low::Type::seq(<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#453">ty_args</a>[<span class="number">0</span>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+                <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#458">args</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                 <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.position,
             ))
         };
 
         <span class="kw">match </span><a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.function {
             BuiltinFunc::Size =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(args.len(), <span class="number">1</span>);
                 <span class="kw">let </span>return_type = <span class="self">self</span>.type_to_snapshot(lowerer, <span class="kw-2">&amp;</span>app.return_type)<span class="question-mark">?</span>;
                 <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#446">lowerer</a>.<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/domains/interface.rs.html#100-107">create_domain_func_app</a>(
                     <span class="string">&quot;Size&quot;</span>,
                     <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.<a href="../../../../../../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>(),
                     <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#458">args</a>,
-                    <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#496">return_type</a>,
+                    <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#495">return_type</a>,
+                    <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.position,
+                )
+            }
+            BuiltinFunc::PaddingSize =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(args.len(), <span class="number">0</span>);
+                <span class="kw">let </span>return_type = <span class="self">self</span>.type_to_snapshot(lowerer, <span class="kw-2">&amp;</span>app.return_type)<span class="question-mark">?</span>;
+                <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#446">lowerer</a>.<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/domains/interface.rs.html#100-107">create_domain_func_app</a>(
+                    <span class="string">&quot;Size&quot;</span>,
+                    <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.<a href="../../../../../../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>(),
+                    <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#458">args</a>,
+                    <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#506">return_type</a>,
                     <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.position,
                 )
             }
@@ -1159,32 +1187,32 @@
                 )<span class="question-mark">?</span>;
                 <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#446">lowerer</a>.<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/values/interface.rs.html#62-67">construct_constant_snapshot</a>(
                     <span class="kw-2">&amp;</span><a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.return_type,
-                    <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#507">discriminant_call</a>,
+                    <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#517">discriminant_call</a>,
                     <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.position,
                 )
             }
-            BuiltinFunc::EmptyMap =&gt; <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#473">map</a>(MapOpKind::Empty),
-            BuiltinFunc::UpdateMap =&gt; <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#473">map</a>(MapOpKind::Update),
+            BuiltinFunc::EmptyMap =&gt; <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#473">map</a>(ContainerOpKind::MapEmpty),
+            BuiltinFunc::UpdateMap =&gt; <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#473">map</a>(ContainerOpKind::MapUpdate),
             BuiltinFunc::LookupMap =&gt; {
-                <span class="kw">let </span>value = map(MapOpKind::Lookup)<span class="question-mark">?</span>;
+                <span class="kw">let </span>value = map(ContainerOpKind::MapLookup)<span class="question-mark">?</span>;
                 <span class="kw">if </span>app.return_type.is_reference() {
                     <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#446">lowerer</a>.<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/references/interface.rs.html#46-51">shared_non_alloc_reference_snapshot_constructor</a>(
                         <span class="kw-2">&amp;</span><a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.return_type,
-                        <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#521">value</a>,
+                        <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#531">value</a>,
                         <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.position,
                     )
                 } <span class="kw">else </span>{
-                    <span class="prelude-val">Ok</span>(<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#521">value</a>)
+                    <span class="prelude-val">Ok</span>(<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#531">value</a>)
                 }
             }
             BuiltinFunc::MapLen =&gt; {
-                <span class="kw">let </span>value = map(MapOpKind::Len)<span class="question-mark">?</span>;
-                <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#446">lowerer</a>.<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/values/interface.rs.html#62-67">construct_constant_snapshot</a>(<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.<a href="../../../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>(), <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#533">value</a>, <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.position)
+                <span class="kw">let </span>value = map(ContainerOpKind::MapLen)<span class="question-mark">?</span>;
+                <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#446">lowerer</a>.<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/values/interface.rs.html#62-67">construct_constant_snapshot</a>(<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.<a href="../../../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>(), <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#543">value</a>, <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.position)
             }
             BuiltinFunc::MapContains =&gt; {
-                <span class="kw">let </span>m = map(MapOpKind::Contains)<span class="question-mark">?</span>;
+                <span class="kw">let </span>m = map(ContainerOpKind::MapContains)<span class="question-mark">?</span>;
                 <span class="kw">let </span>m = lowerer.construct_constant_snapshot(app.get_type(), m, app.position)<span class="question-mark">?</span>;
-                <a class="self" href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#445">self</a>.<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#91-97">ensure_bool_expression</a>(<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#446">lowerer</a>, <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.<a href="../../../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>(), <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#538">m</a>, <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#448">expect_math_bool</a>)
+                <a class="self" href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#445">self</a>.<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#91-97">ensure_bool_expression</a>(<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#446">lowerer</a>, <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.<a href="../../../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>(), <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#548">m</a>, <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#448">expect_math_bool</a>)
             }
             BuiltinFunc::LookupSeq =&gt; {
                 <span class="kw">use </span><a href="../../../../../../../../vir/low/operations/ty/trait.Typed.html">vir_low::operations::ty::Typed</a>;
@@ -1195,28 +1223,31 @@
                 );
                 <span class="kw">let </span>value = vir_low::Expression::container_op(
                     ContainerOpKind::SeqIndex,
-                    <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#458">args</a>[<span class="number">0</span>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                    lowerer.obtain_constant_value(
-                        app.arguments[<span class="number">1</span>].get_type(),
-                        args[<span class="number">1</span>].clone(),
-                        args[<span class="number">1</span>].position(),
-                    )<span class="question-mark">?</span>,
+                    vir_low::Type::seq(<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#453">ty_args</a>[<span class="number">0</span>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+                    <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
+                        args[<span class="number">0</span>].clone(),
+                        lowerer.obtain_constant_value(
+                            app.arguments[<span class="number">1</span>].get_type(),
+                            args[<span class="number">1</span>].clone(),
+                            args[<span class="number">1</span>].position(),
+                        )<span class="question-mark">?</span>,
+                    ],
                     <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.position,
                 );
                 <span class="kw">if </span>app.return_type.is_reference() {
                     <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#446">lowerer</a>.<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/references/interface.rs.html#46-51">shared_non_alloc_reference_snapshot_constructor</a>(
                         <span class="kw-2">&amp;</span><a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.return_type,
-                        <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#548">value</a>,
+                        <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#558">value</a>,
                         <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.position,
                     )
                 } <span class="kw">else </span>{
-                    <span class="prelude-val">Ok</span>(<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#548">value</a>)
+                    <span class="prelude-val">Ok</span>(<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#558">value</a>)
                 }
             }
             BuiltinFunc::ConcatSeq =&gt; <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#484">seq</a>(ContainerOpKind::SeqConcat),
             BuiltinFunc::SeqLen =&gt; {
                 <span class="kw">let </span>value = seq(ContainerOpKind::SeqLen)<span class="question-mark">?</span>;
-                <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#446">lowerer</a>.<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/values/interface.rs.html#62-67">construct_constant_snapshot</a>(<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.<a href="../../../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>(), <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#570">value</a>, <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.position)
+                <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#446">lowerer</a>.<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/values/interface.rs.html#62-67">construct_constant_snapshot</a>(<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.<a href="../../../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>(), <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#583">value</a>, <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.position)
             }
             BuiltinFunc::LifetimeIncluded =&gt; {
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(args.len(), <span class="number">2</span>);
@@ -1230,26 +1261,31 @@
             }
             BuiltinFunc::LifetimeIntersect =&gt; {
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!args.is_empty());
-                <span class="kw">let </span>intersect_expr = <span class="kw">if </span>args.len() &gt;= <span class="number">2 </span>{
-                    lowerer.encode_lifetime_intersect(args.len())<span class="question-mark">?</span>;
-                    vir_low::Expression::domain_function_call(
-                        <span class="string">&quot;Lifetime&quot;</span>,
-                        <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;intersect${}&quot;</span>, args.len()),
-                        <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#458">args</a>,
-                        vir_low::ty::Type::Domain(<a href="../../../../../../../../vir/gen/low/ast/ty/struct.Domain.html">vir_low::ty::Domain</a> {
-                            name: <span class="string">&quot;Lifetime&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                        }),
-                    )
-                } <span class="kw">else </span>{
-                    <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#458">args</a>.get(<span class="number">0</span>).unwrap().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
-                };
-                <span class="prelude-val">Ok</span>(<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#585">intersect_expr</a>)
+                <span class="comment">// FIXME: Fix code duplication.
+                </span><span class="kw">let </span>lifetime_set_type = lowerer.lifetime_set_type()<span class="question-mark">?</span>;
+                <span class="kw">let </span>lifetime_type = lowerer.lifetime_type()<span class="question-mark">?</span>;
+                <span class="kw">let </span>lifetime_set = vir_low::Expression::container_op_no_pos(
+                    vir_low::ContainerOpKind::SetConstructor,
+                    <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#599">lifetime_set_type</a>,
+                    <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#458">args</a>,
+                );
+                <span class="kw">let </span>intersect = lowerer.create_domain_func_app(
+                    <span class="string">&quot;Lifetime&quot;</span>,
+                    <span class="string">&quot;intersect&quot;</span>,
+                    <span class="macro">vec!</span>[lifetime_set],
+                    lifetime_type,
+                    app.position,
+                )<span class="question-mark">?</span>;
+                <span class="prelude-val">Ok</span>(<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#606">intersect</a>)
             }
-            BuiltinFunc::EmptySeq | BuiltinFunc::SingleSeq =&gt; <span class="prelude-val">Ok</span>(vir_low::Expression::seq(
-                vir_low::Type::seq(<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#453">ty_args</a>[<span class="number">0</span>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
-                <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#458">args</a>,
-                <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.position,
-            )),
+            BuiltinFunc::EmptySeq | BuiltinFunc::SingleSeq =&gt; {
+                <span class="prelude-val">Ok</span>(vir_low::Expression::container_op(
+                    vir_low::ContainerOpKind::SeqConstructor,
+                    vir_low::Type::seq(<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#453">ty_args</a>[<span class="number">0</span>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+                    <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#458">args</a>,
+                    <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.position,
+                ))
+            }
             BuiltinFunc::NewInt =&gt; {
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(args.len(), <span class="number">1</span>);
                 <span class="kw">let </span>arg = <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#458">args</a>.pop().unwrap();
@@ -1258,7 +1294,7 @@
                     arg,
                     app.position,
                 )<span class="question-mark">?</span>;
-                <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#446">lowerer</a>.<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/values/interface.rs.html#62-67">construct_constant_snapshot</a>(<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.<a href="../../../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>(), <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#608">value</a>, <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.position)
+                <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#446">lowerer</a>.<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/values/interface.rs.html#62-67">construct_constant_snapshot</a>(<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.<a href="../../../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>(), <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#626">value</a>, <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.position)
             }
             BuiltinFunc::Index =&gt; {
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(args.len(), <span class="number">2</span>);
@@ -1269,9 +1305,9 @@
                     app.position,
                 )<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(vir_low::Expression::container_op(
-                    ContainerOpKind::SeqIndex,
-                    <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#458">args</a>[<span class="number">0</span>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                    <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#618">index</a>,
+                    vir_low::ContainerOpKind::SeqIndex,
+                    vir_low::Type::seq(<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#453">ty_args</a>[<span class="number">0</span>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+                    <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[args[<span class="number">0</span>].clone(), index],
                     <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.position,
                 ))
             }
@@ -1279,7 +1315,7 @@
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(args.len(), <span class="number">1</span>);
                 <span class="comment">// FIXME: Remove duplication with SeqLen.
                 </span><span class="kw">let </span>value = seq(ContainerOpKind::SeqLen)<span class="question-mark">?</span>;
-                <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#446">lowerer</a>.<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/values/interface.rs.html#62-67">construct_constant_snapshot</a>(<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.<a href="../../../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>(), <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#633">value</a>, <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.position)
+                <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#446">lowerer</a>.<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/values/interface.rs.html#62-67">construct_constant_snapshot</a>(<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.<a href="../../../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>(), <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#651">value</a>, <a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#447">app</a>.position)
             }
         }
     }
@@ -1291,7 +1327,7 @@
     ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../../../vir/gen/low/ast/ty/enum.Type.html">vir_low::Type</a>&gt; {
         lowerer.ensure_type_definition(ty)<span class="question-mark">?</span>;
         <span class="comment">// This ensures that the domain is included into the program.
-        </span><a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#641">lowerer</a>.<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/domains/interface.rs.html#45-48">encode_snapshot_domain_type</a>(<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#642">ty</a>)
+        </span><a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#659">lowerer</a>.<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/domains/interface.rs.html#45-48">encode_snapshot_domain_type</a>(<a href="../../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/common/mod.rs.html#660">ty</a>)
     }
 }
 </code></pre></div>

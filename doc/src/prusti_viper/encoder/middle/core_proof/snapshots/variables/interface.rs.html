@@ -435,17 +435,27 @@
 <span id="435">435</span>
 <span id="436">436</span>
 <span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::encoder::{
-    errors::{<a href="../../../../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#46">ErrorCtxt</a>, <a href="../../../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>},
+    errors::{<a href="../../../../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#52">ErrorCtxt</a>, <a href="../../../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>},
     <a href="../../../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#127">high::types::HighTypeEncoderInterface</a>,
     middle::core_proof::{
-        lowerer::{<a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/mod.rs.html#63">Lowerer</a>, <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/variables/interface.rs.html#21">VariablesLowererInterface</a>},
+        lowerer::{<a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/mod.rs.html#80">Lowerer</a>, <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/variables/interface.rs.html#21">VariablesLowererInterface</a>},
         <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/references/interface.rs.html#45">references::ReferencesInterface</a>,
         snapshots::{
             <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/procedure/traits.rs.html#32">IntoProcedureSnapshot</a>, <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/context_independent/traits.rs.html#13">IntoSnapshot</a>, <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/validity/interface.rs.html#36">SnapshotValidityInterface</a>, <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/values/interface.rs.html#16">SnapshotValuesInterface</a>,
         },
-        <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/type_layouts/interface.rs.html#11">type_layouts::TypeLayoutsInterface</a>,
-        <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/types/interface.rs.html#310">types::TypesInterface</a>,
+        <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/type_layouts/interface.rs.html#14">type_layouts::TypeLayoutsInterface</a>,
+        <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/types/interface.rs.html#286">types::TypesInterface</a>,
     },
     <a href="../../../../../../../src/prusti_viper/encoder/mir/errors/interface.rs.html#13">mir::errors::ErrorInterface</a>,
 };
@@ -499,7 +509,7 @@
         place: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/middle/ast/expression/enum.Expression.html">vir_mid::Expression</a>,
         position: <a href="../../../../../../../vir/common/position/struct.Position.html">vir_low::Position</a>,
     ) -&gt; SpannedEncodingResult&lt;(<a href="../../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a>, <a href="../../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a>)&gt; {
-        <span class="kw">use </span><a href="../../../../../../../vir/low/macros/index.html">vir_low::macros</a>::<span class="kw-2">*</span>;
+        <span class="kw">use </span>vir_low::macros::<span class="kw-2">*</span>;
         <span class="kw">if let </span><span class="prelude-val">Some</span>(parent) = <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#62">place</a>.get_parent_ref() {
             <span class="kw">let </span>(old_snapshot, new_snapshot) = <span class="self">self</span>.snapshot_copy_except(
                 statements,
@@ -523,17 +533,17 @@
                 vir_mid::TypeDecl::Struct(decl) =&gt; {
                     <span class="comment">// FIXME: Remove duplication with vir_mid::TypeDecl::Tuple
                     </span><span class="kw">let </span>place_field = <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#62">place</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().unwrap_field(); <span class="comment">// FIXME: Implement a macro that takes a reference to avoid clonning.
-                    </span><span class="kw">for </span>field <span class="kw">in </span>decl.iter_fields() {
-                        <span class="kw">if </span>field.as_ref() != <span class="kw-2">&amp;</span>place_field.field {
+                    </span><span class="kw">for </span>field <span class="kw">in </span>decl.fields.iter() {
+                        <span class="kw">if </span>field != <span class="kw-2">&amp;</span>place_field.field {
                             <span class="kw">let </span>old_field_snapshot = <span class="self">self</span>.obtain_struct_field_snapshot(
                                 parent_type,
-                                <span class="kw-2">&amp;</span>field,
+                                field,
                                 old_snapshot.clone(),
                                 position,
                             )<span class="question-mark">?</span>;
                             <span class="kw">let </span>new_field_snapshot = <span class="self">self</span>.obtain_struct_field_snapshot(
                                 parent_type,
-                                <span class="kw-2">&amp;</span>field,
+                                field,
                                 new_snapshot.clone(),
                                 position,
                             )<span class="question-mark">?</span>;
@@ -557,7 +567,7 @@
                         )<span class="question-mark">?</span>,
                     ))
                 }
-                vir_mid::TypeDecl::Union(<span class="kw">_</span>) | vir_mid::TypeDecl::Enum(<span class="kw">_</span>) =&gt; {
+                vir_mid::TypeDecl::Enum(<span class="kw">_</span>) =&gt; {
                     <span class="kw">let </span>place_variant = <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#62">place</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().unwrap_variant(); <span class="comment">// FIXME: Implement a macro that takes a reference to avoid clonning.
                     </span><span class="kw">let </span>old_discriminant =
                         <span class="self">self</span>.obtain_enum_discriminant(old_snapshot.clone(), parent_type, position)<span class="question-mark">?</span>;
@@ -691,6 +701,10 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         variable: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/middle/ast/variable/struct.VariableDecl.html">vir_mid::VariableDecl</a>,
     ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../../vir/gen/low/ast/variable/struct.VariableDecl.html">vir_low::VariableDecl</a>&gt;;
+    <span class="kw">fn </span>initial_snapshot_variable_version(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        variable: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/middle/ast/variable/struct.VariableDecl.html">vir_mid::VariableDecl</a>,
+    ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../../vir/gen/low/ast/variable/struct.VariableDecl.html">vir_low::VariableDecl</a>&gt;;
     <span class="kw">fn </span>snapshot_variable_version_at_label(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         variable: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/middle/ast/variable/struct.VariableDecl.html">vir_mid::VariableDecl</a>,
@@ -732,41 +746,47 @@
         variable: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/middle/ast/variable/struct.VariableDecl.html">vir_mid::VariableDecl</a>,
         position: <a href="../../../../../../../vir/common/position/struct.Position.html">vir_low::Position</a>,
     ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../../vir/gen/low/ast/variable/struct.VariableDecl.html">vir_low::VariableDecl</a>&gt; {
-        <span class="kw">let </span>new_version = <span class="self"><a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#294">self</a>
+        <span class="kw">let </span>new_version = <span class="self"><a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#298">self</a>
             </span>.snapshots_state
             .all_variables
-            .<a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/state.rs.html#55-59">new_version_or_default</a>(<a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#295">variable</a>, <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#296">position</a>);
-        <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#294">self</a>.snapshots_state
+            .<a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/state.rs.html#55-59">new_version_or_default</a>(<a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#299">variable</a>, <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#300">position</a>);
+        <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#298">self</a>.snapshots_state
             .current_variables
             .as_mut()
             .unwrap()
-            .<a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/state.rs.html#28">set</a>(<a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#295">variable</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#298">new_version</a>);
-        <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#294">self</a>.<a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#25-30">create_snapshot_variable</a>(<span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#295">variable</a>.name, <span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#295">variable</a>.ty, <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#298">new_version</a>)
+            .<a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/state.rs.html#28">set</a>(<a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#299">variable</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#302">new_version</a>);
+        <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#298">self</a>.<a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#25-30">create_snapshot_variable</a>(<span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#299">variable</a>.name, <span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#299">variable</a>.ty, <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#302">new_version</a>)
     }
     <span class="kw">fn </span>current_snapshot_variable_version(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         variable: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/middle/ast/variable/struct.VariableDecl.html">vir_mid::VariableDecl</a>,
     ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../../vir/gen/low/ast/variable/struct.VariableDecl.html">vir_low::VariableDecl</a>&gt; {
-        <span class="kw">let </span>version = <span class="self"><a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#310">self</a>
+        <span class="kw">let </span>version = <span class="self"><a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#314">self</a>
             </span>.snapshots_state
             .current_variables
             .as_ref()
             .unwrap()
-            .<a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/state.rs.html#25">get_or_default</a>(<span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#311">variable</a>.name);
-        <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#310">self</a>.<a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#25-30">create_snapshot_variable</a>(<span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#311">variable</a>.name, <span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#311">variable</a>.ty, <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#313">version</a>)
+            .<a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/state.rs.html#25">get_or_default</a>(<span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#315">variable</a>.name);
+        <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#314">self</a>.<a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#25-30">create_snapshot_variable</a>(<span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#315">variable</a>.name, <span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#315">variable</a>.ty, <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#317">version</a>)
+    }
+    <span class="kw">fn </span>initial_snapshot_variable_version(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        variable: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/middle/ast/variable/struct.VariableDecl.html">vir_mid::VariableDecl</a>,
+    ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../../vir/gen/low/ast/variable/struct.VariableDecl.html">vir_low::VariableDecl</a>&gt; {
+        <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#326">self</a>.<a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#25-30">create_snapshot_variable</a>(<span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#327">variable</a>.name, <span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#327">variable</a>.ty, <span class="number">0</span>)
     }
     <span class="kw">fn </span>snapshot_variable_version_at_label(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         variable: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/middle/ast/variable/struct.VariableDecl.html">vir_mid::VariableDecl</a>,
         label: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
     ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../../vir/gen/low/ast/variable/struct.VariableDecl.html">vir_low::VariableDecl</a>&gt; {
-        <span class="kw">let </span>version = <span class="self"><a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#322">self</a>
+        <span class="kw">let </span>version = <span class="self"><a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#332">self</a>
             </span>.snapshots_state
             .variables_at_label
-            .get(<a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#324">label</a>)
+            .get(<a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#334">label</a>)
             .unwrap_or_else(|| <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;not found label {}&quot;</span>, label))
-            .<a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/state.rs.html#25">get_or_default</a>(<span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#323">variable</a>.name);
-        <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#322">self</a>.<a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#25-30">create_snapshot_variable</a>(<span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#323">variable</a>.name, <span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#323">variable</a>.ty, <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#326">version</a>)
+            .<a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/state.rs.html#25">get_or_default</a>(<span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#333">variable</a>.name);
+        <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#332">self</a>.<a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#25-30">create_snapshot_variable</a>(<span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#333">variable</a>.name, <span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#333">variable</a>.ty, <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#336">version</a>)
     }
     <span class="kw">fn </span>encode_snapshot_havoc(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -774,7 +794,7 @@
         target: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/middle/ast/expression/enum.Expression.html">vir_mid::Expression</a>,
         position: <a href="../../../../../../../vir/common/position/struct.Position.html">vir_low::Position</a>,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <span class="kw">let </span>base = <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#337">target</a>.get_base();
+        <span class="kw">let </span>base = <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#347">target</a>.get_base();
         <span class="self">self</span>.ensure_type_definition(<span class="kw-2">&amp;</span>base.ty)<span class="question-mark">?</span>;
         <span class="kw">let </span>old_snapshot = base.to_procedure_snapshot(<span class="self">self</span>)<span class="question-mark">?</span>;
         <span class="kw">let </span>new_snapshot = <span class="self">self</span>.new_snapshot_variable_version(<span class="kw-2">&amp;</span>base, position)<span class="question-mark">?</span>;
@@ -788,9 +808,9 @@
         value: <a href="../../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a>,
         position: <a href="../../../../../../../vir/common/position/struct.Position.html">vir_low::Position</a>,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <span class="kw">use </span><a href="../../../../../../../vir/low/macros/index.html">vir_low::macros</a>::<span class="kw-2">*</span>;
+        <span class="kw">use </span>vir_low::macros::<span class="kw-2">*</span>;
         <span class="self">self</span>.encode_snapshot_havoc(statements, target, position)<span class="question-mark">?</span>;
-        <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#349">statements</a>
+        <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#359">statements</a>
             .push(<a class="macro" href="../../../../../../../vir/vir/low/macros/macro.stmtp.html">stmtp! </a>{ position =&gt; assume ([target.to_procedure_snapshot(<span class="self">self</span>)<span class="question-mark">?</span>] == [value]) });
         <span class="prelude-val">Ok</span>(())
     }
@@ -805,7 +825,7 @@
             BTreeMap&lt;<a href="../../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>, Vec&lt;<a href="../../../../../../../vir/gen/low/ast/statement/enum.Statement.html">vir_low::Statement</a>&gt;&gt;,
         &gt;,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <span class="kw">let </span>predecessor_labels = <span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#365">predecessors</a>[<a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#364">label</a>];
+        <span class="kw">let </span>predecessor_labels = <span class="kw-2">&amp;</span><a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#375">predecessors</a>[<a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#374">label</a>];
         <span class="kw">let </span><span class="kw-2">mut </span>new_map = VariableVersionMap::default();
         <span class="kw">for </span>variable <span class="kw">in </span><span class="self">self</span>.snapshots_state.all_variables.names_clone() {
             <span class="kw">let </span>predecessor_maps = predecessor_labels
@@ -847,14 +867,14 @@
                 new_map.set(variable, first_version);
             }
         }
-        <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#363">self</a>.snapshots_state.current_variables = <span class="prelude-val">Some</span>(<a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#372">new_map</a>);
+        <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#373">self</a>.snapshots_state.current_variables = <span class="prelude-val">Some</span>(<a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#382">new_map</a>);
         <span class="prelude-val">Ok</span>(())
     }
     <span class="kw">fn </span>unset_current_block_for_snapshots(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         label: <a href="../../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <span class="kw">let </span>current_variables = <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#417">self</a>.snapshots_state.current_variables.take().unwrap();
+        <span class="kw">let </span>current_variables = <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#427">self</a>.snapshots_state.current_variables.take().unwrap();
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self
             </span>.snapshots_state
             .variables
@@ -863,7 +883,7 @@
         <span class="prelude-val">Ok</span>(())
     }
     <span class="kw">fn </span>save_old_label(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <span class="kw">let </span>current_variables = <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#428">self</a>.snapshots_state.current_variables.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().unwrap();
+        <span class="kw">let </span>current_variables = <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#438">self</a>.snapshots_state.current_variables.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().unwrap();
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self
             </span>.snapshots_state
             .variables_at_label

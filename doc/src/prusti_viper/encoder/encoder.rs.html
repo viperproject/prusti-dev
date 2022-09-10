@@ -805,6 +805,40 @@
 <span id="805">805</span>
 <span id="806">806</span>
 <span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
+<span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -813,10 +847,11 @@
 
 </span><span class="kw">use </span>::log::{<a href="../../../log/macro.info.html">info</a>, <a href="../../../log/macro.debug.html">debug</a>, <a href="../../../log/macro.trace.html">trace</a>};
 <span class="kw">use </span><a href="../../../prusti_common/utils/identifiers/fn.encode_identifier.html">prusti_common::utils::identifiers::encode_identifier</a>;
+<span class="kw">use </span><a href="../../../rustc_hash/type.FxHashSet.html">rustc_hash::FxHashSet</a>;
 <span class="kw">use </span><a href="../../../vir/common/check_mode/enum.CheckMode.html">vir_crate::common::check_mode::CheckMode</a>;
 <span class="kw">use </span><a href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#59"><span class="kw">crate</span>::encoder::builtin_encoder::BuiltinEncoder</a>;
 <span class="kw">use </span><a href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#16"><span class="kw">crate</span>::encoder::builtin_encoder::BuiltinMethodKind</a>;
-<span class="kw">use </span><span class="kw">crate</span>::encoder::errors::{<a href="../../../src/prusti_viper/encoder/errors/error_manager.rs.html#165">ErrorManager</a>, <a href="../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#16">SpannedEncodingError</a>, <a href="../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#15">EncodingError</a>};
+<span class="kw">use </span><span class="kw">crate</span>::encoder::errors::{<a href="../../../src/prusti_viper/encoder/errors/error_manager.rs.html#171">ErrorManager</a>, <a href="../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#16">SpannedEncodingError</a>, <a href="../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#15">EncodingError</a>};
 <span class="kw">use </span><a href="../../../src/prusti_viper/encoder/mod.rs.html#13"><span class="kw">crate</span>::encoder::foldunfold</a>;
 <span class="kw">use </span><a href="../../../src/prusti_viper/encoder/procedure_encoder.rs.html#86"><span class="kw">crate</span>::encoder::procedure_encoder::ProcedureEncoder</a>;
 <span class="kw">use </span><a href="../../../src/prusti_viper/encoder/spec_function_encoder.rs.html#24"><span class="kw">crate</span>::encoder::SpecFunctionKind</a>;
@@ -860,7 +895,7 @@
     },
     types::{
         <a href="../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#40-44">compute_discriminant_bounds</a>,
-        <a href="../../../src/prusti_viper/encoder/mir/types/interface.rs.html#18">MirTypeEncoderState</a>, <a href="../../../src/prusti_viper/encoder/mir/types/interface.rs.html#24">MirTypeEncoderInterface</a>,
+        <a href="../../../src/prusti_viper/encoder/mir/types/interface.rs.html#17">MirTypeEncoderState</a>, <a href="../../../src/prusti_viper/encoder/mir/types/interface.rs.html#23">MirTypeEncoderInterface</a>,
     },
     specifications::{
         <a href="../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#13">SpecificationsState</a>, <a href="../../../src/prusti_viper/encoder/mir/specifications/interface.rs.html#72">SpecificationsInterface</a>,
@@ -896,6 +931,7 @@
     <span class="kw">pub</span>(<span class="kw">super</span>) snapshot_encoder_state: <a href="../../../src/prusti_viper/encoder/snapshot/interface.rs.html#8">SnapshotEncoderState</a>,
     <span class="kw">pub</span>(<span class="kw">super</span>) mirror_encoder: RefCell&lt;<a href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#16">MirrorEncoder</a>&gt;,
     encoding_queue: RefCell&lt;Vec&lt;EncodingTask&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;&gt;,
+    queued_types: RefCell&lt;FxHashSet&lt;ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;&gt;,
     vir_program_before_foldunfold_writer: <span class="prelude-ty">Option</span>&lt;RefCell&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt;&gt;&gt;,
     vir_program_before_viper_writer: <span class="prelude-ty">Option</span>&lt;RefCell&lt;Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt;&gt;&gt;,
     encoding_errors_counter: RefCell&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;,
@@ -910,7 +946,15 @@
     </span><span class="kw">pub</span>(<span class="kw">super</span>) is_encoding_trigger: Cell&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;,
 }
 
-<span class="kw">pub type </span>EncodingTask&lt;<span class="lifetime">&#39;tcx</span>&gt; = (<a href="../../../prusti_interface/data/type.ProcedureDefId.html">ProcedureDefId</a>, Vec&lt;(ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;, ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;)&gt;);
+<span class="kw">pub enum </span>EncodingTask&lt;<span class="lifetime">&#39;tcx</span>&gt; {
+    Procedure {
+        def_id: <a href="../../../prusti_interface/data/type.ProcedureDefId.html">ProcedureDefId</a>,
+        substs: Vec&lt;(ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;, ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;)&gt;,
+    },
+    Type {
+        ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    }
+}
 
 <span class="comment">// If the field name is an identifier, removing the leading prefix r#
 </span><span class="kw">pub fn </span>encode_field_name(field_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
@@ -922,8 +966,8 @@
         env: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>Environment&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         def_spec: <a href="../../../prusti_interface/specs/typed/struct.DefSpecificationMap.html">typed::DefSpecificationMap</a>,
     ) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>source_path = <a href="../../../src/prusti_viper/encoder/encoder.rs.html#115">env</a>.name.source_path();
-        <span class="kw">let </span>source_filename = <a href="../../../src/prusti_viper/encoder/encoder.rs.html#118">source_path</a>.file_name().unwrap().to_str().unwrap();
+        <span class="kw">let </span>source_path = <a href="../../../src/prusti_viper/encoder/encoder.rs.html#125">env</a>.name.source_path();
+        <span class="kw">let </span>source_filename = <a href="../../../src/prusti_viper/encoder/encoder.rs.html#128">source_path</a>.file_name().unwrap().to_str().unwrap();
         <span class="kw">let </span>vir_program_before_foldunfold_writer = config::dump_debug_info().then_some(()).map(|<span class="kw">_</span>|
             RefCell::new(
                 log::build_writer(
@@ -945,9 +989,9 @@
             )
         );
 
-        <a href="../../../src/prusti_viper/encoder/encoder.rs.html#67">Encoder</a> {
-            <a href="../../../src/prusti_viper/encoder/encoder.rs.html#115">env</a>,
-            error_manager: RefCell::new(ErrorManager::new(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#115">env</a>.query.codemap())),
+        <a href="../../../src/prusti_viper/encoder/encoder.rs.html#68">Encoder</a> {
+            <a href="../../../src/prusti_viper/encoder/encoder.rs.html#125">env</a>,
+            error_manager: RefCell::new(ErrorManager::new(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#125">env</a>.query.codemap())),
             functions: RefCell::new(FxHashMap::default()),
             builtin_methods: RefCell::new(FxHashMap::default()),
             high_builtin_function_encoder_state: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
@@ -966,115 +1010,116 @@
             type_discriminant_funcs: RefCell::new(FxHashMap::default()),
             type_cast_functions: RefCell::new(FxHashMap::default()),
             encoding_queue: RefCell::new(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[]),
-            <a href="../../../src/prusti_viper/encoder/encoder.rs.html#120">vir_program_before_foldunfold_writer</a>,
-            <a href="../../../src/prusti_viper/encoder/encoder.rs.html#130">vir_program_before_viper_writer</a>,
+            queued_types: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
+            <a href="../../../src/prusti_viper/encoder/encoder.rs.html#130">vir_program_before_foldunfold_writer</a>,
+            <a href="../../../src/prusti_viper/encoder/encoder.rs.html#140">vir_program_before_viper_writer</a>,
             snapshot_encoder_state: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
             mirror_encoder: RefCell::new(MirrorEncoder::new()),
             encoding_errors_counter: RefCell::new(<span class="number">0</span>),
             name_interner: RefCell::new(NameInterner::new()),
             is_encoding_trigger: Cell::new(<span class="bool-val">false</span>),
-            specifications_state: SpecificationsState::new(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#116">def_spec</a>),
+            specifications_state: SpecificationsState::new(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#126">def_spec</a>),
             mir_procedure_mapping: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
             discriminants_state: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
         }
     }
 
     <span class="kw">pub fn </span>log_vir_program_before_foldunfold&lt;S: <a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, program: S) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(shared_writer) = <span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#175">self</a>.vir_program_before_foldunfold_writer {
-            <span class="kw">let </span><span class="kw-2">mut </span>writer = <a href="../../../src/prusti_viper/encoder/encoder.rs.html#176">shared_writer</a>.borrow_mut();
-            <a href="../../../src/prusti_viper/encoder/encoder.rs.html#177">writer</a>
-                .<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#175">program</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>().as_bytes())
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(shared_writer) = <span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#186">self</a>.vir_program_before_foldunfold_writer {
+            <span class="kw">let </span><span class="kw-2">mut </span>writer = <a href="../../../src/prusti_viper/encoder/encoder.rs.html#187">shared_writer</a>.borrow_mut();
+            <a href="../../../src/prusti_viper/encoder/encoder.rs.html#188">writer</a>
+                .<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#186">program</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>().as_bytes())
                 .ok()
                 .unwrap();
-            <a href="../../../src/prusti_viper/encoder/encoder.rs.html#177">writer</a>
+            <a href="../../../src/prusti_viper/encoder/encoder.rs.html#188">writer</a>
                 .<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<span class="string">&quot;\n\n&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>().as_bytes())
                 .ok()
                 .unwrap();
-            <a href="../../../src/prusti_viper/encoder/encoder.rs.html#177">writer</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>().ok().unwrap();
+            <a href="../../../src/prusti_viper/encoder/encoder.rs.html#188">writer</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>().ok().unwrap();
         }
     }
 
     <span class="kw">pub fn </span>log_vir_program_before_viper&lt;S: <a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, program: S) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(shared_writer) = <span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#190">self</a>.vir_program_before_viper_writer {
-            <span class="kw">let </span><span class="kw-2">mut </span>writer = <a href="../../../src/prusti_viper/encoder/encoder.rs.html#191">shared_writer</a>.borrow_mut();
-            <a href="../../../src/prusti_viper/encoder/encoder.rs.html#192">writer</a>
-                .<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#190">program</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>().as_bytes())
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(shared_writer) = <span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#201">self</a>.vir_program_before_viper_writer {
+            <span class="kw">let </span><span class="kw-2">mut </span>writer = <a href="../../../src/prusti_viper/encoder/encoder.rs.html#202">shared_writer</a>.borrow_mut();
+            <a href="../../../src/prusti_viper/encoder/encoder.rs.html#203">writer</a>
+                .<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#201">program</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>().as_bytes())
                 .ok()
                 .unwrap();
-            <a href="../../../src/prusti_viper/encoder/encoder.rs.html#192">writer</a>
+            <a href="../../../src/prusti_viper/encoder/encoder.rs.html#203">writer</a>
                 .<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<span class="string">&quot;\n\n&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>().as_bytes())
                 .ok()
                 .unwrap();
-            <a href="../../../src/prusti_viper/encoder/encoder.rs.html#192">writer</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>().ok().unwrap();
+            <a href="../../../src/prusti_viper/encoder/encoder.rs.html#203">writer</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>().ok().unwrap();
         }
     }
 
     <span class="kw">fn </span>initialize(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// These are used in optimization passes
-        </span><a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#205">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#398">encode_builtin_method_def</a>(<a href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#17">BuiltinMethodKind::HavocBool</a>);
-        <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#205">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#398">encode_builtin_method_def</a>(<a href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#18">BuiltinMethodKind::HavocInt</a>);
-        <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#205">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#398">encode_builtin_method_def</a>(<a href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#22">BuiltinMethodKind::HavocRef</a>);
+        </span><a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#216">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#409">encode_builtin_method_def</a>(<a href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#17">BuiltinMethodKind::HavocBool</a>);
+        <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#216">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#409">encode_builtin_method_def</a>(<a href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#18">BuiltinMethodKind::HavocInt</a>);
+        <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#216">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#409">encode_builtin_method_def</a>(<a href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#22">BuiltinMethodKind::HavocRef</a>);
     }
 
     <span class="kw">pub fn </span>env(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>Environment&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-        <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#212">self</a>.env
+        <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#223">self</a>.env
     }
 
     <span class="kw">pub fn </span>error_manager(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RefMut&lt;ErrorManager&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
-        <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#216">self</a>.error_manager.borrow_mut()
+        <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#227">self</a>.error_manager.borrow_mut()
     }
 
     <span class="kw">pub fn </span>finalize_viper_program(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, proc_def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; SpannedEncodingResult&lt;<a href="../../../vir/gen/polymorphic/program/struct.Program.html">vir::Program</a>&gt; {
-        <span class="kw">let </span>error_span = <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#220">self</a>.env.query.get_def_span(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#220">proc_def_id</a>);
-        <a href="../../../src/prusti_viper/encoder/definition_collector.rs.html#35-40"><span class="kw">super</span>::definition_collector::collect_definitions</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#221">error_span</a>, <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#220">self</a>, <a href="../../../src/prusti_viper/encoder/encoder.rs.html#220">name</a>, <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#220">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#282">get_used_viper_methods</a>())
+        <span class="kw">let </span>error_span = <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#231">self</a>.env.query.get_def_span(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#231">proc_def_id</a>);
+        <a href="../../../src/prusti_viper/encoder/definition_collector.rs.html#35-40"><span class="kw">super</span>::definition_collector::collect_definitions</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#232">error_span</a>, <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#231">self</a>, <a href="../../../src/prusti_viper/encoder/encoder.rs.html#231">name</a>, <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#231">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#293">get_used_viper_methods</a>())
     }
 
     <span class="kw">pub fn </span>get_viper_programs(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Vec&lt;<a href="../../../vir/gen/polymorphic/program/struct.Program.html">vir::Program</a>&gt; {
-        std::mem::take(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#225">self</a>.programs)
+        std::mem::take(<span class="kw-2">&amp;mut </span><a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#236">self</a>.programs)
     }
 
     <span class="kw">pub fn </span>get_core_proof_programs(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Vec&lt;<a href="../../../prusti_common/vir/program/enum.Program.html">prusti_common::vir::program::Program</a>&gt; {
         <span class="kw">if </span>config::counterexample() &amp;&amp; config::unsafe_core_proof(){
-            <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#229">self</a>.<a href="../../../src/prusti_viper/encoder/middle/core_proof/interface.rs.html#24">take_core_proof_programs</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(
+            <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#240">self</a>.<a href="../../../src/prusti_viper/encoder/middle/core_proof/interface.rs.html#29">take_core_proof_programs</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(
                 | program | {
-                    <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#229">self</a>.<a href="../../../src/prusti_viper/encoder/counterexamples/interface.rs.html#90">add_mapping</a>(<span class="kw-2">&amp;</span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#232">program</a>);
-                    prusti_common::vir::program::Program::Low(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#232">program</a>)
+                    <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#240">self</a>.<a href="../../../src/prusti_viper/encoder/counterexamples/interface.rs.html#90">add_mapping</a>(<span class="kw-2">&amp;</span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#243">program</a>);
+                    prusti_common::vir::program::Program::Low(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#243">program</a>)
             }).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
         } <span class="kw">else </span>{
-            <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#229">self</a>.<a href="../../../src/prusti_viper/encoder/middle/core_proof/interface.rs.html#24">take_core_proof_programs</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(prusti_common::vir::program::Program::Low).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+            <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#240">self</a>.<a href="../../../src/prusti_viper/encoder/middle/core_proof/interface.rs.html#29">take_core_proof_programs</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(prusti_common::vir::program::Program::Low).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::encoder) <span class="kw">fn </span>register_encoding_error(<span class="kw-2">&amp;</span><span class="self">self</span>, encoding_error: <a href="../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#16">SpannedEncodingError</a>) {
         <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Encoding error: {:?}&quot;</span>, encoding_error);
-        <span class="kw">let </span>prusti_error: <a href="../../../prusti_interface/prusti_error/struct.PrustiError.html">PrustiError</a> = <a href="../../../src/prusti_viper/encoder/encoder.rs.html#241">encoding_error</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="kw">let </span>prusti_error: <a href="../../../prusti_interface/prusti_error/struct.PrustiError.html">PrustiError</a> = <a href="../../../src/prusti_viper/encoder/encoder.rs.html#252">encoding_error</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
         <span class="kw">if </span>prusti_error.is_error() {
-            <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#241">self</a>.encoding_errors_counter.borrow_mut().<a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.AddAssign.html">add_assign</a>(<span class="number">1</span>);
+            <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#252">self</a>.encoding_errors_counter.borrow_mut().<a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.AddAssign.html">add_assign</a>(<span class="number">1</span>);
         }
-        <a href="../../../src/prusti_viper/encoder/encoder.rs.html#243">prusti_error</a>.emit(<span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#241">self</a>.env.diagnostic);
+        <a href="../../../src/prusti_viper/encoder/encoder.rs.html#254">prusti_error</a>.emit(<span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#252">self</a>.env.diagnostic);
     }
 
     <span class="kw">pub fn </span>count_encoding_errors(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw-2">*</span><a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#250">self</a>.encoding_errors_counter.borrow()
+        <span class="kw-2">*</span><a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#261">self</a>.encoding_errors_counter.borrow()
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>get_mirror_domain(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../vir/gen/polymorphic/ast/domain/struct.Domain.html">vir::Domain</a>&gt; {
-        <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#254">self</a>.mirror_encoder.borrow().<a href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#37">get_domain</a>().cloned()
+        <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#265">self</a>.mirror_encoder.borrow().<a href="../../../src/prusti_viper/encoder/mirror_function_encoder.rs.html#37">get_domain</a>().cloned()
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>insert_function(<span class="kw-2">&amp;</span><span class="self">self</span>, function: <a href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a>) -&gt; <a href="../../../vir/gen/polymorphic/ast/function/struct.FunctionIdentifier.html">vir::FunctionIdentifier</a> {
-        <span class="kw">let </span>identifier: <a href="../../../vir/gen/polymorphic/ast/function/struct.FunctionIdentifier.html">vir::FunctionIdentifier</a> = <a href="../../../src/prusti_viper/encoder/encoder.rs.html#258">function</a>.<a href="../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="kw">let </span>identifier: <a href="../../../vir/gen/polymorphic/ast/function/struct.FunctionIdentifier.html">vir::FunctionIdentifier</a> = <a href="../../../src/prusti_viper/encoder/encoder.rs.html#269">function</a>.<a href="../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.functions.borrow_mut().insert(identifier.clone(), Rc::new(function)).is_none(), <span class="string">&quot;{:?} is not unique&quot;</span>, identifier);
-        <a href="../../../src/prusti_viper/encoder/encoder.rs.html#259">identifier</a>
+        <a href="../../../src/prusti_viper/encoder/encoder.rs.html#270">identifier</a>
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>get_function(<span class="kw-2">&amp;</span><span class="self">self</span>, identifier: <span class="kw-2">&amp;</span><a href="../../../vir/gen/polymorphic/ast/function/struct.FunctionIdentifier.html">vir::FunctionIdentifier</a>) -&gt; SpannedEncodingResult&lt;Rc&lt;<a href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a>&gt;&gt; {
         <span class="self">self</span>.ensure_pure_function_encoded(identifier)<span class="question-mark">?</span>;
         <span class="kw">if </span><span class="self">self</span>.functions.borrow().contains_key(identifier) {
-            <span class="kw">let </span>map = <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#264">self</a>.functions.borrow();
-            <span class="prelude-val">Ok</span>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#267">map</a>[<a href="../../../src/prusti_viper/encoder/encoder.rs.html#264">identifier</a>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+            <span class="kw">let </span>map = <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#275">self</a>.functions.borrow();
+            <span class="prelude-val">Ok</span>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#278">map</a>[<a href="../../../src/prusti_viper/encoder/encoder.rs.html#275">identifier</a>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
         } <span class="kw">else if </span><span class="self">self</span>.contains_snapshot_function(identifier) {
-            <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#264">self</a>.<a href="../../../src/prusti_viper/encoder/snapshot/interface.rs.html#15-18">get_snapshot_function</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#264">identifier</a>))
+            <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#275">self</a>.<a href="../../../src/prusti_viper/encoder/snapshot/interface.rs.html#15-18">get_snapshot_function</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#275">identifier</a>))
         } <span class="kw">else </span>{
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;Not found function: {:?}&quot;</span>, identifier)
         }
@@ -1083,11 +1128,11 @@
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>get_builtin_methods(
         <span class="kw-2">&amp;</span><span class="self">self
     </span>) -&gt; Ref&lt;<span class="lifetime">&#39;_</span>, FxHashMap&lt;<a href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#16">BuiltinMethodKind</a>, <a href="../../../vir/gen/polymorphic/ast/bodyless_method/struct.BodylessMethod.html">vir::BodylessMethod</a>&gt;&gt; {
-        <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#277">self</a>.builtin_methods.borrow()
+        <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#288">self</a>.builtin_methods.borrow()
     }
 
     <span class="kw">fn </span>get_used_viper_methods(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<a href="../../../vir/gen/polymorphic/cfg/method/struct.CfgMethod.html">vir::CfgMethod</a>&gt; {
-        <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#282">self</a>.procedures.borrow_mut().drain().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(<span class="kw">_</span>, value)| <a href="../../../src/prusti_viper/encoder/encoder.rs.html#283">value</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+        <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#293">self</a>.procedures.borrow_mut().drain().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(<span class="kw">_</span>, value)| <a href="../../../src/prusti_viper/encoder/encoder.rs.html#294">value</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
     }
 
     <span class="doccomment">/// Extract scalar value, invoking const evaluation if necessary.
@@ -1095,41 +1140,41 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         value: mir::ConstantKind&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; EncodingResult&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/interpret/value/enum.Scalar.html">mir::interpret::Scalar</a>&gt; {
-        <span class="kw">let </span>opt_scalar_value = <span class="kw">match </span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#289">value</a> {
-            mir::ConstantKind::Ty(value) =&gt; <span class="kw">match </span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#292">value</a>.kind() {
+        <span class="kw">let </span>opt_scalar_value = <span class="kw">match </span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#300">value</a> {
+            mir::ConstantKind::Ty(value) =&gt; <span class="kw">match </span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#303">value</a>.kind() {
                 ty::ConstKind::Value(<span class="kw-2">ref </span>const_value) =&gt; {
-                    <a href="../../../src/prusti_viper/encoder/encoder.rs.html#293">const_value</a>.try_to_scalar()
+                    <a href="../../../src/prusti_viper/encoder/encoder.rs.html#304">const_value</a>.try_to_scalar()
                 }
                 ty::ConstKind::Unevaluated(ct) =&gt; {
-                    <span class="kw">let </span>tcx = <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#288">self</a>.env.tcx();
-                    <span class="kw">let </span>param_env = <a href="../../../src/prusti_viper/encoder/encoder.rs.html#297">tcx</a>.param_env(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#296">ct</a>.def.did);
-                    <a href="../../../src/prusti_viper/encoder/encoder.rs.html#297">tcx</a>.const_eval_resolve(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#298">param_env</a>, <a href="../../../src/prusti_viper/encoder/encoder.rs.html#296">ct</a>, <span class="prelude-val">None</span>)
+                    <span class="kw">let </span>tcx = <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#299">self</a>.env.tcx();
+                    <span class="kw">let </span>param_env = <a href="../../../src/prusti_viper/encoder/encoder.rs.html#308">tcx</a>.param_env(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#307">ct</a>.def.did);
+                    <a href="../../../src/prusti_viper/encoder/encoder.rs.html#308">tcx</a>.const_eval_resolve(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#309">param_env</a>, <a href="../../../src/prusti_viper/encoder/encoder.rs.html#307">ct</a>, <span class="prelude-val">None</span>)
                         .ok()
-                        .and_then(|const_value| <a href="../../../src/prusti_viper/encoder/encoder.rs.html#301">const_value</a>.try_to_scalar())
+                        .and_then(|const_value| <a href="../../../src/prusti_viper/encoder/encoder.rs.html#312">const_value</a>.try_to_scalar())
                 }
                 <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(<span class="string">&quot;{:?}&quot;</span>, value),
             }
-            mir::ConstantKind::Val(val, <span class="kw">_</span>) =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#305">val</a>.try_to_scalar(),
+            mir::ConstantKind::Val(val, <span class="kw">_</span>) =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#316">val</a>.try_to_scalar(),
         };
-        <a href="../../../src/prusti_viper/encoder/encoder.rs.html#291">opt_scalar_value</a>.ok_or_else(|| EncodingError::unsupported(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;unsupported constant value: {:?}&quot;</span>, value)))
+        <a href="../../../src/prusti_viper/encoder/encoder.rs.html#302">opt_scalar_value</a>.ok_or_else(|| EncodingError::unsupported(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;unsupported constant value: {:?}&quot;</span>, value)))
     }
 
     <span class="doccomment">/// Encodes a value in a field if the base expression is a reference or
     /// a primitive types.
     /// For composed data structures, the base expression is returned.
     </span><span class="kw">pub fn </span>encode_value_expr(<span class="kw-2">&amp;</span><span class="self">self</span>, base: <a href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>, ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; EncodingResult&lt;<a href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt; {
-        <span class="kw">match </span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#313">ty</a>.kind() {
+        <span class="kw">match </span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#324">ty</a>.kind() {
             ty::TyKind::Adt(<span class="kw">_</span>, <span class="kw">_</span>)
             | ty::TyKind::Closure(<span class="kw">_</span>, <span class="kw">_</span>)
             | ty::TyKind::Array(..)
             | ty::TyKind::Tuple(<span class="kw">_</span>)
             | ty::TyKind::Param(<span class="kw">_</span>) =&gt; {
-                <span class="prelude-val">Ok</span>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#313">base</a>) <span class="comment">// don&#39;t use a field for tuples and ADTs
+                <span class="prelude-val">Ok</span>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#324">base</a>) <span class="comment">// don&#39;t use a field for tuples and ADTs
             </span>}
             <span class="kw">_ </span>=&gt; {
                 <span class="kw">let </span>value_field = <span class="self">self</span>.encode_value_field(ty)<span class="question-mark">?</span>;
-                <span class="kw">let </span>pos = <a href="../../../src/prusti_viper/encoder/encoder.rs.html#313">base</a>.pos();
-                <span class="prelude-val">Ok</span>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#313">base</a>.field(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#323">value_field</a>).set_pos(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#324">pos</a>))
+                <span class="kw">let </span>pos = <a href="../../../src/prusti_viper/encoder/encoder.rs.html#324">base</a>.pos();
+                <span class="prelude-val">Ok</span>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#324">base</a>.field(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#334">value_field</a>).set_pos(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#335">pos</a>))
             }
         }
     }
@@ -1137,13 +1182,13 @@
     <span class="kw">pub fn </span>encode_dereference_field(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;)
     -&gt; EncodingResult&lt;<a href="../../../vir/gen/polymorphic/ast/common/struct.Field.html">vir::Field</a>&gt;
     {
-        <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#330">self</a>.<a href="../../../src/prusti_viper/encoder/mir/types/interface.rs.html#27-31">encode_raw_ref_field</a>(<span class="string">&quot;val_ref&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <a href="../../../src/prusti_viper/encoder/encoder.rs.html#330">ty</a>)
+        <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#341">self</a>.<a href="../../../src/prusti_viper/encoder/mir/types/interface.rs.html#26-30">encode_raw_ref_field</a>(<span class="string">&quot;val_ref&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <a href="../../../src/prusti_viper/encoder/encoder.rs.html#341">ty</a>)
     }
 
     <span class="kw">pub fn </span>encode_struct_field(<span class="kw-2">&amp;</span><span class="self">self</span>, field_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;)
     -&gt; EncodingResult&lt;<a href="../../../vir/gen/polymorphic/ast/common/struct.Field.html">vir::Field</a>&gt;
     {
-        <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#336">self</a>.<a href="../../../src/prusti_viper/encoder/mir/types/interface.rs.html#27-31">encode_raw_ref_field</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#109">encode_field_name</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#336">field_name</a>), <a href="../../../src/prusti_viper/encoder/encoder.rs.html#336">ty</a>)
+        <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#347">self</a>.<a href="../../../src/prusti_viper/encoder/mir/types/interface.rs.html#26-30">encode_raw_ref_field</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#119">encode_field_name</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#347">field_name</a>), <a href="../../../src/prusti_viper/encoder/encoder.rs.html#347">ty</a>)
     }
 
     <span class="kw">pub fn </span>encode_discriminant_func_app(
@@ -1151,24 +1196,24 @@
         place: <a href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
         adt_def: ty::AdtDef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; SpannedEncodingResult&lt;<a href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt; {
-        <span class="kw">let </span>typ = <a href="../../../src/prusti_viper/encoder/encoder.rs.html#344">place</a>.get_type().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="kw">let </span><span class="kw-2">mut </span>name = <a href="../../../src/prusti_viper/encoder/encoder.rs.html#347">typ</a>.name();
-        <a href="../../../src/prusti_viper/encoder/encoder.rs.html#348">name</a>.push_str(<span class="string">&quot;$$discriminant$$&quot;</span>);
+        <span class="kw">let </span>typ = <a href="../../../src/prusti_viper/encoder/encoder.rs.html#355">place</a>.get_type().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>name = <a href="../../../src/prusti_viper/encoder/encoder.rs.html#358">typ</a>.name();
+        <a href="../../../src/prusti_viper/encoder/encoder.rs.html#359">name</a>.push_str(<span class="string">&quot;$$discriminant$$&quot;</span>);
         <span class="kw">let </span>self_local_var = <a class="macro" href="../../../prusti_common/macro.vir_local.html">vir_local!</a>{ <span class="self">self</span>: {typ.clone()} };
         <span class="kw">if </span>!<span class="self">self</span>.type_discriminant_funcs.borrow().contains_key(<span class="kw-2">&amp;</span>name) {
             <span class="kw">let </span>precondition = vir::Expr::predicate_access_predicate(
-                <a href="../../../src/prusti_viper/encoder/encoder.rs.html#347">typ</a>,
-                <a href="../../../src/prusti_viper/encoder/encoder.rs.html#350">self_local_var</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                <a href="../../../src/prusti_viper/encoder/encoder.rs.html#358">typ</a>,
+                <a href="../../../src/prusti_viper/encoder/encoder.rs.html#361">self_local_var</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
                 vir::PermAmount::Read
             );
             <span class="kw">let </span>result = <a class="macro" href="../../../prusti_common/macro.vir_local.html">vir_local!</a>{ __result: Int };
             <span class="kw">let </span>postcondition = <a href="../../../src/prusti_viper/encoder/mir/types/helpers.rs.html#40-44">compute_discriminant_bounds</a>(
-                <a href="../../../src/prusti_viper/encoder/encoder.rs.html#345">adt_def</a>, <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#343">self</a>.env.tcx(), <span class="kw-2">&amp;</span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#357">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+                <a href="../../../src/prusti_viper/encoder/encoder.rs.html#356">adt_def</a>, <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#354">self</a>.env.tcx(), <span class="kw-2">&amp;</span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#368">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
 
-            <span class="kw">let </span>discr_field = <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#343">self</a>.<a href="../../../src/prusti_viper/encoder/mir/types/interface.rs.html#33">encode_discriminant_field</a>();
-            <span class="kw">let </span>self_local_var_expr: <a href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> = <a href="../../../src/prusti_viper/encoder/encoder.rs.html#350">self_local_var</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+            <span class="kw">let </span>discr_field = <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#354">self</a>.<a href="../../../src/prusti_viper/encoder/mir/types/interface.rs.html#32">encode_discriminant_field</a>();
+            <span class="kw">let </span>self_local_var_expr: <a href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> = <a href="../../../src/prusti_viper/encoder/encoder.rs.html#361">self_local_var</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
             <span class="kw">let </span>function = <a href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a> {
-                name: <a href="../../../src/prusti_viper/encoder/encoder.rs.html#348">name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                name: <a href="../../../src/prusti_viper/encoder/encoder.rs.html#359">name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                 type_arguments: Vec::new(),
                 formal_args: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[self_local_var.clone()],
                 return_type: vir::Type::Int,
@@ -1180,20 +1225,20 @@
                         vir::Expr::local(result),
                     ).unwrap(), <span class="comment">// TODO: no unwrap
                 </span>],
-                body: <span class="prelude-val">Some</span>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#362">self_local_var_expr</a>.field(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#361">discr_field</a>)),
+                body: <span class="prelude-val">Some</span>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#373">self_local_var_expr</a>.field(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#372">discr_field</a>)),
             };
 
-            <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#343">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#175">log_vir_program_before_foldunfold</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#363">function</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+            <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#354">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#186">log_vir_program_before_foldunfold</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#374">function</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
 
             <span class="kw">let </span>final_function = <a href="../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#145-148">foldunfold::add_folding_unfolding_to_function</a>(
-                <a href="../../../src/prusti_viper/encoder/encoder.rs.html#363">function</a>,
+                <a href="../../../src/prusti_viper/encoder/encoder.rs.html#374">function</a>,
                 <span class="self">self</span>.get_used_viper_predicates_map()<span class="question-mark">?</span>,
             );
-            <span class="kw">let </span>identifier = <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#343">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#258">insert_function</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#381">final_function</a>.unwrap());
-            <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#343">self</a>.type_discriminant_funcs.borrow_mut().insert(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#348">name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="../../../src/prusti_viper/encoder/encoder.rs.html#385">identifier</a>);
+            <span class="kw">let </span>identifier = <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#354">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#269">insert_function</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#392">final_function</a>.unwrap());
+            <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#354">self</a>.type_discriminant_funcs.borrow_mut().insert(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#359">name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="../../../src/prusti_viper/encoder/encoder.rs.html#396">identifier</a>);
         }
         <span class="prelude-val">Ok</span>(vir::Expr::FuncApp( <a href="../../../vir/gen/polymorphic/ast/expr/struct.FuncApp.html">vir::FuncApp</a> {
-            function_name: <a href="../../../src/prusti_viper/encoder/encoder.rs.html#348">name</a>,
+            function_name: <a href="../../../src/prusti_viper/encoder/encoder.rs.html#359">name</a>,
             type_arguments: Vec::new(),
             arguments: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[place],
             formal_arguments: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[self_local_var],
@@ -1205,22 +1250,22 @@
     <span class="kw">pub fn </span>encode_builtin_method_def(<span class="kw-2">&amp;</span><span class="self">self</span>, method_kind: <a href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#16">BuiltinMethodKind</a>) -&gt; <a href="../../../vir/gen/polymorphic/ast/bodyless_method/struct.BodylessMethod.html">vir::BodylessMethod</a> {
         <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;encode_builtin_method_def({:?})&quot;</span>, method_kind);
         <span class="kw">if </span>!<span class="self">self</span>.builtin_methods.borrow().contains_key(<span class="kw-2">&amp;</span>method_kind) {
-            <span class="kw">let </span>builtin_encoder = BuiltinEncoder::new(<a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#398">self</a>);
-            <span class="kw">let </span>method = <a href="../../../src/prusti_viper/encoder/encoder.rs.html#401">builtin_encoder</a>.<a href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#81">encode_builtin_method_def</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#398">method_kind</a>);
-            <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#398">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#190">log_vir_program_before_viper</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#402">method</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-            <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#398">self</a>.builtin_methods
+            <span class="kw">let </span>builtin_encoder = BuiltinEncoder::new(<a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#409">self</a>);
+            <span class="kw">let </span>method = <a href="../../../src/prusti_viper/encoder/encoder.rs.html#412">builtin_encoder</a>.<a href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#81">encode_builtin_method_def</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#409">method_kind</a>);
+            <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#409">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#201">log_vir_program_before_viper</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#413">method</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+            <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#409">self</a>.builtin_methods
                 .borrow_mut()
-                .insert(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#398">method_kind</a>, <a href="../../../src/prusti_viper/encoder/encoder.rs.html#402">method</a>);
+                .insert(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#409">method_kind</a>, <a href="../../../src/prusti_viper/encoder/encoder.rs.html#413">method</a>);
         }
-        <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#398">self</a>.builtin_methods.borrow()[<span class="kw-2">&amp;</span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#398">method_kind</a>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+        <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#409">self</a>.builtin_methods.borrow()[<span class="kw-2">&amp;</span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#409">method_kind</a>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
     }
 
     <span class="kw">pub fn </span>encode_builtin_method_use(<span class="kw-2">&amp;</span><span class="self">self</span>, method_kind: <a href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#16">BuiltinMethodKind</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
         <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;encode_builtin_method_use({:?})&quot;</span>, method_kind);
         <span class="comment">// Trigger encoding of definition
-        </span><a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#411">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#398">encode_builtin_method_def</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#411">method_kind</a>);
-        <span class="kw">let </span>builtin_encoder = BuiltinEncoder::new(<a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#411">self</a>);
-        <a href="../../../src/prusti_viper/encoder/encoder.rs.html#415">builtin_encoder</a>.<a href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#70">encode_builtin_method_name</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#411">method_kind</a>)
+        </span><a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#422">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#409">encode_builtin_method_def</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#422">method_kind</a>);
+        <span class="kw">let </span>builtin_encoder = BuiltinEncoder::new(<a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#422">self</a>);
+        <a href="../../../src/prusti_viper/encoder/encoder.rs.html#426">builtin_encoder</a>.<a href="../../../src/prusti_viper/encoder/builtin_encoder.rs.html#70">encode_builtin_method_name</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#422">method_kind</a>)
     }
 
     <span class="kw">pub fn </span>encode_cast_function_use(<span class="kw-2">&amp;</span><span class="self">self</span>, src_ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;, dst_ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;)
@@ -1231,22 +1276,22 @@
         <span class="kw">if </span>!<span class="self">self</span>.type_cast_functions.borrow().contains_key(<span class="kw-2">&amp;</span>(src_ty, dst_ty)) {
             <span class="kw">let </span>arg = <a class="macro" href="../../../prusti_common/macro.vir_local.html">vir_local!</a>{ number: {<span class="self">self</span>.encode_snapshot_type(src_ty)<span class="question-mark">?</span>} };
             <span class="kw">let </span>result = <a class="macro" href="../../../prusti_common/macro.vir_local.html">vir_local!</a>{ __result: {<span class="self">self</span>.encode_snapshot_type(dst_ty)<span class="question-mark">?</span>} };
-            <span class="kw">let </span><span class="kw-2">mut </span>precondition = <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#419">self</a>.<a href="../../../src/prusti_viper/encoder/high/types/interface.rs.html#140">encode_type_bounds</a>(<span class="kw-2">&amp;</span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#425">arg</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="../../../src/prusti_viper/encoder/encoder.rs.html#419">src_ty</a>);
-            <a href="../../../src/prusti_viper/encoder/encoder.rs.html#427">precondition</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#419">self</a>.<a href="../../../src/prusti_viper/encoder/high/types/interface.rs.html#140">encode_type_bounds</a>(<span class="kw-2">&amp;</span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#425">arg</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="../../../src/prusti_viper/encoder/encoder.rs.html#419">dst_ty</a>));
-            <span class="kw">let </span>postcondition = <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#419">self</a>.<a href="../../../src/prusti_viper/encoder/high/types/interface.rs.html#140">encode_type_bounds</a>(<span class="kw-2">&amp;</span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#426">result</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="../../../src/prusti_viper/encoder/encoder.rs.html#419">dst_ty</a>);
+            <span class="kw">let </span><span class="kw-2">mut </span>precondition = <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#430">self</a>.<a href="../../../src/prusti_viper/encoder/high/types/interface.rs.html#140">encode_type_bounds</a>(<span class="kw-2">&amp;</span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#436">arg</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="../../../src/prusti_viper/encoder/encoder.rs.html#430">src_ty</a>);
+            <a href="../../../src/prusti_viper/encoder/encoder.rs.html#438">precondition</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#430">self</a>.<a href="../../../src/prusti_viper/encoder/high/types/interface.rs.html#140">encode_type_bounds</a>(<span class="kw-2">&amp;</span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#436">arg</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="../../../src/prusti_viper/encoder/encoder.rs.html#430">dst_ty</a>));
+            <span class="kw">let </span>postcondition = <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#430">self</a>.<a href="../../../src/prusti_viper/encoder/high/types/interface.rs.html#140">encode_type_bounds</a>(<span class="kw-2">&amp;</span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#437">result</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="../../../src/prusti_viper/encoder/encoder.rs.html#430">dst_ty</a>);
             <span class="kw">let </span>function = <a href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a> {
-                name: <a href="../../../src/prusti_viper/encoder/encoder.rs.html#423">function_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                name: <a href="../../../src/prusti_viper/encoder/encoder.rs.html#434">function_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                 type_arguments: Vec::new(),
                 formal_args: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[arg.clone()],
                 return_type: <span class="self">self</span>.encode_snapshot_type(dst_ty)<span class="question-mark">?</span>,
-                pres: <a href="../../../src/prusti_viper/encoder/encoder.rs.html#427">precondition</a>,
-                posts: <a href="../../../src/prusti_viper/encoder/encoder.rs.html#429">postcondition</a>,
-                body: <span class="prelude-val">Some</span>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#425">arg</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                pres: <a href="../../../src/prusti_viper/encoder/encoder.rs.html#438">precondition</a>,
+                posts: <a href="../../../src/prusti_viper/encoder/encoder.rs.html#440">postcondition</a>,
+                body: <span class="prelude-val">Some</span>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#436">arg</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
             };
-            <span class="kw">let </span>identifier = <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#419">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#258">insert_function</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#430">function</a>);
-            <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#419">self</a>.type_cast_functions.borrow_mut().insert((<a href="../../../src/prusti_viper/encoder/encoder.rs.html#419">src_ty</a>, <a href="../../../src/prusti_viper/encoder/encoder.rs.html#419">dst_ty</a>), <a href="../../../src/prusti_viper/encoder/encoder.rs.html#439">identifier</a>);
+            <span class="kw">let </span>identifier = <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#430">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#269">insert_function</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#441">function</a>);
+            <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#430">self</a>.type_cast_functions.borrow_mut().insert((<a href="../../../src/prusti_viper/encoder/encoder.rs.html#430">src_ty</a>, <a href="../../../src/prusti_viper/encoder/encoder.rs.html#430">dst_ty</a>), <a href="../../../src/prusti_viper/encoder/encoder.rs.html#450">identifier</a>);
         }
-        <span class="prelude-val">Ok</span>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#423">function_name</a>)
+        <span class="prelude-val">Ok</span>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#434">function_name</a>)
     }
 
     <span class="kw">pub fn </span>encode_unsize_function_use(<span class="kw-2">&amp;</span><span class="self">self</span>, src_ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;, dst_ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;)
@@ -1269,12 +1314,12 @@
             <span class="kw">let </span>src_snap_ty = <span class="self">self</span>.encode_snapshot_type(src_ty)<span class="question-mark">?</span>;
             <span class="kw">let </span>dst_snap_ty = <span class="self">self</span>.encode_snapshot_type(dst_ty)<span class="question-mark">?</span>;
             <span class="kw">let </span>arg = <a class="macro" href="../../../prusti_common/macro.vir_local.html">vir_local!</a>{ array: {src_snap_ty} };
-            <span class="kw">let </span>arg_expr = vir::Expr::from(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#464">arg</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            <span class="kw">let </span>arg_expr = vir::Expr::from(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#475">arg</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
             <span class="kw">let </span>array_uncons = <span class="self">self</span>.encode_snapshot_destructor(src_ty, <span class="macro">vec!</span>[arg_expr.clone()])<span class="question-mark">?</span>;
             <span class="kw">let </span>slice_cons = <span class="self">self</span>.encode_snapshot(dst_ty, <span class="prelude-val">None</span>, <span class="macro">vec!</span>[array_uncons.clone()])<span class="question-mark">?</span>;
             <span class="kw">let </span>data_len = vir::Expr::ContainerOp(<a href="../../../vir/gen/polymorphic/ast/expr/struct.ContainerOp.html">vir::ContainerOp</a> {
                 op_kind: vir::ContainerOpKind::SeqLen,
-                left: <span class="kw">box </span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#466">array_uncons</a>,
+                left: <span class="kw">box </span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#477">array_uncons</a>,
                 right: <span class="kw">box </span><span class="bool-val">true</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <span class="comment">// unused
                 </span>position: vir::Position::default(),
             });
@@ -1284,18 +1329,18 @@
                 <span class="macro">vir_expr!</span>{ [result] == [slice_cons]},
             ];
             <span class="kw">let </span>function = <a href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a> {
-                name: <a href="../../../src/prusti_viper/encoder/encoder.rs.html#455">function_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                name: <a href="../../../src/prusti_viper/encoder/encoder.rs.html#466">function_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                 type_arguments: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[], <span class="comment">// FIXME: This is probably wrong.
                 </span>formal_args: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[arg],
-                return_type: <a href="../../../src/prusti_viper/encoder/encoder.rs.html#463">dst_snap_ty</a>,
+                return_type: <a href="../../../src/prusti_viper/encoder/encoder.rs.html#474">dst_snap_ty</a>,
                 pres: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
-                posts: <a href="../../../src/prusti_viper/encoder/encoder.rs.html#475">postcondition</a>,
+                posts: <a href="../../../src/prusti_viper/encoder/encoder.rs.html#486">postcondition</a>,
                 body: <span class="prelude-val">None</span>,
             };
-            <span class="kw">let </span>identifier = <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#445">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#258">insert_function</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#479">function</a>);
-            <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#445">self</a>.type_cast_functions.borrow_mut().insert((<a href="../../../src/prusti_viper/encoder/encoder.rs.html#445">src_ty</a>, <a href="../../../src/prusti_viper/encoder/encoder.rs.html#445">dst_ty</a>), <a href="../../../src/prusti_viper/encoder/encoder.rs.html#488">identifier</a>);
+            <span class="kw">let </span>identifier = <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#456">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#269">insert_function</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#490">function</a>);
+            <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#456">self</a>.type_cast_functions.borrow_mut().insert((<a href="../../../src/prusti_viper/encoder/encoder.rs.html#456">src_ty</a>, <a href="../../../src/prusti_viper/encoder/encoder.rs.html#456">dst_ty</a>), <a href="../../../src/prusti_viper/encoder/encoder.rs.html#499">identifier</a>);
         }
-        <span class="prelude-val">Ok</span>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#455">function_name</a>)
+        <span class="prelude-val">Ok</span>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#466">function_name</a>)
     }
 
     <span class="doccomment">/// This encodes the Rust function as a Viper method for verification. It
@@ -1308,22 +1353,22 @@
             def_id
         );
         <span class="kw">if </span>!<span class="self">self</span>.procedures.borrow().contains_key(<span class="kw-2">&amp;</span>def_id) {
-            <span class="kw">let </span>procedure = <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#496">self</a>.env.get_procedure(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#496">def_id</a>);
+            <span class="kw">let </span>procedure = <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#507">self</a>.env.get_procedure(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#507">def_id</a>);
             <span class="kw">let </span>proc_encoder = ProcedureEncoder::new(<span class="self">self</span>, <span class="kw-2">&amp;</span>procedure)<span class="question-mark">?</span>;
-            <span class="kw">let </span><span class="kw-2">mut </span>method = <span class="kw">match </span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#505">proc_encoder</a>.<a href="../../../src/prusti_viper/encoder/procedure_encoder.rs.html#363">encode</a>() {
-                <span class="prelude-val">Ok</span>(result) =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#507">result</a>,
+            <span class="kw">let </span><span class="kw-2">mut </span>method = <span class="kw">match </span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#516">proc_encoder</a>.<a href="../../../src/prusti_viper/encoder/procedure_encoder.rs.html#363">encode</a>() {
+                <span class="prelude-val">Ok</span>(result) =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#518">result</a>,
                 <span class="prelude-val">Err</span>(error) =&gt; {
-                    <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#496">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#241">register_encoding_error</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#508">error</a>);
-                    StubProcedureEncoder::new(<a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#496">self</a>, <span class="kw-2">&amp;</span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#504">procedure</a>).<a href="../../../src/prusti_viper/encoder/stub_procedure_encoder.rs.html#45">encode</a>()
+                    <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#507">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#252">register_encoding_error</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#519">error</a>);
+                    StubProcedureEncoder::new(<a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#507">self</a>, <span class="kw-2">&amp;</span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#515">procedure</a>).<a href="../../../src/prusti_viper/encoder/stub_procedure_encoder.rs.html#45">encode</a>()
                 },
             };
-            <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#496">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#190">log_vir_program_before_viper</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#506">method</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+            <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#507">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#201">log_vir_program_before_viper</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#517">method</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
 
             <span class="kw">if </span>config::enable_purification_optimization() {
-                <a href="../../../src/prusti_viper/encoder/purifier.rs.html#15">purifier::purify_method</a>(<a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#496">self</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#506">method</a>);
+                <a href="../../../src/prusti_viper/encoder/purifier.rs.html#15">purifier::purify_method</a>(<a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#507">self</a>, <span class="kw-2">&amp;mut </span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#517">method</a>);
             }
 
-            <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#496">self</a>.procedures.borrow_mut().insert(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#496">def_id</a>, <a href="../../../src/prusti_viper/encoder/encoder.rs.html#506">method</a>);
+            <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#507">self</a>.procedures.borrow_mut().insert(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#507">def_id</a>, <a href="../../../src/prusti_viper/encoder/encoder.rs.html#517">method</a>);
         }
 
         <span class="comment">// TODO: specification functions are currently only encoded for closures
@@ -1350,24 +1395,24 @@
         }
 
         <span class="kw">if </span>!<span class="self">self</span>.spec_functions.borrow().contains_key(<span class="kw-2">&amp;</span>def_id) {
-            <span class="kw">let </span>procedure = <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#538">self</a>.env.get_procedure(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#538">def_id</a>);
+            <span class="kw">let </span>procedure = <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#549">self</a>.env.get_procedure(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#549">def_id</a>);
             <span class="comment">// TODO(tymap): for now use identity, long-term might need separate spec funcs
-            </span><span class="kw">let </span>substs = <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#538">self</a>.env.query.identity_substs(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#538">def_id</a>);
-            <span class="kw">let </span>spec_func_encoder = SpecFunctionEncoder::new(<a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#538">self</a>, <span class="kw-2">&amp;</span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#546">procedure</a>, <a href="../../../src/prusti_viper/encoder/encoder.rs.html#548">substs</a>);
+            </span><span class="kw">let </span>substs = <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#549">self</a>.env.query.identity_substs(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#549">def_id</a>);
+            <span class="kw">let </span>spec_func_encoder = SpecFunctionEncoder::new(<a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#549">self</a>, <span class="kw-2">&amp;</span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#557">procedure</a>, <a href="../../../src/prusti_viper/encoder/encoder.rs.html#559">substs</a>);
             <span class="kw">let </span>result = spec_func_encoder.encode()<span class="question-mark">?</span>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|function| {
-                <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#538">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#258">insert_function</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#550">function</a>)
+                <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#549">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#269">insert_function</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#561">function</a>)
             }).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-            <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#538">self</a>.spec_functions.borrow_mut().insert(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#538">def_id</a>, <a href="../../../src/prusti_viper/encoder/encoder.rs.html#550">result</a>);
+            <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#549">self</a>.spec_functions.borrow_mut().insert(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#549">def_id</a>, <a href="../../../src/prusti_viper/encoder/encoder.rs.html#561">result</a>);
         }
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#538">self</a>.spec_functions.borrow()[<span class="kw-2">&amp;</span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#538">def_id</a>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#549">self</a>.spec_functions.borrow()[<span class="kw-2">&amp;</span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#549">def_id</a>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
     }
 
     <span class="doccomment">/// Checks whether the given type implements structural equality
     /// by either being a primitive type or by deriving the Eq trait.
     </span><span class="kw">pub fn </span>has_structural_eq_impl(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>ty = <a href="../../../src/prusti_viper/encoder/encoder.rs.html#560">ty</a>.peel_refs();
-        <span class="kw">let </span>ty = <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#560">self</a>.env.tcx().erase_regions_ty(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#561">ty</a>);
-        <span class="kw">match </span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#562">ty</a>.kind() {
+        <span class="kw">let </span>ty = <a href="../../../src/prusti_viper/encoder/encoder.rs.html#571">ty</a>.peel_refs();
+        <span class="kw">let </span>ty = <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#571">self</a>.env.tcx().erase_regions_ty(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#572">ty</a>);
+        <span class="kw">match </span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#573">ty</a>.kind() {
             ty::TyKind::Bool
             | ty::TyKind::Int(<span class="kw">_</span>)
             | ty::TyKind::Uint(<span class="kw">_</span>)
@@ -1380,7 +1425,7 @@
             | ty::TyKind::Param(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>, <span class="comment">// TODO(tymap): this is weird, use substs properly?
             </span>ty::TyKind::Adt(<span class="kw">_</span>, <span class="kw">_</span>)
             | ty::TyKind::Closure(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-                <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#560">self</a>.env.tcx().has_structural_eq_impls(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#562">ty</a>)
+                <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#571">self</a>.env.tcx().has_structural_eq_impls(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#573">ty</a>)
             }
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
@@ -1394,34 +1439,34 @@
         <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;encode_const_expr {:?}&quot;</span>, value);
         <span class="kw">let </span>scalar_value = <span class="self">self</span>.const_eval_intlike(value)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>expr = <span class="kw">match </span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#584">ty</a>.kind() {
-            ty::TyKind::Bool =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#588">scalar_value</a>.to_bool().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            ty::TyKind::Char =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#588">scalar_value</a>.to_char().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            ty::TyKind::Int(ty::IntTy::I8) =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#588">scalar_value</a>.to_i8().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            ty::TyKind::Int(ty::IntTy::I16) =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#588">scalar_value</a>.to_i16().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            ty::TyKind::Int(ty::IntTy::I32) =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#588">scalar_value</a>.to_i32().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            ty::TyKind::Int(ty::IntTy::I64) =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#588">scalar_value</a>.to_i64().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            ty::TyKind::Int(ty::IntTy::I128) =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#588">scalar_value</a>.to_i128().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            ty::TyKind::Int(ty::IntTy::Isize) =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#588">scalar_value</a>.to_machine_isize(<span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#583">self</a>.env.tcx()).unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            ty::TyKind::Uint(ty::UintTy::U8) =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#588">scalar_value</a>.to_u8().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            ty::TyKind::Uint(ty::UintTy::U16) =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#588">scalar_value</a>.to_u16().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            ty::TyKind::Uint(ty::UintTy::U32) =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#588">scalar_value</a>.to_u32().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            ty::TyKind::Uint(ty::UintTy::U64) =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#588">scalar_value</a>.to_u64().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            ty::TyKind::Uint(ty::UintTy::U128) =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#588">scalar_value</a>.to_u128().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            ty::TyKind::Uint(ty::UintTy::Usize) =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#588">scalar_value</a>.to_machine_usize(<span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#583">self</a>.env.tcx()).unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+        <span class="kw">let </span>expr = <span class="kw">match </span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#595">ty</a>.kind() {
+            ty::TyKind::Bool =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#599">scalar_value</a>.to_bool().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            ty::TyKind::Char =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#599">scalar_value</a>.to_char().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            ty::TyKind::Int(ty::IntTy::I8) =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#599">scalar_value</a>.to_i8().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            ty::TyKind::Int(ty::IntTy::I16) =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#599">scalar_value</a>.to_i16().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            ty::TyKind::Int(ty::IntTy::I32) =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#599">scalar_value</a>.to_i32().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            ty::TyKind::Int(ty::IntTy::I64) =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#599">scalar_value</a>.to_i64().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            ty::TyKind::Int(ty::IntTy::I128) =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#599">scalar_value</a>.to_i128().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            ty::TyKind::Int(ty::IntTy::Isize) =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#599">scalar_value</a>.to_machine_isize(<span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#594">self</a>.env.tcx()).unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            ty::TyKind::Uint(ty::UintTy::U8) =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#599">scalar_value</a>.to_u8().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            ty::TyKind::Uint(ty::UintTy::U16) =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#599">scalar_value</a>.to_u16().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            ty::TyKind::Uint(ty::UintTy::U32) =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#599">scalar_value</a>.to_u32().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            ty::TyKind::Uint(ty::UintTy::U64) =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#599">scalar_value</a>.to_u64().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            ty::TyKind::Uint(ty::UintTy::U128) =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#599">scalar_value</a>.to_u128().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            ty::TyKind::Uint(ty::UintTy::Usize) =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#599">scalar_value</a>.to_machine_usize(<span class="kw-2">&amp;</span><a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#594">self</a>.env.tcx()).unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
             ty::TyKind::Float(ty::FloatTy::F32) =&gt; {
-                <span class="kw">let </span>bits = <a href="../../../src/prusti_viper/encoder/encoder.rs.html#588">scalar_value</a>.to_u32().unwrap();
+                <span class="kw">let </span>bits = <a href="../../../src/prusti_viper/encoder/encoder.rs.html#599">scalar_value</a>.to_u32().unwrap();
                 vir::Expr::Const(
                     <a href="../../../vir/gen/polymorphic/ast/expr/struct.ConstExpr.html">vir::ConstExpr</a> {
-                        value: vir::Const::Float(vir::FloatConst::F32(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#606">bits</a>)),
+                        value: vir::Const::Float(vir::FloatConst::F32(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#617">bits</a>)),
                         position: vir::Position::default(),
                     })
             },
             ty::TyKind::Float(ty::FloatTy::F64) =&gt; {
-                <span class="kw">let </span>bits = <a href="../../../src/prusti_viper/encoder/encoder.rs.html#588">scalar_value</a>.to_u64().unwrap();
+                <span class="kw">let </span>bits = <a href="../../../src/prusti_viper/encoder/encoder.rs.html#599">scalar_value</a>.to_u64().unwrap();
                 vir::Expr::Const(
                     <a href="../../../vir/gen/polymorphic/ast/expr/struct.ConstExpr.html">vir::ConstExpr</a> {
-                        value: vir::Const::Float(vir::FloatConst::F64(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#614">bits</a>)),
+                        value: vir::Const::Float(vir::FloatConst::F64(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#625">bits</a>)),
                         position: vir::Position::default(),
                     })
             }
@@ -1436,31 +1481,31 @@
             }
         };
         <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;encode_const_expr {:?} --&gt; {:?}&quot;</span>, value, expr);
-        <span class="prelude-val">Ok</span>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#590">expr</a>)
+        <span class="prelude-val">Ok</span>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#601">expr</a>)
     }
 
     <span class="kw">pub fn </span>encode_int_cast(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>, ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <a href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> {
         <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;encode_int_cast {:?} as {:?}&quot;</span>, value, ty);
 
-        <span class="kw">let </span>expr = <span class="kw">match </span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#635">ty</a>.kind() {
-            ty::TyKind::Bool =&gt; (<a href="../../../src/prusti_viper/encoder/encoder.rs.html#635">value</a> != <span class="number">0</span>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            ty::TyKind::Int(ty::IntTy::I8) =&gt; (<a href="../../../src/prusti_viper/encoder/encoder.rs.html#635">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            ty::TyKind::Int(ty::IntTy::I16) =&gt; (<a href="../../../src/prusti_viper/encoder/encoder.rs.html#635">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            ty::TyKind::Int(ty::IntTy::I32) =&gt; (<a href="../../../src/prusti_viper/encoder/encoder.rs.html#635">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            ty::TyKind::Int(ty::IntTy::I64) =&gt; (<a href="../../../src/prusti_viper/encoder/encoder.rs.html#635">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            ty::TyKind::Int(ty::IntTy::I128) =&gt; (<a href="../../../src/prusti_viper/encoder/encoder.rs.html#635">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            ty::TyKind::Int(ty::IntTy::Isize) =&gt; (<a href="../../../src/prusti_viper/encoder/encoder.rs.html#635">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            ty::TyKind::Uint(ty::UintTy::U8) =&gt; (<a href="../../../src/prusti_viper/encoder/encoder.rs.html#635">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            ty::TyKind::Uint(ty::UintTy::U16) =&gt; (<a href="../../../src/prusti_viper/encoder/encoder.rs.html#635">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            ty::TyKind::Uint(ty::UintTy::U32) =&gt; (<a href="../../../src/prusti_viper/encoder/encoder.rs.html#635">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            ty::TyKind::Uint(ty::UintTy::U64) =&gt; (<a href="../../../src/prusti_viper/encoder/encoder.rs.html#635">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            ty::TyKind::Uint(ty::UintTy::U128) =&gt; (<a href="../../../src/prusti_viper/encoder/encoder.rs.html#635">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            ty::TyKind::Uint(ty::UintTy::Usize) =&gt; (<a href="../../../src/prusti_viper/encoder/encoder.rs.html#635">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            ty::TyKind::Char =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#635">value</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+        <span class="kw">let </span>expr = <span class="kw">match </span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#646">ty</a>.kind() {
+            ty::TyKind::Bool =&gt; (<a href="../../../src/prusti_viper/encoder/encoder.rs.html#646">value</a> != <span class="number">0</span>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            ty::TyKind::Int(ty::IntTy::I8) =&gt; (<a href="../../../src/prusti_viper/encoder/encoder.rs.html#646">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            ty::TyKind::Int(ty::IntTy::I16) =&gt; (<a href="../../../src/prusti_viper/encoder/encoder.rs.html#646">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            ty::TyKind::Int(ty::IntTy::I32) =&gt; (<a href="../../../src/prusti_viper/encoder/encoder.rs.html#646">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            ty::TyKind::Int(ty::IntTy::I64) =&gt; (<a href="../../../src/prusti_viper/encoder/encoder.rs.html#646">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            ty::TyKind::Int(ty::IntTy::I128) =&gt; (<a href="../../../src/prusti_viper/encoder/encoder.rs.html#646">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i128.html">i128</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            ty::TyKind::Int(ty::IntTy::Isize) =&gt; (<a href="../../../src/prusti_viper/encoder/encoder.rs.html#646">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            ty::TyKind::Uint(ty::UintTy::U8) =&gt; (<a href="../../../src/prusti_viper/encoder/encoder.rs.html#646">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            ty::TyKind::Uint(ty::UintTy::U16) =&gt; (<a href="../../../src/prusti_viper/encoder/encoder.rs.html#646">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            ty::TyKind::Uint(ty::UintTy::U32) =&gt; (<a href="../../../src/prusti_viper/encoder/encoder.rs.html#646">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            ty::TyKind::Uint(ty::UintTy::U64) =&gt; (<a href="../../../src/prusti_viper/encoder/encoder.rs.html#646">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            ty::TyKind::Uint(ty::UintTy::U128) =&gt; (<a href="../../../src/prusti_viper/encoder/encoder.rs.html#646">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            ty::TyKind::Uint(ty::UintTy::Usize) =&gt; (<a href="../../../src/prusti_viper/encoder/encoder.rs.html#646">value</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            ty::TyKind::Char =&gt; <a href="../../../src/prusti_viper/encoder/encoder.rs.html#646">value</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
             <span class="kw-2">ref </span>x =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(<span class="string">&quot;{:?}&quot;</span>, x),
         };
         <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;encode_int_cast {:?} as {:?} --&gt; {:?}&quot;</span>, value, ty, expr);
-        <a href="../../../src/prusti_viper/encoder/encoder.rs.html#638">expr</a>
+        <a href="../../../src/prusti_viper/encoder/encoder.rs.html#649">expr</a>
     }
 
     <span class="kw">pub fn </span>encode_item_name(<span class="kw-2">&amp;</span><span class="self">self</span>, def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
@@ -1468,101 +1513,124 @@
         <span class="kw">let </span>short_name = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;m_{}&quot;</span>, encode_identifier(
             <span class="self">self</span>.env.name.get_item_name(def_id)
         ));
-        <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#659">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#787">intern_viper_identifier</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#660">full_name</a>, <a href="../../../src/prusti_viper/encoder/encoder.rs.html#661">short_name</a>)
+        <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#670">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#821">intern_viper_identifier</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#671">full_name</a>, <a href="../../../src/prusti_viper/encoder/encoder.rs.html#672">short_name</a>)
     }
 
     <span class="kw">pub fn </span>get_item_name(<span class="kw-2">&amp;</span><span class="self">self</span>, proc_def_id: <a href="../../../prusti_interface/data/type.ProcedureDefId.html">ProcedureDefId</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#667">self</a>.env.name.get_item_name(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#667">proc_def_id</a>)
+        <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#678">self</a>.env.name.get_item_name(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#678">proc_def_id</a>)
     }
 
-    <span class="kw">pub fn </span>queue_procedure_encoding(<span class="kw-2">&amp;</span><span class="self">self</span>, proc_def_id: <a href="../../../prusti_interface/data/type.ProcedureDefId.html">ProcedureDefId</a>) {
-        <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#671">self</a>.encoding_queue
+    <span class="kw">pub fn </span>queue_procedure_encoding(<span class="kw-2">&amp;</span><span class="self">self</span>, def_id: <a href="../../../prusti_interface/data/type.ProcedureDefId.html">ProcedureDefId</a>) {
+        <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#682">self</a>.encoding_queue
             .borrow_mut()
-            .push((<a href="../../../src/prusti_viper/encoder/encoder.rs.html#671">proc_def_id</a>, Vec::new()));
+            .push(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#109">EncodingTask::Procedure</a> { <a href="../../../src/prusti_viper/encoder/encoder.rs.html#682">def_id</a>, substs: Vec::new() });
+    }
+
+    <span class="kw">pub fn </span>queue_type_encoding(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
+        <span class="kw">let </span><span class="kw-2">mut </span>queued_types = <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#688">self</a>.queued_types.borrow_mut();
+        <span class="kw">if </span>!queued_types.contains(<span class="kw-2">&amp;</span>ty) {
+            <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#688">self</a>.encoding_queue
+                .borrow_mut()
+                .push(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#113">EncodingTask::Type</a> { <a href="../../../src/prusti_viper/encoder/encoder.rs.html#688">ty</a> });
+            <a href="../../../src/prusti_viper/encoder/encoder.rs.html#689">queued_types</a>.insert(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#688">ty</a>);
+        }
     }
 
     <span class="kw">pub fn </span>process_encoding_queue(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#677">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#205">initialize</a>();
-        <span class="kw">while let </span><span class="prelude-val">Some</span>((proc_def_id, substs)) = {
+        <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#698">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#216">initialize</a>();
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(task) = {
             <span class="kw">let </span><span class="kw-2">mut </span>queue = <span class="self">self</span>.encoding_queue.borrow_mut();
             queue.pop()
         } {
-            <span class="kw">let </span>proc_name = <span class="self">self</span>.env.name.get_unique_item_name(proc_def_id);
-            <span class="kw">let </span>proc_def_path = <span class="self">self</span>.env.name.get_item_def_path(proc_def_id);
-            <span class="macro">info!</span>(<span class="string">&quot;Encoding: {} ({})&quot;</span>, proc_name, proc_def_path);
-            <span class="macro">assert!</span>(substs.is_empty());
+            <span class="kw">match </span>task {
+                EncodingTask::Procedure { def_id: proc_def_id, substs } =&gt; {
+                    <span class="kw">let </span>proc_name = <span class="self">self</span>.env.name.get_unique_item_name(proc_def_id);
+                    <span class="kw">let </span>proc_def_path = <span class="self">self</span>.env.name.get_item_def_path(proc_def_id);
+                    <span class="macro">info!</span>(<span class="string">&quot;Encoding: {} ({})&quot;</span>, proc_name, proc_def_path);
+                    <span class="macro">assert!</span>(substs.is_empty());
 
-            <span class="kw">if </span>config::unsafe_core_proof() {
-                <span class="kw">if </span><span class="self">self</span>.env.query.is_unsafe_function(proc_def_id) {
-                    <span class="kw">if let </span><span class="prelude-val">Err</span>(error) = <span class="self">self</span>.encode_lifetimes_core_proof(proc_def_id, CheckMode::Both) {
-                        <span class="self">self</span>.register_encoding_error(error);
-                        <span class="macro">debug!</span>(<span class="string">&quot;Error encoding function: {:?} {}&quot;</span>, proc_def_id, CheckMode::Both);
-                    }
-                } <span class="kw">else </span>{
-                    <span class="kw">if </span>config::verify_core_proof() {
-                        <span class="kw">if let </span><span class="prelude-val">Err</span>(error) = <span class="self">self</span>.encode_lifetimes_core_proof(proc_def_id, CheckMode::CoreProof) {
-                            <span class="self">self</span>.register_encoding_error(error);
-                            <span class="macro">debug!</span>(<span class="string">&quot;Error encoding function: {:?} {}&quot;</span>, proc_def_id, CheckMode::CoreProof);
-                        }
-                    }
-                    <span class="kw">if </span>config::verify_specifications() {
-                        <span class="kw">let </span>check_mode = <span class="kw">if </span>config::verify_specifications_with_core_proof() {
-                            CheckMode::Both
-                        } <span class="kw">else </span>{
-                            CheckMode::Specifications
-                        };
-                        <span class="kw">if let </span><span class="prelude-val">Err</span>(error) = <span class="self">self</span>.encode_lifetimes_core_proof(proc_def_id, check_mode) {
-                            <span class="self">self</span>.register_encoding_error(error);
-                            <span class="macro">debug!</span>(<span class="string">&quot;Error encoding function: {:?} {}&quot;</span>, proc_def_id, check_mode);
-                        }
-                    }
-                }
-                <span class="kw">continue</span>;
-            }
-
-            <span class="kw">let </span>proc_kind = <span class="self">self</span>.get_proc_kind(proc_def_id, <span class="prelude-val">None</span>);
-
-            <span class="kw">if </span><span class="macro">matches!</span>(proc_kind, ProcedureSpecificationKind::Pure) {
-                <span class="comment">// Check that the pure Rust function satisfies the basic
-                // requirements by trying to encode it as a Viper function,
-                // which will automatically run the validity checks.
-
-                // TODO: Make sure that this encoded function does not end up in
-                // the Viper file because that would be unsound.
-                </span><span class="kw">let </span>identity_substs = <span class="self">self</span>.env.query.identity_substs(proc_def_id);
-                <span class="kw">if let </span><span class="prelude-val">Err</span>(error) = <span class="self">self</span>.encode_pure_function_def(proc_def_id, proc_def_id, identity_substs) {
-                    <span class="self">self</span>.register_encoding_error(error);
-                    <span class="macro">debug!</span>(<span class="string">&quot;Error encoding function: {:?}&quot;</span>, proc_def_id);
-                    <span class="comment">// Skip encoding the function as a method.
-                    </span><span class="kw">continue</span>;
-                }
-            }
-
-            <span class="kw">match </span>proc_kind {
-                <span class="kw">_ if </span><span class="self">self</span>.is_trusted(proc_def_id, <span class="prelude-val">None</span>) =&gt; {
-                    <span class="macro">debug!</span>(
-                        <span class="string">&quot;Trusted procedure will not be encoded or verified: {:?}&quot;</span>,
-                        proc_def_id
-                    );
-                },
-                ProcedureSpecificationKind::Predicate(<span class="kw">_</span>) =&gt; {
-                    <span class="macro">debug!</span>(
-                        <span class="string">&quot;Predicates will not be encoded or verified: {:?}&quot;</span>,
-                        proc_def_id
-                    );
-                },
-                ProcedureSpecificationKind::Pure |
-                ProcedureSpecificationKind::Impure =&gt; {
-                    <span class="kw">if let </span><span class="prelude-val">Err</span>(error) = <span class="self">self</span>.encode_procedure(proc_def_id) {
-                        <span class="self">self</span>.register_encoding_error(error);
-                        <span class="macro">debug!</span>(<span class="string">&quot;Error encoding function: {:?}&quot;</span>, proc_def_id);
-                    } <span class="kw">else </span>{
-                        <span class="kw">match </span><span class="self">self</span>.finalize_viper_program(proc_name, proc_def_id) {
-                            <span class="prelude-val">Ok</span>(program) =&gt; <span class="self">self</span>.programs.push(program),
-                            <span class="prelude-val">Err</span>(error) =&gt; {
+                    <span class="kw">if </span>config::unsafe_core_proof() {
+                        <span class="kw">if </span><span class="self">self</span>.env.query.is_unsafe_function(proc_def_id) {
+                            <span class="kw">if let </span><span class="prelude-val">Err</span>(error) = <span class="self">self</span>.encode_lifetimes_core_proof(proc_def_id, CheckMode::Both) {
                                 <span class="self">self</span>.register_encoding_error(error);
-                                <span class="macro">debug!</span>(<span class="string">&quot;Error finalizing program: {:?}&quot;</span>, proc_def_id);
+                                <span class="macro">debug!</span>(<span class="string">&quot;Error encoding function: {:?} {}&quot;</span>, proc_def_id, CheckMode::Both);
                             }
+                        } <span class="kw">else </span>{
+                            <span class="kw">if </span>config::verify_core_proof() {
+                                <span class="kw">if let </span><span class="prelude-val">Err</span>(error) = <span class="self">self</span>.encode_lifetimes_core_proof(proc_def_id, CheckMode::CoreProof) {
+                                    <span class="self">self</span>.register_encoding_error(error);
+                                    <span class="macro">debug!</span>(<span class="string">&quot;Error encoding function: {:?} {}&quot;</span>, proc_def_id, CheckMode::CoreProof);
+                                }
+                            }
+                            <span class="kw">if </span>config::verify_specifications() {
+                                <span class="kw">let </span>check_mode = <span class="kw">if </span>config::verify_specifications_with_core_proof() {
+                                    CheckMode::Both
+                                } <span class="kw">else </span>{
+                                    CheckMode::Specifications
+                                };
+                                <span class="kw">if let </span><span class="prelude-val">Err</span>(error) = <span class="self">self</span>.encode_lifetimes_core_proof(proc_def_id, check_mode) {
+                                    <span class="self">self</span>.register_encoding_error(error);
+                                    <span class="macro">debug!</span>(<span class="string">&quot;Error encoding function: {:?} {}&quot;</span>, proc_def_id, check_mode);
+                                }
+                            }
+                        }
+                        <span class="kw">continue</span>;
+                    }
+
+                    <span class="kw">let </span>proc_kind = <span class="self">self</span>.get_proc_kind(proc_def_id, <span class="prelude-val">None</span>);
+
+                    <span class="kw">if </span><span class="macro">matches!</span>(proc_kind, ProcedureSpecificationKind::Pure) {
+                        <span class="comment">// Check that the pure Rust function satisfies the basic
+                        // requirements by trying to encode it as a Viper function,
+                        // which will automatically run the validity checks.
+
+                        // TODO: Make sure that this encoded function does not end up in
+                        // the Viper file because that would be unsound.
+                        </span><span class="kw">let </span>identity_substs = <span class="self">self</span>.env.query.identity_substs(proc_def_id);
+                        <span class="kw">if let </span><span class="prelude-val">Err</span>(error) = <span class="self">self</span>.encode_pure_function_def(proc_def_id, proc_def_id, identity_substs) {
+                            <span class="self">self</span>.register_encoding_error(error);
+                            <span class="macro">debug!</span>(<span class="string">&quot;Error encoding function: {:?}&quot;</span>, proc_def_id);
+                            <span class="comment">// Skip encoding the function as a method.
+                            </span><span class="kw">continue</span>;
+                        }
+                    }
+
+                    <span class="kw">match </span>proc_kind {
+                        <span class="kw">_ if </span><span class="self">self</span>.is_trusted(proc_def_id, <span class="prelude-val">None</span>) =&gt; {
+                            <span class="macro">debug!</span>(
+                                <span class="string">&quot;Trusted procedure will not be encoded or verified: {:?}&quot;</span>,
+                                proc_def_id
+                            );
+                        },
+                        ProcedureSpecificationKind::Predicate(<span class="kw">_</span>) =&gt; {
+                            <span class="macro">debug!</span>(
+                                <span class="string">&quot;Predicates will not be encoded or verified: {:?}&quot;</span>,
+                                proc_def_id
+                            );
+                        },
+                        ProcedureSpecificationKind::Pure |
+                        ProcedureSpecificationKind::Impure =&gt; {
+                            <span class="kw">if let </span><span class="prelude-val">Err</span>(error) = <span class="self">self</span>.encode_procedure(proc_def_id) {
+                                <span class="self">self</span>.register_encoding_error(error);
+                                <span class="macro">debug!</span>(<span class="string">&quot;Error encoding function: {:?}&quot;</span>, proc_def_id);
+                            } <span class="kw">else </span>{
+                                <span class="kw">match </span><span class="self">self</span>.finalize_viper_program(proc_name, proc_def_id) {
+                                    <span class="prelude-val">Ok</span>(program) =&gt; <span class="self">self</span>.programs.push(program),
+                                    <span class="prelude-val">Err</span>(error) =&gt; {
+                                        <span class="self">self</span>.register_encoding_error(error);
+                                        <span class="macro">debug!</span>(<span class="string">&quot;Error finalizing program: {:?}&quot;</span>, proc_def_id);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                }
+                EncodingTask::Type { ty } =&gt; {
+                    <span class="kw">if </span>config::unsafe_core_proof() &amp;&amp; config::verify_core_proof() &amp;&amp; config::verify_types() {
+                        <span class="kw">if let </span><span class="prelude-val">Err</span>(error) = <span class="self">self</span>.encode_core_proof_for_type(ty, CheckMode::CoreProof) {
+                            <span class="self">self</span>.register_encoding_error(error);
+                            <span class="macro">debug!</span>(<span class="string">&quot;Error encoding type: {:?} {}&quot;</span>, ty, CheckMode::CoreProof);
                         }
                     }
                 }
@@ -1571,7 +1639,7 @@
     }
 
     <span class="kw">pub fn </span>encode_spec_func_name(<span class="kw-2">&amp;</span><span class="self">self</span>, def_id: <a href="../../../prusti_interface/data/type.ProcedureDefId.html">ProcedureDefId</a>, kind: <a href="../../../src/prusti_viper/encoder/spec_function_encoder.rs.html#24">SpecFunctionKind</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <span class="kw">let </span>kind_name = <span class="kw">match </span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#766">kind</a> {
+        <span class="kw">let </span>kind_name = <span class="kw">match </span><a href="../../../src/prusti_viper/encoder/encoder.rs.html#800">kind</a> {
             <a href="../../../src/prusti_viper/encoder/spec_function_encoder.rs.html#25">SpecFunctionKind::Pre</a> =&gt; <span class="string">&quot;pre&quot;</span>,
             <a href="../../../src/prusti_viper/encoder/spec_function_encoder.rs.html#26">SpecFunctionKind::Post</a> =&gt; <span class="string">&quot;post&quot;</span>,
             <a href="../../../src/prusti_viper/encoder/spec_function_encoder.rs.html#27">SpecFunctionKind::HistInv</a> =&gt; <span class="string">&quot;histinv&quot;</span>,
@@ -1588,18 +1656,18 @@
                 <span class="self">self</span>.env.name.get_item_name(def_id)
             )
         );
-        <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#766">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#787">intern_viper_identifier</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#772">full_name</a>, <a href="../../../src/prusti_viper/encoder/encoder.rs.html#777">short_name</a>)
+        <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#800">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#821">intern_viper_identifier</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#806">full_name</a>, <a href="../../../src/prusti_viper/encoder/encoder.rs.html#811">short_name</a>)
     }
 
     <span class="kw">pub fn </span>intern_viper_identifier&lt;S: AsRef&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, full_name: S, short_name: S) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
         <span class="kw">let </span>result = <span class="kw">if </span>config::disable_name_mangling() {
-            <a href="../../../src/prusti_viper/encoder/encoder.rs.html#787">short_name</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()
+            <a href="../../../src/prusti_viper/encoder/encoder.rs.html#821">short_name</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()
         } <span class="kw">else if </span>config::intern_names() {
-            <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#787">self</a>.name_interner.borrow_mut().<a href="../../../src/prusti_viper/encoder/name_interner.rs.html#29">intern</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#787">full_name</a>, <span class="kw-2">&amp;</span>[<a href="../../../src/prusti_viper/encoder/encoder.rs.html#787">short_name</a>])
+            <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#821">self</a>.name_interner.borrow_mut().<a href="../../../src/prusti_viper/encoder/name_interner.rs.html#29">intern</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#821">full_name</a>, <span class="kw-2">&amp;</span>[<a href="../../../src/prusti_viper/encoder/encoder.rs.html#821">short_name</a>])
         } <span class="kw">else </span>{
-            <a href="../../../src/prusti_viper/encoder/encoder.rs.html#787">full_name</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()
+            <a href="../../../src/prusti_viper/encoder/encoder.rs.html#821">full_name</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()
         };
-        <a href="../../../src/prusti_viper/encoder/encoder.rs.html#788">result</a>
+        <a href="../../../src/prusti_viper/encoder/encoder.rs.html#822">result</a>
     }
 
     <span class="kw">pub fn </span>encode_struct_field_value(
@@ -1608,8 +1676,8 @@
         field_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
         ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; EncodingResult&lt;<a href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt; {
-        <span class="kw">let </span>field = <a href="../../../src/prusti_viper/encoder/encoder.rs.html#800">strct</a>.field(<span class="self">self</span>.encode_struct_field(field_name, ty)<span class="question-mark">?</span>);
-        <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#799">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#313">encode_value_expr</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#804">field</a>, <a href="../../../src/prusti_viper/encoder/encoder.rs.html#802">ty</a>)
+        <span class="kw">let </span>field = <a href="../../../src/prusti_viper/encoder/encoder.rs.html#834">strct</a>.field(<span class="self">self</span>.encode_struct_field(field_name, ty)<span class="question-mark">?</span>);
+        <a class="self" href="../../../src/prusti_viper/encoder/encoder.rs.html#833">self</a>.<a href="../../../src/prusti_viper/encoder/encoder.rs.html#324">encode_value_expr</a>(<a href="../../../src/prusti_viper/encoder/encoder.rs.html#838">field</a>, <a href="../../../src/prusti_viper/encoder/encoder.rs.html#836">ty</a>)
     }
 }
 </code></pre></div>

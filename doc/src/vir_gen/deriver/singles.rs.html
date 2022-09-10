@@ -263,6 +263,7 @@
 <span id="263">263</span>
 <span id="264">264</span>
 <span id="265">265</span>
+<span id="266">266</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     ast::{<a href="../../../src/vir_gen/ast/mod.rs.html#58">CustomDerive</a>, <a href="../../../src/vir_gen/ast/mod.rs.html#69">CustomDeriveList</a>, <a href="../../../src/vir_gen/ast/mod.rs.html#52">CustomDeriveOptions</a>},
     <a href="../../../src/vir_gen/helpers.rs.html#49">helpers::unbox_type</a>,
@@ -420,7 +421,8 @@
     }
     <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{
         <span class="kw">impl </span>#struct_ident {
-            <span class="kw">pub fn </span>#name&lt;#(#generics),<span class="kw-2">*</span>&gt;(#(#parameters),<span class="kw-2">*</span>) -&gt; <span class="self">Self </span>{
+            <span class="attribute">#[allow(clippy::too_many_arguments)]
+            </span><span class="kw">pub fn </span>#name&lt;#(#generics),<span class="kw-2">*</span>&gt;(#(#parameters),<span class="kw-2">*</span>) -&gt; <span class="self">Self </span>{
                 <span class="self">Self </span>{
                     #(#fields),*
                 }
@@ -491,13 +493,13 @@
     fields_iter: <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../../syn/data/struct.Field.html">syn::Field</a>&gt;,
     options: <a href="../../../src/vir_gen/ast/mod.rs.html#52">CustomDeriveOptions</a>,
 ) -&gt; <a href="../../../syn/item/enum.Item.html">syn::Item</a> {
-    <span class="kw">let </span><span class="kw-2">mut </span>fields_iter = <a href="../../../src/vir_gen/deriver/singles.rs.html#226">fields_iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|field| {
-        !<a href="../../../src/vir_gen/deriver/singles.rs.html#227">options</a>
+    <span class="kw">let </span><span class="kw-2">mut </span>fields_iter = <a href="../../../src/vir_gen/deriver/singles.rs.html#227">fields_iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|field| {
+        !<a href="../../../src/vir_gen/deriver/singles.rs.html#228">options</a>
             .ignored_fields
-            .contains(<a href="../../../src/vir_gen/deriver/singles.rs.html#229">field</a>.ident.as_ref().unwrap())
+            .contains(<a href="../../../src/vir_gen/deriver/singles.rs.html#230">field</a>.ident.as_ref().unwrap())
     });
-    <span class="kw">let </span>comparison = <span class="kw">if let </span><span class="prelude-val">Some</span>(first) = <a href="../../../src/vir_gen/deriver/singles.rs.html#229">fields_iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-        <span class="kw">let </span>name = <a href="../../../src/vir_gen/deriver/singles.rs.html#234">first</a>.ident.as_ref().unwrap();
+    <span class="kw">let </span>comparison = <span class="kw">if let </span><span class="prelude-val">Some</span>(first) = <a href="../../../src/vir_gen/deriver/singles.rs.html#230">fields_iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+        <span class="kw">let </span>name = <a href="../../../src/vir_gen/deriver/singles.rs.html#235">first</a>.ident.as_ref().unwrap();
         <span class="kw">let </span><span class="kw-2">mut </span>comparison: <a href="../../../syn/expr/enum.Expr.html">syn::Expr</a> = <a class="macro" href="../../../syn/macro.parse_quote.html">syn::parse_quote!</a>( <span class="self">self</span>.#name.cmp(<span class="kw-2">&amp;</span>other.#name) );
         <span class="kw">for </span>field <span class="kw">in </span>fields_iter {
             <span class="kw">let </span>name = field.ident.as_ref().unwrap();
@@ -505,7 +507,7 @@
                 #comparison.then(<span class="self">self</span>.#name.cmp(<span class="kw-2">&amp;</span>other.#name))
             };
         }
-        <a href="../../../src/vir_gen/deriver/singles.rs.html#236">comparison</a>
+        <a href="../../../src/vir_gen/deriver/singles.rs.html#237">comparison</a>
     } <span class="kw">else </span>{
         <a class="macro" href="../../../syn/macro.parse_quote.html">parse_quote! </a>{ std::cmp::Ordering::Equal }
     };

@@ -158,14 +158,15 @@
 <span id="158">158</span>
 <span id="159">159</span>
 <span id="160">160</span>
+<span id="161">161</span>
 </pre><pre class="rust"><code><span class="kw">use super</span>::{
     <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/utils/place_domain_encoder.rs.html#13"><span class="kw">super</span>::utils::place_domain_encoder::PlaceExpressionDomainEncoder</a>, <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/encoder.rs.html#14">encoder::PlaceEncoder</a>,
 };
 <span class="kw">use </span><span class="kw">crate</span>::encoder::{
     <a href="../../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#23">errors::SpannedEncodingResult</a>,
     middle::core_proof::{
-        lowerer::{<a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/domains/interface.rs.html#79">DomainsLowererInterface</a>, <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/mod.rs.html#63">Lowerer</a>},
-        <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/type_layouts/interface.rs.html#11">type_layouts::TypeLayoutsInterface</a>,
+        lowerer::{<a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/domains/interface.rs.html#79">DomainsLowererInterface</a>, <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/mod.rs.html#80">Lowerer</a>},
+        <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/type_layouts/interface.rs.html#14">type_layouts::TypeLayoutsInterface</a>,
     },
 };
 <span class="kw">use </span><a href="../../../../../../rustc_hash/type.FxHashSet.html">prusti_rustc_interface::data_structures::fx::FxHashSet</a>;
@@ -178,7 +179,7 @@
 <span class="attribute">#[derive(Default)]
 </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">struct </span>PlacesState {
     <span class="doccomment">/// For which types array index axioms were generated.
-    </span>array_index_axioms: FxHashSet&lt;<a href="../../../../../../vir/gen/middle/ast/ty/enum.Type.html">vir_mid::Type</a>&gt;,
+    </span>array_index_axioms: FxHashSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
 }
 
 <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">trait </span>PlacesInterface {
@@ -270,10 +271,11 @@
         <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#104">self</a>.<a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/domains/interface.rs.html#132-139">encode_index_access_function_app</a>(<span class="string">&quot;Place&quot;</span>, <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#106">base_place</a>, <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#105">base_type</a>, <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#107">index</a>, <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#108">position</a>)
     }
     <span class="kw">fn </span>encode_place_array_index_axioms(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/middle/ast/ty/enum.Type.html">vir_mid::Type</a>) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <span class="kw">if </span>!<span class="self">self</span>.places_state.array_index_axioms.contains(ty) {
-            <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#112">self</a>.places_state.array_index_axioms.insert(<a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#112">ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <span class="kw">let </span>identifier = <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#112">ty</a>.<a href="../../../../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>();
+        <span class="kw">if </span>!<span class="self">self</span>.places_state.array_index_axioms.contains(<span class="kw-2">&amp;</span>identifier) {
+            <a class="self" href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#112">self</a>.places_state.array_index_axioms.insert(<a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#113">identifier</a>);
             <span class="kw">let </span>position = vir_low::Position::default();
-            <span class="kw">use </span><a href="../../../../../../vir/low/macros/index.html">vir_low::macros</a>::<span class="kw-2">*</span>;
+            <span class="kw">use </span>vir_low::macros::<span class="kw-2">*</span>;
             <span class="kw">let </span>place_type = <span class="self">self</span>.place_type()<span class="question-mark">?</span>;
             <span class="kw">let </span>size_type = <span class="self">self</span>.size_type()<span class="question-mark">?</span>;
             <a class="macro" href="../../../../../../vir/low/macros/macro.var_decls.html">var_decls! </a>{
@@ -311,7 +313,7 @@
             );
             <span class="kw">let </span>axiom = <a href="../../../../../../vir/gen/low/domain/struct.DomainAxiomDecl.html">vir_low::DomainAxiomDecl</a> {
                 name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;index_place$${}$$injectivity_axiom&quot;</span>, ty.get_identifier()),
-                <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#144">body</a>,
+                <a href="../../../../../../src/prusti_viper/encoder/middle/core_proof/places/interface.rs.html#145">body</a>,
             };
             <span class="self">self</span>.declare_axiom(<span class="string">&quot;Place&quot;</span>, axiom)<span class="question-mark">?</span>;
         }

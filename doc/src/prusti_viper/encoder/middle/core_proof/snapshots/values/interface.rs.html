@@ -308,19 +308,18 @@
 <span id="308">308</span>
 <span id="309">309</span>
 <span id="310">310</span>
-<span id="311">311</span>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::encoder::{
     <a href="../../../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#23">errors::SpannedEncodingResult</a>,
     middle::core_proof::{
         <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/addresses/interface.rs.html#17">addresses::AddressesInterface</a>,
-        lowerer::{<a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/domains/interface.rs.html#79">DomainsLowererInterface</a>, <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/mod.rs.html#63">Lowerer</a>},
+        lowerer::{<a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/domains/interface.rs.html#79">DomainsLowererInterface</a>, <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/mod.rs.html#80">Lowerer</a>},
         snapshots::{<a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/context_independent/traits.rs.html#13">IntoSnapshot</a>, <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/adts/interface.rs.html#11">SnapshotAdtsInterface</a>, <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/domains/interface.rs.html#43">SnapshotDomainsInterface</a>},
-        <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/types/interface.rs.html#310">types::TypesInterface</a>,
+        <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/types/interface.rs.html#286">types::TypesInterface</a>,
     },
 };
 <span class="kw">use </span>vir_crate::{
     <a href="../../../../../../../vir/common/expression/trait.UnaryOperationHelpers.html">common::expression::UnaryOperationHelpers</a>,
-    low::{<span class="self"><a href="../../../../../../../vir/low/index.html">self</a> </span><span class="kw">as </span>vir_low},
+    low::{<span class="self"><a href="../../../../../../../vir/low/index.html">self</a> </span><span class="kw">as </span>vir_low, <a href="../../../../../../../vir/low/operations/ty/trait.Typed.html">operations::ty::Typed</a>},
     middle::{<span class="self"><a href="../../../../../../../vir/middle/index.html">self</a> </span><span class="kw">as </span>vir_mid},
 };
 
@@ -487,8 +486,8 @@
     ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a>&gt; {
         <span class="prelude-val">Ok</span>(vir_low::Expression::container_op(
             vir_low::expression::ContainerOpKind::SeqLen,
-            <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/values/interface.rs.html#174">base_snapshot</a>,
-            <span class="bool-val">true</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/values/interface.rs.html#174">base_snapshot</a>.<a href="../../../../../../../vir/low/operations/ty/trait.Typed.html">get_type</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[base_snapshot],
             <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/values/interface.rs.html#175">position</a>,
         ))
     }
@@ -500,8 +499,8 @@
     ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a>&gt; {
         <span class="prelude-val">Ok</span>(vir_low::Expression::container_op(
             vir_low::expression::ContainerOpKind::SeqIndex,
-            <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/values/interface.rs.html#186">base_snapshot</a>,
-            <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/values/interface.rs.html#187">index</a>,
+            <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/values/interface.rs.html#186">base_snapshot</a>.<a href="../../../../../../../vir/low/operations/ty/trait.Typed.html">get_type</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[base_snapshot, index],
             <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/values/interface.rs.html#188">position</a>,
         ))
     }
@@ -603,7 +602,6 @@
     ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a>&gt; {
         <span class="kw">let </span>variant_name = <span class="kw">match </span><a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/values/interface.rs.html#289">ty</a> {
             vir_mid::Type::Enum(ty) =&gt; <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/values/interface.rs.html#294">ty</a>.variant.as_ref().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(),
-            vir_mid::Type::Union(ty) =&gt; <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/values/interface.rs.html#295">ty</a>.variant.as_ref().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(),
             <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;expected enum or union, got: {}&quot;</span>, ty),
         };
         <span class="kw">let </span>enum_ty = <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/values/interface.rs.html#289">ty</a>.forget_variant().unwrap();
@@ -612,10 +610,10 @@
             <span class="self">self</span>.snapshot_constructor_enum_variant_name(<span class="kw-2">&amp;</span>domain_name, variant_name)<span class="question-mark">?</span>;
         <span class="kw">let </span>return_type = enum_ty.to_snapshot(<span class="self">self</span>)<span class="question-mark">?</span>;
         <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/values/interface.rs.html#288">self</a>.<a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/domains/interface.rs.html#100-107">create_domain_func_app</a>(
-            <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/values/interface.rs.html#299">domain_name</a>,
-            <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/values/interface.rs.html#300">function_name</a>,
+            <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/values/interface.rs.html#298">domain_name</a>,
+            <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/values/interface.rs.html#299">function_name</a>,
             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[argument],
-            <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/values/interface.rs.html#302">return_type</a>,
+            <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/values/interface.rs.html#301">return_type</a>,
             <a href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/values/interface.rs.html#291">position</a>,
         )
     }

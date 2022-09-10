@@ -115,6 +115,10 @@
 <span id="115">115</span>
 <span id="116">116</span>
 <span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
 </pre><pre class="rust"><code><span class="kw">use </span><a href="../../../syn/macro.parse_quote.html">syn::parse_quote</a>;
 
 <span class="kw">use </span><a href="../../../src/vir_gen/deriver/common.rs.html#4"><span class="kw">super</span>::common::DeriveInfo</a>;
@@ -140,7 +144,8 @@
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(variant_enum) = find_variant_enum(<span class="kw-2">&amp;</span>items, variant_type) {
                     <span class="kw">let </span>variant_enum_ident = <span class="kw-2">&amp;</span>variant_enum.ident;
                     <span class="macro">parse_quote! </span>{
-                        <span class="attribute">#[must_use]
+                        <span class="attribute">#[allow(clippy::too_many_arguments)]
+                        #[must_use]
                         </span><span class="kw">pub fn </span>#method_name(arg: #variant_enum_ident) -&gt; #enum_ident {
                             #enum_ident::#variant_ident(arg)
                         }
@@ -194,7 +199,8 @@
                     <span class="kw">if </span>parameters.len() != parameters_no_pos.len() {
                         <span class="kw">let </span>new_method_name = append_ident(<span class="kw-2">&amp;</span>method_name, <span class="string">&quot;_no_pos&quot;</span>);
                         <span class="kw">let </span>additional_method = <span class="macro">parse_quote! </span>{
-                            <span class="attribute">#[must_use]
+                            <span class="attribute">#[allow(clippy::too_many_arguments)]
+                            #[must_use]
                             </span><span class="kw">pub fn </span>#new_method_name(#(#parameters_no_pos),<span class="kw-2">*</span>) -&gt; #enum_ident {
                                 #enum_ident::#variant_ident(#variant_struct_ident {
                                     position: Default::default(),
@@ -205,7 +211,8 @@
                         helpers.push(additional_method);
                     }
                     <span class="macro">parse_quote! </span>{
-                        <span class="attribute">#[must_use]
+                        <span class="attribute">#[allow(clippy::too_many_arguments)]
+                        #[must_use]
                         </span><span class="kw">pub fn </span>#method_name(#(#parameters),<span class="kw-2">*</span>) -&gt; #enum_ident {
                             #enum_ident::#variant_ident(#variant_struct_ident {
                                 #(#fields),*
@@ -215,7 +222,8 @@
                 }
             } <span class="kw">else </span>{
                 <span class="macro">parse_quote! </span>{
-                    <span class="attribute">#[must_use]
+                    <span class="attribute">#[allow(clippy::too_many_arguments)]
+                    #[must_use]
                     </span><span class="kw">pub fn </span>#method_name() -&gt; #enum_ident {
                         #enum_ident::#variant_ident
                     }

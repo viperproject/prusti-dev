@@ -117,44 +117,62 @@
 <span id="117">117</span>
 <span id="118">118</span>
 <span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-</span><span class="kw">use </span><a href="../../../src/prusti_interface/environment/mod.rs.html#51"><span class="kw">crate</span>::environment::Environment</a>;
+</span><span class="kw">use super</span>::{<a href="../../../src/prusti_interface/environment/name.rs.html#8">EnvName</a>, <a href="../../../src/prusti_interface/environment/query.rs.html#27">EnvQuery</a>};
+<span class="kw">use crate</span>::{
+    <a href="../../../src/prusti_interface/environment/mod.rs.html#51">environment::Environment</a>,
+    utils::{<a href="../../../src/prusti_interface/utils.rs.html#228">has_extern_spec_attr</a>, <a href="../../../src/prusti_interface/utils.rs.html#223">has_spec_only_attr</a>},
+};
+<span class="kw">use </span><a href="../../../log/macro.trace.html">log::trace</a>;
 <span class="kw">use </span>prusti_rustc_interface::{
     hir,
     hir::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">def_id::DefId</a>, intravisit::Visitor},
+    <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">middle::ty</a>,
 };
-
-<span class="kw">use </span><a href="../../../log/macro.trace.html">log::trace</a>;
-
-<span class="kw">use </span><span class="kw">crate</span>::utils::{<a href="../../../src/prusti_interface/utils.rs.html#228">has_extern_spec_attr</a>, <a href="../../../src/prusti_interface/utils.rs.html#223">has_spec_only_attr</a>};
-
-<span class="kw">use super</span>::{<a href="../../../src/prusti_interface/environment/name.rs.html#8">EnvName</a>, <a href="../../../src/prusti_interface/environment/query.rs.html#27">EnvQuery</a>};
 
 <span class="kw">pub struct </span>CollectPrustiSpecVisitor&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     env_query: EnvQuery&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     env_name: EnvName&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    result: Vec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>&gt;,
+    procedures: Vec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>&gt;,
+    types: Vec&lt;ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; CollectPrustiSpecVisitor&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">pub fn </span>new(env: <span class="kw-2">&amp;</span>Environment&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self </span>{
         <a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#19">CollectPrustiSpecVisitor</a> {
-            env_query: <a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#26">env</a>.query,
-            env_name: <a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#26">env</a>.name,
-            result: Vec::new(),
+            env_query: <a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#27">env</a>.query,
+            env_name: <a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#27">env</a>.name,
+            procedures: Vec::new(),
+            types: Vec::new(),
         }
     }
-    <span class="kw">pub fn </span>get_annotated_procedures(<span class="self">self</span>) -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>&gt; {
-        <a class="self" href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#33">self</a>.result
+
+    <span class="kw">pub fn </span>into_result(<span class="self">self</span>) -&gt; (Vec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>&gt;, Vec&lt;ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;) {
+        (<a class="self" href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#36">self</a>.procedures, <a class="self" href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#36">self</a>.types)
     }
 
     <span class="kw">pub fn </span>visit_all_item_likes(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span>items = <a class="self" href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#37">self</a>.env_query.<a href="../../../src/prusti_interface/environment/query.rs.html#37">tcx</a>().hir_crate_items(());
+        <span class="kw">let </span>items = <a class="self" href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#40">self</a>.env_query.<a href="../../../src/prusti_interface/environment/query.rs.html#37">tcx</a>().hir_crate_items(());
         <span class="kw">for </span>id <span class="kw">in </span>items.items() {
             <span class="self">self</span>.visit_item(<span class="self">self</span>.env_query.hir().item(id));
         }
@@ -172,64 +190,76 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; Visitor&lt;<span class="lifetime">&#39;tcx</span>&gt; <span class="kw">for </span>CollectPrustiSpecVisitor&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">fn </span>visit_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, item: <span class="kw-2">&amp;</span>hir::Item) {
-        <span class="kw">let </span>attrs = <a class="self" href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#55">self</a>.env_query.<a href="../../../src/prusti_interface/environment/query.rs.html#67">get_local_attributes</a>(<a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#55">item</a>.def_id);
+        <span class="kw">let </span>attrs = <a class="self" href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#58">self</a>.env_query.<a href="../../../src/prusti_interface/environment/query.rs.html#67">get_local_attributes</a>(<a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#58">item</a>.def_id);
         <span class="kw">if </span>has_spec_only_attr(attrs) || has_extern_spec_attr(attrs) {
             <span class="kw">return</span>;
         }
-        <span class="kw">if let </span>hir::ItemKind::Fn(..) = <a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#55">item</a>.kind {
-            <span class="kw">let </span>def_id = <a class="self" href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#55">self</a>.env_query.<a href="../../../src/prusti_interface/environment/query.rs.html#58">as_local_def_id</a>(<a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#55">item</a>.hir_id()).to_def_id();
-            <span class="kw">let </span>item_def_path = <a class="self" href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#55">self</a>.env_name.<a href="../../../src/prusti_interface/environment/name.rs.html#45">get_item_def_path</a>(<a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#61">def_id</a>);
-            <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Add {} to result&quot;</span>, item_def_path);
-            <a class="self" href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#55">self</a>.result.push(<a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#61">def_id</a>);
+        <span class="kw">if let </span>hir::ItemKind::Fn(..) = <a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#58">item</a>.kind {
+            <span class="kw">let </span>def_id = <a class="self" href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#58">self</a>.env_query.<a href="../../../src/prusti_interface/environment/query.rs.html#58">as_local_def_id</a>(<a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#58">item</a>.hir_id()).to_def_id();
+            <span class="kw">let </span>item_def_path = <a class="self" href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#58">self</a>.env_name.<a href="../../../src/prusti_interface/environment/name.rs.html#45">get_item_def_path</a>(<a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#64">def_id</a>);
+            <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Add {} to procedures&quot;</span>, item_def_path);
+            <a class="self" href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#58">self</a>.procedures.push(<a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#64">def_id</a>);
+        }
+        <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(
+            item.kind,
+            hir::ItemKind::Enum(..) | hir::ItemKind::Struct(..) | hir::ItemKind::Union(..)
+        ) {
+            <span class="kw">let </span>def_id = <a class="self" href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#58">self</a>.env_query.<a href="../../../src/prusti_interface/environment/query.rs.html#58">as_local_def_id</a>(<a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#58">item</a>.hir_id()).to_def_id();
+            <span class="kw">let </span>adt_def = <a class="self" href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#58">self</a>.env_query.<a href="../../../src/prusti_interface/environment/query.rs.html#37">tcx</a>().adt_def(<a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#73">def_id</a>);
+            <span class="kw">let </span>ty = <span class="self"><a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#58">self</a>
+                </span>.env_query
+                .<a href="../../../src/prusti_interface/environment/query.rs.html#37">tcx</a>()
+                .mk_adt(<a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#74">adt_def</a>, <a class="self" href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#58">self</a>.env_query.<a href="../../../src/prusti_interface/environment/query.rs.html#406">identity_substs</a>(<a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#73">def_id</a>));
+            <a class="self" href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#58">self</a>.types.push(<a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#75">ty</a>);
         }
     }
 
     <span class="kw">fn </span>visit_trait_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, trait_item: <span class="kw-2">&amp;</span>hir::TraitItem) {
-        <span class="kw">let </span>attrs = <a class="self" href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#68">self</a>.env_query.<a href="../../../src/prusti_interface/environment/query.rs.html#67">get_local_attributes</a>(<a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#68">trait_item</a>.def_id);
+        <span class="kw">let </span>attrs = <a class="self" href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#83">self</a>.env_query.<a href="../../../src/prusti_interface/environment/query.rs.html#67">get_local_attributes</a>(<a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#83">trait_item</a>.def_id);
         <span class="kw">if </span>has_spec_only_attr(attrs) || has_extern_spec_attr(attrs) {
             <span class="kw">return</span>;
         }
 
         <span class="comment">// Skip associated types and other non-methods items
-        </span><span class="kw">if let </span>hir::TraitItemKind::Fn(..) = <a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#68">trait_item</a>.kind {
+        </span><span class="kw">if let </span>hir::TraitItemKind::Fn(..) = <a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#83">trait_item</a>.kind {
             <span class="comment">// continue
         </span>} <span class="kw">else </span>{
             <span class="kw">return</span>;
         }
 
         <span class="comment">// Skip body-less trait methods
-        </span><span class="kw">if let </span>hir::TraitItemKind::Fn(<span class="kw">_</span>, hir::TraitFn::Required(<span class="kw">_</span>)) = <a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#68">trait_item</a>.kind {
+        </span><span class="kw">if let </span>hir::TraitItemKind::Fn(<span class="kw">_</span>, hir::TraitFn::Required(<span class="kw">_</span>)) = <a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#83">trait_item</a>.kind {
             <span class="kw">return</span>;
         }
-        <span class="kw">let </span>def_id = <span class="self"><a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#68">self</a>
+        <span class="kw">let </span>def_id = <span class="self"><a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#83">self</a>
             </span>.env_query
-            .<a href="../../../src/prusti_interface/environment/query.rs.html#58">as_local_def_id</a>(<a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#68">trait_item</a>.hir_id())
+            .<a href="../../../src/prusti_interface/environment/query.rs.html#58">as_local_def_id</a>(<a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#83">trait_item</a>.hir_id())
             .to_def_id();
-        <span class="kw">let </span>item_def_path = <a class="self" href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#68">self</a>.env_name.<a href="../../../src/prusti_interface/environment/name.rs.html#45">get_item_def_path</a>(<a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#85">def_id</a>);
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Add {} to result&quot;</span>, item_def_path);
-        <a class="self" href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#68">self</a>.result.push(<a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#85">def_id</a>);
+        <span class="kw">let </span>item_def_path = <a class="self" href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#83">self</a>.env_name.<a href="../../../src/prusti_interface/environment/name.rs.html#45">get_item_def_path</a>(<a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#100">def_id</a>);
+        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Add {} to procedures&quot;</span>, item_def_path);
+        <a class="self" href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#83">self</a>.procedures.push(<a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#100">def_id</a>);
     }
 
     <span class="kw">fn </span>visit_impl_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, impl_item: <span class="kw-2">&amp;</span>hir::ImplItem) {
-        <span class="kw">let </span>attrs = <a class="self" href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#94">self</a>.env_query.<a href="../../../src/prusti_interface/environment/query.rs.html#67">get_local_attributes</a>(<a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#94">impl_item</a>.def_id);
+        <span class="kw">let </span>attrs = <a class="self" href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#109">self</a>.env_query.<a href="../../../src/prusti_interface/environment/query.rs.html#67">get_local_attributes</a>(<a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#109">impl_item</a>.def_id);
         <span class="kw">if </span>has_spec_only_attr(attrs) || has_extern_spec_attr(attrs) {
             <span class="kw">return</span>;
         }
 
         <span class="comment">// Skip associated types and other non-methods items
-        </span><span class="kw">if let </span>hir::ImplItemKind::Fn(..) = <a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#94">impl_item</a>.kind {
+        </span><span class="kw">if let </span>hir::ImplItemKind::Fn(..) = <a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#109">impl_item</a>.kind {
             <span class="comment">// continue
         </span>} <span class="kw">else </span>{
             <span class="kw">return</span>;
         }
 
-        <span class="kw">let </span>def_id = <span class="self"><a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#94">self</a>
+        <span class="kw">let </span>def_id = <span class="self"><a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#109">self</a>
             </span>.env_query
-            .<a href="../../../src/prusti_interface/environment/query.rs.html#58">as_local_def_id</a>(<a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#94">impl_item</a>.hir_id())
+            .<a href="../../../src/prusti_interface/environment/query.rs.html#58">as_local_def_id</a>(<a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#109">impl_item</a>.hir_id())
             .to_def_id();
-        <span class="kw">let </span>item_def_path = <a class="self" href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#94">self</a>.env_name.<a href="../../../src/prusti_interface/environment/name.rs.html#45">get_item_def_path</a>(<a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#107">def_id</a>);
-        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Add {} to result&quot;</span>, item_def_path);
-        <a class="self" href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#94">self</a>.result.push(<a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#107">def_id</a>);
+        <span class="kw">let </span>item_def_path = <a class="self" href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#109">self</a>.env_name.<a href="../../../src/prusti_interface/environment/name.rs.html#45">get_item_def_path</a>(<a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#122">def_id</a>);
+        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Add {} to procedures&quot;</span>, item_def_path);
+        <a class="self" href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#109">self</a>.procedures.push(<a href="../../../src/prusti_interface/environment/collect_prusti_spec_visitor.rs.html#122">def_id</a>);
     }
 
     <span class="kw">fn </span>visit_foreign_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _foreign_item: <span class="kw-2">&amp;</span>hir::ForeignItem) {
