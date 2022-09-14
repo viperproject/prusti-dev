@@ -79,7 +79,7 @@ impl DefSpecificationMap {
                     specs.extend(posts);
                 }
                 if let Some(Some(term)) = spec.terminates.extract_with_selective_replacement() {
-                    specs.push(term.to_def_id());
+                    specs.push(*term);
                 }
                 if let Some(pledges) = spec.pledges.extract_with_selective_replacement() {
                     specs.extend(pledges.iter().filter_map(|pledge| pledge.lhs));
@@ -100,6 +100,12 @@ impl DefSpecificationMap {
         }
         for spec in self.type_specs.values() {
             if let Some(invariants) = spec.invariant.extract_with_selective_replacement() {
+                specs.extend(invariants);
+            }
+            if let Some(invariants) = spec
+                .structural_invariant
+                .extract_with_selective_replacement()
+            {
                 specs.extend(invariants);
             }
         }
@@ -202,7 +208,7 @@ pub struct ProcedureSpecification {
     pub posts: SpecificationItem<Vec<DefId>>,
     pub pledges: SpecificationItem<Vec<Pledge>>,
     pub trusted: SpecificationItem<bool>,
-    pub terminates: SpecificationItem<Option<LocalDefId>>,
+    pub terminates: SpecificationItem<Option<DefId>>,
 }
 
 impl ProcedureSpecification {
@@ -264,6 +270,7 @@ pub struct TypeSpecification {
     // `extern_spec` for type invs is supported it could differ.
     pub source: DefId,
     pub invariant: SpecificationItem<Vec<DefId>>,
+    pub structural_invariant: SpecificationItem<Vec<DefId>>,
     pub trusted: SpecificationItem<bool>,
     pub model: Option<(String, LocalDefId)>,
     pub counterexample_print: Vec<(Option<String>, LocalDefId)>,
@@ -274,6 +281,7 @@ impl TypeSpecification {
         TypeSpecification {
             source,
             invariant: SpecificationItem::Empty,
+            structural_invariant: SpecificationItem::Empty,
             trusted: SpecificationItem::Inherent(false),
             model: None,
             counterexample_print: vec![],
@@ -453,7 +461,7 @@ impl SpecGraph<ProcedureSpecification> {
     }
 
     /// Sets the termination flag for the base spec and all constrained specs.
-    pub fn set_terminates(&mut self, terminates: LocalDefId) {
+    pub fn set_terminates(&mut self, terminates: DefId) {
         self.base_spec.terminates.set(Some(terminates));
         self.specs_with_constraints
             .values_mut()

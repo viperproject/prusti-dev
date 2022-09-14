@@ -2,7 +2,10 @@ use crate::encoder::{
     errors::{ErrorCtxt, SpannedEncodingResult},
     high::types::HighTypeEncoderInterface,
     middle::core_proof::{
+        addresses::AddressesInterface,
+        heap::HeapInterface,
         lowerer::{Lowerer, VariablesLowererInterface},
+        pointers::PointersInterface,
         references::ReferencesInterface,
         snapshots::{
             IntoProcedureSnapshot, IntoSnapshot, SnapshotValidityInterface, SnapshotValuesInterface,
@@ -15,6 +18,7 @@ use crate::encoder::{
 
 use std::collections::BTreeMap;
 use vir_crate::{
+    common::check_mode::CheckMode,
     low::{self as vir_low},
     middle::{self as vir_mid, operations::ty::Typed},
 };
@@ -28,12 +32,21 @@ trait Private {
         ty: &vir_mid::Type,
         version: u64,
     ) -> SpannedEncodingResult<vir_low::VariableDecl>;
+    fn create_snapshot_variable_low(
+        &mut self,
+        name: &str,
+        ty: vir_low::Type,
+        version: u64,
+    ) -> SpannedEncodingResult<vir_low::VariableDecl>;
     #[allow(clippy::ptr_arg)] // Clippy false positive.
+    /// Note: if `new_snapshot_root` is `Some`, the current encoding assumes
+    /// that the `place` is not behind a raw pointer.
     fn snapshot_copy_except(
         &mut self,
         statements: &mut Vec<vir_low::Statement>,
-        old_snapshot_root: vir_low::VariableDecl,
-        new_snapshot_root: vir_low::VariableDecl,
+        base: vir_mid::VariableDecl,
+        // old_snapshot_root: vir_low::Expression,
+        // new_snapshot_root: vir_low::Expression,
         place: &vir_mid::Expression,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<(vir_low::Expression, vir_low::Expression)>;
@@ -46,8 +59,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         ty: &vir_mid::Type,
         version: u64,
     ) -> SpannedEncodingResult<vir_low::VariableDecl> {
-        let name = format!("{}$snapshot${}", name, version);
+        // let name = format!("{}$snapshot${}", name, version);
         let ty = ty.to_snapshot(self)?;
+        // self.create_variable(name, ty)
+        self.create_snapshot_variable_low(name, ty, version)
+    }
+    fn create_snapshot_variable_low(
+        &mut self,
+        name: &str,
+        ty: vir_low::Type,
+        version: u64,
+    ) -> SpannedEncodingResult<vir_low::VariableDecl> {
+        let name = format!("{}$snapshot${}", name, version);
         self.create_variable(name, ty)
     }
     /// Copy all values of the old snapshot into the new snapshot, except the
@@ -57,27 +80,72 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
     fn snapshot_copy_except(
         &mut self,
         statements: &mut Vec<vir_low::Statement>,
-        old_snapshot_root: vir_low::VariableDecl,
-        new_snapshot_root: vir_low::VariableDecl,
+        base: vir_mid::VariableDecl,
+        // old_snapshot_root: vir_low::Expression,
+        // new_snapshot_root: vir_low::Expression,
         place: &vir_mid::Expression,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<(vir_low::Expression, vir_low::Expression)> {
         use vir_low::macros::*;
         if let Some(parent) = place.get_parent_ref() {
-            let (old_snapshot, new_snapshot) = self.snapshot_copy_except(
-                statements,
-                old_snapshot_root,
-                new_snapshot_root,
-                parent,
-                position,
-            )?;
             let parent_type = parent.get_type();
+            let (old_snapshot, new_snapshot) =
+                if let vir_mid::Type::Pointer(pointer_type) = parent_type {
+                    let fresh_heap_chunk = self.fresh_heap_chunk(position)?;
+                    let heap_chunk = self.heap_chunk_to_snapshot(
+                        &pointer_type.target_type,
+                        fresh_heap_chunk.clone().into(),
+                        position,
+                    )?;
+                    if self.use_heap_variable()? {
+                        let old_snapshot = parent.to_procedure_snapshot(self)?; // FIXME: This is most likely wrong.
+                        let old_target_snapshot = self.pointer_target_snapshot(
+                            parent.get_type(),
+                            &None,
+                            old_snapshot.clone(),
+                            position,
+                        )?;
+                        let old_heap = self.heap_variable_version_at_label(&None)?;
+
+                        // Note: All `old_*` need to be computed before the heap version
+                        // is incremented.
+                        let new_heap = self.new_heap_variable_version(position)?;
+                        let address =
+                            self.pointer_address(parent.get_type(), old_snapshot, position)?;
+                        statements.push(vir_low::Statement::assign(
+                            new_heap,
+                            self.heap_update(
+                                old_heap.into(),
+                                address,
+                                fresh_heap_chunk.clone().into(),
+                                position,
+                            )?,
+                            // vir_low::Expression::container_op(
+                            //     vir_low::ContainerOpKind::MapUpdate,
+                            //     self.heap_type()?,
+                            //     vec![old_heap.into(), address, fresh_heap_chunk.into()],
+                            //     position,
+                            // ),
+                            position,
+                        ));
+                        return Ok((old_target_snapshot, heap_chunk));
+                    } else {
+                        return Ok((heap_chunk.clone(), heap_chunk));
+                    }
+                } else {
+                    self.snapshot_copy_except(
+                        statements, base,
+                        // old_snapshot_root,
+                        // new_snapshot_root,
+                        parent, position,
+                    )?
+                };
+
             let type_decl = self.encoder.get_type_decl_mid(parent_type)?;
             match &type_decl {
                 vir_mid::TypeDecl::Bool
                 | vir_mid::TypeDecl::Int(_)
-                | vir_mid::TypeDecl::Float(_)
-                | vir_mid::TypeDecl::Pointer(_) => {
+                | vir_mid::TypeDecl::Float(_) => {
                     unreachable!("place: {}", place);
                 }
                 vir_mid::TypeDecl::Trusted(_) | vir_mid::TypeDecl::TypeVar(_) => {
@@ -231,6 +299,38 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                         unimplemented!("Place: {}", place);
                     }
                 }
+                vir_mid::TypeDecl::Pointer(_decl) => {
+                    unreachable!("Should be handled by the caller.");
+                    // let fresh_heap_chunk = self.fresh_heap_chunk()?;
+                    // let heap_chunk = self.heap_chunk_to_snapshot(
+                    //     &decl.target_type,
+                    //     fresh_heap_chunk.clone().into(),
+                    //     position,
+                    // )?;
+                    // let old_heap = self.heap_variable_version_at_label(&None)?;
+                    // let new_heap = self.new_heap_variable_version(position)?;
+                    // let address =
+                    //     self.pointer_address(parent_type, old_snapshot.clone(), position)?;
+                    // statements.push(vir_low::Statement::assign(
+                    //     new_heap,
+                    //     vir_low::Expression::container_op(
+                    //         vir_low::ContainerOpKind::MapUpdate,
+                    //         self.heap_type()?,
+                    //         vec![old_heap.into(), address, fresh_heap_chunk.into()],
+                    //         position,
+                    //     ),
+                    //     position,
+                    // ));
+                    // // statements.push(vir_low::Statement::assume(
+                    // //     vir_low::Expression::equals(
+                    // //         heap_chunk.clone(),
+
+                    // //     )
+                    // // ));
+                    // let old_target_snapshot =
+                    //     self.pointer_target_snapshot(parent_type, &None, old_snapshot, position)?;
+                    // Ok((old_target_snapshot, heap_chunk))
+                }
                 vir_mid::TypeDecl::Sequence(_) => unimplemented!("ty: {}", type_decl),
                 vir_mid::TypeDecl::Map(_) => unimplemented!("ty: {}", type_decl),
                 vir_mid::TypeDecl::Never => unimplemented!("ty: {}", type_decl),
@@ -238,6 +338,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 vir_mid::TypeDecl::Unsupported(_) => unimplemented!("ty: {}", type_decl),
             }
         } else {
+            let old_snapshot_root = base.to_procedure_snapshot(self)?;
+            let new_snapshot_root = self.new_snapshot_variable_version(&base, position)?;
             // We reached the root. Nothing to do here.
             Ok((old_snapshot_root.into(), new_snapshot_root.into()))
         }
@@ -263,21 +365,40 @@ pub(in super::super::super) trait SnapshotVariablesInterface {
         variable: &vir_mid::VariableDecl,
         label: &str,
     ) -> SpannedEncodingResult<vir_low::VariableDecl>;
+    fn use_heap_variable(&self) -> SpannedEncodingResult<bool>;
+    fn heap_variable_name(&self) -> SpannedEncodingResult<&'static str>;
+    fn new_heap_variable_version(
+        &mut self,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::VariableDecl>;
+    fn heap_variable_version_at_label(
+        &mut self,
+        old_label: &Option<String>,
+    ) -> SpannedEncodingResult<vir_low::VariableDecl>;
+    fn address_variable_version_at_label(
+        &mut self,
+        variable_name: &str,
+        old_label: &Option<String>,
+    ) -> SpannedEncodingResult<vir_low::VariableDecl>;
+    fn fresh_heap_chunk(
+        &mut self,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::VariableDecl>;
     fn encode_snapshot_havoc(
         &mut self,
         statements: &mut Vec<vir_low::Statement>,
         target: &vir_mid::Expression,
         position: vir_low::Position,
-        new_snapshot: Option<vir_low::VariableDecl>,
-    ) -> SpannedEncodingResult<()>;
+        // new_snapshot: Option<vir_low::VariableDecl>,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
     fn encode_snapshot_update_with_new_snapshot(
         &mut self,
         statements: &mut Vec<vir_low::Statement>,
         target: &vir_mid::Expression,
         value: vir_low::Expression,
         position: vir_low::Position,
-        new_snapshot: Option<vir_low::VariableDecl>,
-    ) -> SpannedEncodingResult<()>;
+        // new_snapshot: Option<vir_low::VariableDecl>,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
     #[allow(clippy::ptr_arg)] // Clippy false positive.
     fn encode_snapshot_update(
         &mut self,
@@ -308,10 +429,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotVariablesInterface for Lowerer<'p, 'v, 'tcx> 
         variable: &vir_mid::VariableDecl,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::VariableDecl> {
-        let new_version = self
-            .snapshots_state
-            .all_variables
-            .new_version_or_default(variable, position);
+        let ty = variable.ty.to_snapshot(self)?;
+        let new_version = self.snapshots_state.all_variables.new_version_or_default(
+            &variable.name,
+            &ty,
+            position,
+        );
         self.snapshots_state
             .current_variables
             .as_mut()
@@ -350,37 +473,173 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotVariablesInterface for Lowerer<'p, 'v, 'tcx> 
             .get_or_default(&variable.name);
         self.create_snapshot_variable(&variable.name, &variable.ty, version)
     }
+    fn use_heap_variable(&self) -> SpannedEncodingResult<bool> {
+        Ok(self.check_mode.unwrap().is_purification_group())
+    }
+    fn heap_variable_name(&self) -> SpannedEncodingResult<&'static str> {
+        assert!(
+            self.use_heap_variable()?,
+            "The heap variable is not used when the check mode is Both"
+        );
+        Ok("heap$")
+    }
+    fn new_heap_variable_version(
+        &mut self,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::VariableDecl> {
+        // let name = "heap$";
+        let name = self.heap_variable_name()?;
+        let ty = self.heap_type()?;
+        let new_version = self
+            .snapshots_state
+            .all_variables
+            .new_version_or_default(name, &ty, position);
+        self.snapshots_state
+            .current_variables
+            .as_mut()
+            .unwrap()
+            .set(name.to_string(), new_version);
+        self.create_snapshot_variable_low(name, ty, new_version)
+    }
+    fn heap_variable_version_at_label(
+        &mut self,
+        old_label: &Option<String>,
+    ) -> SpannedEncodingResult<vir_low::VariableDecl> {
+        // let name = "heap$";
+        let name = self.heap_variable_name()?;
+        let version = if let Some(label) = old_label {
+            self.snapshots_state
+                .variables_at_label
+                .get(label)
+                .unwrap_or_else(|| panic!("not found label {}", label))
+                .get_or_default(name)
+        } else {
+            self.snapshots_state
+                .current_variables
+                .as_ref()
+                .unwrap()
+                .get_or_default(name)
+        };
+        let ty = self.heap_type()?;
+        // let name = format!("{}${}", name, version);
+        // self.create_variable(name, ty)
+        self.create_snapshot_variable_low(name, ty, version)
+    }
+    fn address_variable_version_at_label(
+        &mut self,
+        variable_name: &str,
+        old_label: &Option<String>,
+    ) -> SpannedEncodingResult<vir_low::VariableDecl> {
+        let name = format!("{}$address", variable_name);
+        let version = if let Some(label) = old_label {
+            self.snapshots_state
+                .variables_at_label
+                .get(label)
+                .unwrap_or_else(|| panic!("not found label {}", label))
+                .get_or_default(&name)
+        } else {
+            self.snapshots_state
+                .current_variables
+                .as_ref()
+                .unwrap()
+                .get_or_default(&name)
+        };
+        let ty = self.address_type()?;
+        self.create_snapshot_variable_low(&name, ty, version)
+    }
+    fn fresh_heap_chunk(
+        &mut self,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::VariableDecl> {
+        let name = "heap_chunk$";
+        let ty = self.heap_chunk_type()?;
+        let new_version = self
+            .snapshots_state
+            .all_variables
+            .new_version_or_default(name, &ty, position);
+        self.snapshots_state
+            .current_variables
+            .as_mut()
+            .unwrap()
+            .set(name.to_string(), new_version);
+        // let name = format!("{}${}", name, new_version);
+        // self.create_variable(name, ty)
+        self.create_snapshot_variable_low(name, ty, new_version)
+    }
     fn encode_snapshot_havoc(
         &mut self,
         statements: &mut Vec<vir_low::Statement>,
         target: &vir_mid::Expression,
         position: vir_low::Position,
-        new_snapshot: Option<vir_low::VariableDecl>,
-    ) -> SpannedEncodingResult<()> {
+        // new_snapshot_root: Option<vir_low::VariableDecl>,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        // let base = target.get_base();
+        // self.ensure_type_definition(&base.ty)?;
+        // let old_snapshot = base.to_procedure_snapshot(self)?;
+        // let new_snapshot = if let Some(new_snapshot) = new_snapshot {
+        //     new_snapshot
+        // } else {
+        //     self.new_snapshot_variable_version(&base, position)?
+        // };
+        // self.snapshot_copy_except(statements, old_snapshot, new_snapshot, target, position)?;
+        // Ok(())
         let base = target.get_base();
         self.ensure_type_definition(&base.ty)?;
-        let old_snapshot = base.to_procedure_snapshot(self)?;
-        let new_snapshot = if let Some(new_snapshot) = new_snapshot {
-            new_snapshot
-        } else {
-            self.new_snapshot_variable_version(&base, position)?
-        };
-        self.snapshot_copy_except(statements, old_snapshot, new_snapshot, target, position)?;
-        Ok(())
+
+        // if let Some(pointer_place) = target.get_last_dereferenced_pointer() {
+        //     let pointer_type = pointer_place.get_type().clone().unwrap_pointer();
+        //     let fresh_heap_chunk = self.fresh_heap_chunk()?;
+        //     let heap_chunk = self.heap_chunk_to_snapshot(
+        //         &pointer_type.target_type,
+        //         fresh_heap_chunk.clone().into(),
+        //         position,
+        //     )?;
+        //     let old_heap = self.heap_variable_version_at_label(&None)?;
+        //     let new_heap = self.new_heap_variable_version(position)?;
+        //     let address =
+        //         self.pointer_address(pointer_place.get_type(), old_snapshot.clone().into(), position)?;
+        //     statements.push(vir_low::Statement::assign(
+        //         new_heap,
+        //         vir_low::Expression::container_op(
+        //             vir_low::ContainerOpKind::MapUpdate,
+        //             self.heap_type()?,
+        //             vec![old_heap.into(), address, fresh_heap_chunk.into()],
+        //             position,
+        //         ),
+        //         position,
+        //     ));
+        //     let old_target_snapshot =
+        //         self.pointer_target_snapshot(pointer_place.get_type(), &None, old_snapshot.into(), position)?;
+        //     // Ok((old_target_snapshot, heap_chunk)
+        //     let (_old_snapshot, new_snapshot) =
+        //         self.snapshot_copy_except(statements, old_target_snapshot, heap_chunk, pointer_place, position)?;
+        //     Ok(new_snapshot)
+        // } else {
+
+        // let (_old_snapshot, new_snapshot) =
+        //     self.snapshot_copy_except(statements, old_snapshot, new_snapshot, target, position)?;
+        let (_old_snapshot, new_snapshot) =
+            self.snapshot_copy_except(statements, base, target, position)?;
+        Ok(new_snapshot)
+        // }
     }
+    /// `new_snapshot_root` is used when we want to use a specific variable
+    /// version as the root of the new snapshot.
     fn encode_snapshot_update_with_new_snapshot(
         &mut self,
         statements: &mut Vec<vir_low::Statement>,
         target: &vir_mid::Expression,
         value: vir_low::Expression,
         position: vir_low::Position,
-        new_snapshot: Option<vir_low::VariableDecl>,
-    ) -> SpannedEncodingResult<()> {
+        // new_snapshot_root: Option<vir_low::VariableDecl>,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
         use vir_low::macros::*;
-        self.encode_snapshot_havoc(statements, target, position, new_snapshot)?;
-        statements
-            .push(stmtp! { position => assume ([target.to_procedure_snapshot(self)?] == [value]) });
-        Ok(())
+        // self.encode_snapshot_havoc(statements, target, position, new_snapshot)?;
+        // statements
+        //     .push(stmtp! { position => assume ([target.to_procedure_snapshot(self)?] == [value]) });
+        let new_snapshot = self.encode_snapshot_havoc(statements, target, position)?;
+        statements.push(stmtp! { position => assume ([new_snapshot.clone()] == [value]) });
+        Ok(new_snapshot)
     }
     fn encode_snapshot_update(
         &mut self,
@@ -389,7 +648,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotVariablesInterface for Lowerer<'p, 'v, 'tcx> 
         value: vir_low::Expression,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()> {
-        self.encode_snapshot_update_with_new_snapshot(statements, target, value, position, None)
+        self.encode_snapshot_update_with_new_snapshot(statements, target, value, position)?;
+        Ok(())
     }
     /// `basic_block_edges` are statements to be executed then going from one
     /// block to another.
@@ -420,7 +680,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotVariablesInterface for Lowerer<'p, 'v, 'tcx> 
                     .all_variables
                     .get_type(&variable)
                     .clone();
-                let new_variable = self.create_snapshot_variable(&variable, &ty, new_version)?;
+                let new_variable =
+                    self.create_snapshot_variable_low(&variable, ty.clone(), new_version)?;
                 for predecessor_label in predecessor_labels {
                     let old_version =
                         self.snapshots_state.variables[predecessor_label].get_or_default(&variable);
@@ -430,7 +691,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotVariablesInterface for Lowerer<'p, 'v, 'tcx> 
                         .entry(label.clone())
                         .or_default();
                     let old_variable =
-                        self.create_snapshot_variable(&variable, &ty, old_version)?;
+                        self.create_snapshot_variable_low(&variable, ty.clone(), old_version)?;
                     let position = self.encoder.change_error_context(
                         // FIXME: Get a more precise span.
                         self.snapshots_state.all_variables.get_position(&variable),

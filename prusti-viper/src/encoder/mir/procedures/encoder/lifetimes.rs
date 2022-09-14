@@ -1104,10 +1104,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
         permission_amount: vir_high::Expression,
     ) -> SpannedEncodingResult<vir_high::Statement> {
         self.encoder.set_statement_error_ctxt(
-            vir_high::Statement::inhale_no_pos(vir_high::Predicate::lifetime_token_no_pos(
-                lifetime_const,
-                permission_amount,
-            )),
+            vir_high::Statement::inhale_predicate_no_pos(
+                vir_high::Predicate::lifetime_token_no_pos(lifetime_const, permission_amount),
+            ),
             self.mir.span,
             ErrorCtxt::LifetimeInhale,
             self.def_id,
@@ -1140,10 +1139,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
         permission_amount: vir_high::Expression,
     ) -> SpannedEncodingResult<vir_high::Statement> {
         self.encoder.set_statement_error_ctxt(
-            vir_high::Statement::exhale_no_pos(vir_high::Predicate::lifetime_token_no_pos(
-                lifetime_const,
-                permission_amount,
-            )),
+            vir_high::Statement::exhale_predicate_no_pos(
+                vir_high::Predicate::lifetime_token_no_pos(lifetime_const, permission_amount),
+            ),
             self.mir.span,
             ErrorCtxt::LifetimeExhale,
             self.def_id,

@@ -1,17 +1,27 @@
 use crate::encoder::{
     errors::SpannedEncodingResult,
     middle::core_proof::{
+        addresses::AddressesInterface,
         builtin_methods::CallContext,
         lifetimes::LifetimesInterface,
         lowerer::Lowerer,
-        predicates::owned::builders::{
-            unique_ref::predicate_use::UniqueRefUseBuilder, FracRefUseBuilder,
+        places::PlacesInterface,
+        pointers::PointersInterface,
+        predicates::{
+            owned::builders::FracRefUseBuilder, PredicatesMemoryBlockInterface,
+            PredicatesOwnedInterface,
         },
         references::ReferencesInterface,
-        snapshots::{IntoPureSnapshot, SnapshotValidityInterface, SnapshotValuesInterface},
+        snapshots::{
+            IntoPureSnapshot, IntoSnapshot, IntoSnapshotLowerer, PredicateKind,
+            SelfFramingAssertionToSnapshot, SnapshotBytesInterface, SnapshotValidityInterface,
+            SnapshotValuesInterface,
+        },
         type_layouts::TypeLayoutsInterface,
+        types::TypesInterface,
     },
 };
+use prusti_common::config;
 use vir_crate::{
     common::{expression::ExpressionIterator, identifier::WithIdentifier},
     low::{self as vir_low},
@@ -26,6 +36,12 @@ pub(in super::super::super) struct PredicateDeclBuilder<'l, 'p, 'v, 'tcx> {
     pub(in super::super) parameters: Vec<vir_low::VariableDecl>,
     pub(in super::super) conjuncts: Option<Vec<vir_low::Expression>>,
     pub(in super::super) position: vir_low::Position,
+    /// `place` is used by subtypes that cannot be aliased.
+    pub(in super::super) place: vir_low::VariableDecl,
+    /// `root_address` is used by subtypes that cannot be aliased.
+    pub(in super::super) root_address: vir_low::VariableDecl,
+    /// `address` is used by subtypes that can be aliased.
+    pub(in super::super) address: vir_low::VariableDecl,
 }
 
 impl<'l, 'p, 'v, 'tcx> PredicateDeclBuilder<'l, 'p, 'v, 'tcx> {
@@ -37,6 +53,9 @@ impl<'l, 'p, 'v, 'tcx> PredicateDeclBuilder<'l, 'p, 'v, 'tcx> {
         position: vir_low::Position,
     ) -> SpannedEncodingResult<Self> {
         Ok(Self {
+            place: vir_low::VariableDecl::new("place", lowerer.place_type()?),
+            root_address: vir_low::VariableDecl::new("root_address", lowerer.address_type()?),
+            address: vir_low::VariableDecl::new("address", lowerer.address_type()?),
             ty,
             predicate_name,
             type_decl,
@@ -89,36 +108,137 @@ impl<'l, 'p, 'v, 'tcx> PredicateDeclBuilder<'l, 'p, 'v, 'tcx> {
         self.add_conjunct(validity)
     }
 
+    pub(in super::super) fn add_unique_ref_pointer_predicate(
+        &mut self,
+        lifetime: &vir_mid::ty::LifetimeConst,
+        place: vir_low::VariableDecl,
+        root_address: vir_low::VariableDecl,
+        // _snapshot: &vir_low::VariableDecl,
+    ) -> SpannedEncodingResult<vir_mid::Type> {
+        let lifetime = lifetime.to_pure_snapshot(self.lowerer)?;
+        // let pointer_type = &self.lowerer.reference_address_type(self.ty)?;
+        let pointer_type = {
+            let reference_type = self.type_decl.clone().unwrap_reference();
+            vir_mid::Type::pointer(reference_type.target_type)
+        };
+        self.lowerer.ensure_type_definition(&pointer_type)?;
+        let current_snapshot = true.into(); // FIXME
+        let final_snapshot = true.into(); // FIXME
+        let expression = self.lowerer.unique_ref_predicate(
+            CallContext::BuiltinMethod,
+            &pointer_type,
+            &pointer_type,
+            place.clone().into(),
+            root_address.clone().into(),
+            current_snapshot,
+            final_snapshot,
+            lifetime.into(),
+            None, // FIXME
+        )?;
+        self.add_conjunct(expression)?;
+        Ok(pointer_type)
+    }
+
+    /// `is_unique_ref` – whether the predicate is used in `UniqueRef` or `Owned`.
     pub(in super::super) fn add_unique_ref_target_predicate(
         &mut self,
         target_type: &vir_mid::Type,
         lifetime: &vir_mid::ty::LifetimeConst,
-        place: &vir_low::VariableDecl,
-        snapshot: &vir_low::VariableDecl,
+        place: vir_low::Expression,
+        root_address: vir_low::VariableDecl,
+        // snapshot: &vir_low::VariableDecl,
+        is_unique_ref: bool, // FIXME: Refactor to not use this flag.
     ) -> SpannedEncodingResult<()> {
         use vir_low::macros::*;
         let deref_place = self
             .lowerer
             .reference_deref_place(place.clone().into(), self.position)?;
-        let target_address =
-            self.lowerer
-                .reference_address(self.ty, snapshot.clone().into(), self.position)?;
-        let current_snapshot = self.lowerer.reference_target_current_snapshot(
-            self.ty,
-            snapshot.clone().into(),
-            self.position,
-        )?;
-        let final_snapshot = self.lowerer.reference_target_final_snapshot(
-            self.ty,
-            snapshot.clone().into(),
-            self.position,
-        )?;
         let lifetime_alive = self
             .lowerer
             .encode_lifetime_const_into_pure_is_alive_variable(lifetime)?;
         let lifetime = lifetime.to_pure_snapshot(self.lowerer)?;
-        let mut builder = UniqueRefUseBuilder::new(
-            self.lowerer,
+        let (target_address, target_len) = if config::use_snapshot_parameters_in_predicates() {
+            unimplemented!("TODO: Delete this branch");
+            // // FIXME: target_len should be the length of the target slice.
+            // (
+            //     self.lowerer
+            //         .reference_address(self.ty, snapshot.clone().into(), self.position)?,
+            //     None,
+            // )
+        } else {
+            let pointer_type = &self.lowerer.reference_address_type(self.ty)?;
+            let pointer_snapshot = if is_unique_ref {
+                self.lowerer.unique_ref_snap(
+                    CallContext::BuiltinMethod,
+                    pointer_type,
+                    pointer_type,
+                    place.clone().into(),
+                    root_address.clone().into(),
+                    lifetime.clone().into(),
+                    None,
+                    false,
+                )?
+            } else {
+                self.lowerer
+                    .encode_snapshot_to_bytes_function(pointer_type)?;
+                let size_of = self
+                    .lowerer
+                    .encode_type_size_expression2(self.ty, self.type_decl)?;
+                let compute_address = ty!(Address);
+                let compute_address_expression = expr! {
+                    ComputeAddress::compute_address(
+                        [place.clone().into()],
+                        [root_address.clone().into()]
+                    )
+                };
+                let bytes = self
+                    .lowerer
+                    .encode_memory_block_bytes_expression(compute_address_expression, size_of)?;
+                let from_bytes = pointer_type.to_snapshot(self.lowerer)?;
+                expr! {
+                    Snap<pointer_type>::from_bytes([bytes])
+                }
+            };
+            let target_address = self.lowerer.pointer_address(
+                pointer_type,
+                pointer_snapshot.clone(),
+                self.position,
+            )?;
+            // .obtain_constant_value(address_type, pointer_snapshot, self.position)?
+
+            let target_len = if pointer_type.is_pointer_to_slice() {
+                Some(self.lowerer.pointer_slice_len(
+                    pointer_type,
+                    pointer_snapshot,
+                    self.position,
+                )?)
+            } else {
+                None
+            };
+            (target_address, target_len)
+        };
+        // let current_snapshot = self.lowerer.reference_target_current_snapshot(
+        //     self.ty,
+        //     snapshot.clone().into(),
+        //     self.position,
+        // )?;
+        // let final_snapshot = self.lowerer.reference_target_final_snapshot(
+        //     self.ty,
+        //     snapshot.clone().into(),
+        //     self.position,
+        // )?;
+        let current_snapshot = true.into(); // FIXME
+        let final_snapshot = self.lowerer.unique_ref_snap(
+            CallContext::BuiltinMethod,
+            target_type,
+            target_type,
+            deref_place.clone(),
+            target_address.clone(),
+            lifetime.clone().into(),
+            target_len.clone(),
+            true,
+        )?;
+        let expression = self.lowerer.unique_ref_predicate(
             CallContext::BuiltinMethod,
             target_type,
             target_type,
@@ -127,34 +247,78 @@ impl<'l, 'p, 'v, 'tcx> PredicateDeclBuilder<'l, 'p, 'v, 'tcx> {
             current_snapshot,
             final_snapshot,
             lifetime.into(),
+            target_len,
         )?;
-        builder.add_lifetime_arguments()?;
-        builder.add_const_arguments()?;
-        let expression = builder.build();
         self.add_conjunct(expr! { [lifetime_alive.into()] ==> [expression] })
     }
 
+    // FIXME: Code duplication with `add_unique_ref_target_predicate`.
     pub(in super::super) fn add_frac_ref_target_predicate(
         &mut self,
         target_type: &vir_mid::Type,
         lifetime: &vir_mid::ty::LifetimeConst,
-        place: &vir_low::VariableDecl,
-        snapshot: &vir_low::VariableDecl,
+        place: vir_low::Expression,
+        root_address: vir_low::VariableDecl,
+        // snapshot: &vir_low::VariableDecl,
     ) -> SpannedEncodingResult<()> {
+        use vir_low::macros::*;
+        let lifetime_alive = self
+            .lowerer
+            .encode_lifetime_const_into_pure_is_alive_variable(lifetime)?;
         let deref_place = self
             .lowerer
             .reference_deref_place(place.clone().into(), self.position)?;
+        let pointer_type = &self.lowerer.reference_address_type(self.ty)?;
+        let pointer_snapshot = {
+            self.lowerer
+                .encode_snapshot_to_bytes_function(pointer_type)?;
+            let size_of = self
+                .lowerer
+                .encode_type_size_expression2(self.ty, self.type_decl)?;
+            let compute_address = ty!(Address);
+            let compute_address_expression = expr! {
+                ComputeAddress::compute_address(
+                    [place.clone().into()],
+                    [root_address.clone().into()]
+                )
+            };
+            let bytes = self
+                .lowerer
+                .encode_memory_block_bytes_expression(compute_address_expression, size_of)?;
+            let from_bytes = pointer_type.to_snapshot(self.lowerer)?;
+            expr! {
+                Snap<pointer_type>::from_bytes([bytes])
+            }
+        };
         let target_address =
             self.lowerer
-                .reference_address(self.ty, snapshot.clone().into(), self.position)?;
-        let current_snapshot = self.lowerer.reference_target_current_snapshot(
-            self.ty,
-            snapshot.clone().into(),
-            self.position,
-        )?;
+                .pointer_address(pointer_type, pointer_snapshot.clone(), self.position)?;
+        // let target_address =
+        //     self.lowerer
+        //         .reference_address(self.ty, snapshot.clone().into(), self.position)?;
+        // let current_snapshot = self.lowerer.reference_target_current_snapshot(
+        //     self.ty,
+        //     snapshot.clone().into(),
+        //     self.position,
+        // )?;
+        let current_snapshot = true.into(); // FIXME
         let lifetime = lifetime.to_pure_snapshot(self.lowerer)?;
-        let mut builder = FracRefUseBuilder::new(
-            self.lowerer,
+        // let mut builder = FracRefUseBuilder::new(
+        //     self.lowerer,
+        //     CallContext::BuiltinMethod,
+        //     target_type,
+        //     target_type,
+        //     deref_place,
+        //     target_address,
+        //     // current_snapshot,
+        //     lifetime.into(),
+        // )?;
+        // builder.add_lifetime_arguments()?;
+        // builder.add_const_arguments()?;
+        // let expression = builder.build();
+        // self.add_conjunct(expression);
+        let target_len = None; // FIXME
+        let expression = self.lowerer.frac_ref_predicate(
             CallContext::BuiltinMethod,
             target_type,
             target_type,
@@ -162,11 +326,9 @@ impl<'l, 'p, 'v, 'tcx> PredicateDeclBuilder<'l, 'p, 'v, 'tcx> {
             target_address,
             current_snapshot,
             lifetime.into(),
+            target_len,
         )?;
-        builder.add_lifetime_arguments()?;
-        builder.add_const_arguments()?;
-        let expression = builder.build();
-        self.add_conjunct(expression)
+        self.add_conjunct(expr! { [lifetime_alive.into()] ==> [expression] })
     }
 
     pub(in super::super) fn array_length_int(
@@ -193,6 +355,28 @@ impl<'l, 'p, 'v, 'tcx> PredicateDeclBuilder<'l, 'p, 'v, 'tcx> {
             ([array_length_int] == [snapshot_length])
         };
         self.add_conjunct(expression)
+    }
+
+    pub(in super::super::super) fn add_structural_invariant(
+        &mut self,
+        decl: &vir_mid::type_decl::Struct,
+        predicate_kind: PredicateKind,
+    ) -> SpannedEncodingResult<Vec<vir_mid::Type>> {
+        if let Some(invariant) = &decl.structural_invariant {
+            let mut encoder = SelfFramingAssertionToSnapshot::for_predicate_body(
+                self.place.clone(),
+                self.root_address.clone(),
+                predicate_kind,
+            );
+            for assertion in invariant {
+                let low_assertion =
+                    encoder.expression_to_snapshot(self.lowerer, assertion, true)?;
+                self.add_conjunct(low_assertion)?;
+            }
+            Ok(encoder.into_created_predicate_types())
+        } else {
+            Ok(Vec::new())
+        }
     }
 }
 

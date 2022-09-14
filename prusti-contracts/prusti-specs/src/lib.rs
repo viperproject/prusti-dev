@@ -691,7 +691,7 @@ pub fn trusted(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     }
 }
 
-pub fn invariant(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+pub fn invariant(attr: TokenStream, tokens: TokenStream, is_structural: bool) -> TokenStream {
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
     let spec_id_str = spec_id.to_string();
@@ -699,19 +699,30 @@ pub fn invariant(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     let item: syn::DeriveInput = handle_result!(syn::parse2(tokens));
     let item_span = item.span();
     let item_ident = item.ident.clone();
+    let item_name_structural = if is_structural {
+        "structural"
+    } else {
+        "non_structural"
+    };
     let item_name = syn::Ident::new(
-        &format!("prusti_invariant_item_{}_{}", item_ident, spec_id),
+        &format!("prusti_invariant_item_{}_{}_{}", item_name_structural, item_ident, spec_id),
         item_span,
     );
 
     let attr = handle_result!(parse_prusti(attr));
 
+    let is_structural_tokens = if is_structural {
+        quote_spanned!(item_span => #[prusti::type_invariant_structural])
+    } else {
+        quote_spanned!(item_span => #[prusti::type_invariant_non_structural])
+    };
     // TODO: move some of this to AstRewriter?
     // see AstRewriter::generate_spec_item_fn for explanation of syntax below
     let spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
         #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case)]
         #[prusti::spec_only]
         #[prusti::type_invariant_spec]
+        #is_structural_tokens
         #[prusti::spec_id = #spec_id_str]
         fn #item_name(self) -> bool {
             !!((#attr) : bool)
@@ -1075,5 +1086,319 @@ pub fn ghost(tokens: TokenStream) -> TokenStream {
             }
         }
         syn_errors
+    }
+}
+
+pub fn manually_manage(tokens: TokenStream) -> TokenStream {
+    generate_place_function(tokens, quote!{prusti_manually_manage})
+}
+
+pub fn pack(tokens: TokenStream) -> TokenStream {
+    generate_place_function(tokens, quote!{prusti_pack_place})
+}
+
+pub fn unpack(tokens: TokenStream) -> TokenStream {
+    generate_place_function(tokens, quote!{prusti_unpack_place})
+}
+
+pub fn pack_ref(tokens: TokenStream) -> TokenStream {
+    generate_place_function(tokens, quote!{prusti_pack_ref_place})
+}
+
+pub fn unpack_ref(tokens: TokenStream) -> TokenStream {
+    generate_place_function(tokens, quote!{prusti_unpack_ref_place})
+}
+
+pub fn pack_mut_ref(tokens: TokenStream) -> TokenStream {
+    generate_place_function(tokens, quote!{prusti_pack_mut_ref_place})
+}
+
+pub fn unpack_mut_ref(tokens: TokenStream) -> TokenStream {
+    // generate_place_function(tokens, quote!{prusti_unpack_mut_ref_place})
+    let (lifetime_name, reference) = handle_result!(parse_two_expressions::<syn::Token![,]>(tokens));
+    let lifetime_name_str = handle_result!(expression_to_string(&lifetime_name));
+    unsafe_spec_function_call(quote! {
+        prusti_unpack_mut_ref_place(#lifetime_name_str, std::ptr::addr_of!(#reference))
+    })
+}
+
+fn parse_two_expressions<Separator: syn::parse::Parse>(tokens: TokenStream) -> syn::Result<(syn::Expr, syn::Expr)> {
+    let parser = syn::punctuated::Punctuated::<syn::Expr, Separator>::parse_terminated;
+    let mut expressions = syn::parse::Parser::parse2(parser, tokens)?;
+    let second = expressions.pop().ok_or_else(|| syn::Error::new(Span::call_site(), "Expected two expressions"))?;
+    let first = expressions.pop().ok_or_else(|| syn::Error::new(Span::call_site(), "Expected two expressions"))?;
+    Ok((first.into_value(), second.into_value()))
+}
+
+fn parse_three_expressions<Separator: syn::parse::Parse>(tokens: TokenStream) -> syn::Result<(syn::Expr, syn::Expr, syn::Expr)> {
+    let parser = syn::punctuated::Punctuated::<syn::Expr, Separator>::parse_terminated;
+    let mut expressions = syn::parse::Parser::parse2(parser, tokens)?;
+    let third = expressions.pop().ok_or_else(|| syn::Error::new(Span::call_site(), "Expected three expressions"))?;
+    let second = expressions.pop().ok_or_else(|| syn::Error::new(Span::call_site(), "Expected three expressions"))?;
+    let first = expressions.pop().ok_or_else(|| syn::Error::new(Span::call_site(), "Expected three expressions"))?;
+    Ok((first.into_value(), second.into_value(), third.into_value()))
+}
+
+fn parse_four_expressions<Separator: syn::parse::Parse>(tokens: TokenStream) -> syn::Result<(syn::Expr, syn::Expr, syn::Expr, syn::Expr)> {
+    let parser = syn::punctuated::Punctuated::<syn::Expr, Separator>::parse_terminated;
+    let mut expressions = syn::parse::Parser::parse2(parser, tokens)?;
+    let fourth = expressions.pop().ok_or_else(|| syn::Error::new(Span::call_site(), "Expected four expressions"))?;
+    let third = expressions.pop().ok_or_else(|| syn::Error::new(Span::call_site(), "Expected four expressions"))?;
+    let second = expressions.pop().ok_or_else(|| syn::Error::new(Span::call_site(), "Expected four expressions"))?;
+    let first = expressions.pop().ok_or_else(|| syn::Error::new(Span::call_site(), "Expected four expressions"))?;
+    Ok((first.into_value(), second.into_value(), third.into_value(), fourth.into_value()))
+}
+
+fn expression_to_string(expr: &syn::Expr) -> syn::Result<String> {
+    if let syn::Expr::Path(syn::ExprPath { qself: None, path, ..}) = expr {
+        if let Some(ident) = path.get_ident() {
+            return Ok(ident.to_string());
+        }
+    }
+    Err(syn::Error::new(
+        expr.span(),
+        "needs to be an identifier"
+    ))
+}
+
+pub fn unsafe_spec_function_call(call: TokenStream) -> TokenStream {
+    let callsite_span = Span::call_site();
+    quote_spanned! { callsite_span =>
+        #[allow(unused_must_use, unused_variables)]
+        #[prusti::specs_version = #SPECS_VERSION]
+        if false {
+            #[prusti::spec_only]
+            || -> bool { true };
+            unsafe { #call };
+        }
+    }
+}
+
+pub fn take_lifetime(tokens: TokenStream) -> TokenStream {
+    let (reference, lifetime_name) = handle_result!(parse_two_expressions::<syn::Token![,]>(tokens));
+    let lifetime_name_str = handle_result!(expression_to_string(&lifetime_name));
+    unsafe_spec_function_call(quote! {
+        prusti_take_lifetime(std::ptr::addr_of!(#reference), #lifetime_name_str)
+    })
+    // let parser = syn::punctuated::Punctuated::<syn::Expr, syn::Token![=>]>::parse_terminated;
+    // let mut args = handle_result!(syn::parse::Parser::parse2(parser, tokens));
+    // let lifetime = if let Some(lifetime) = args.pop() {
+    //     lifetime.into_value()
+    // } else {
+    //     return syn::Error::new(
+    //         args.span(),
+    //         "`take_lifetime!` needs to contain two arguments `<reference>` and `<lifetime name>`"
+    //     ).to_compile_error();
+    // };
+    // let lifetime_str = if let syn::Expr::Path(syn::ExprPath { qself: None, path, ..}) = lifetime {
+    //     if let Some(ident) = path.get_ident() {
+    //         ident.to_string()
+    //     } else {
+    //         return syn::Error::new(
+    //             path.span(),
+    //             "lifetime name needs to be an identifier"
+    //         ).to_compile_error();
+    //     }
+    // } else {
+    //     return syn::Error::new(
+    //         lifetime.span(),
+    //         "lifetime name needs to be an identifier"
+    //     ).to_compile_error();
+    // };
+    // let reference = if let Some(reference) = args.pop() {
+    //     reference.into_value()
+    // } else {
+    //     return syn::Error::new(
+    //         args.span(),
+    //         "`take_lifetime!` needs to contain two arguments `<reference>` and `<lifetime name>`"
+    //     ).to_compile_error();
+    // };
+    // let callsite_span = Span::call_site();
+    // quote_spanned! { callsite_span =>
+    //     #[allow(unused_must_use, unused_variables)]
+    //     #[prusti::specs_version = #SPECS_VERSION]
+    //     if false {
+    //         #[prusti::spec_only]
+    //         || -> bool { true };
+    //         unsafe { prusti_take_lifetime(std::ptr::addr_of!(#reference), #lifetime_str) };
+    //     }
+    // }
+}
+
+pub fn join(tokens: TokenStream) -> TokenStream {
+    generate_place_function(tokens, quote!{prusti_join_place})
+}
+
+pub fn join_range(tokens: TokenStream) -> TokenStream {
+    let (pointer, start_index, end_index) = handle_result!(parse_three_expressions::<syn::Token![,]>(tokens));
+    unsafe_spec_function_call(quote! {
+        prusti_join_range(std::ptr::addr_of!(#pointer), {#start_index}, #end_index)
+    })
+}
+
+pub fn split(tokens: TokenStream) -> TokenStream {
+    generate_place_function(tokens, quote!{prusti_split_place})
+}
+
+pub fn split_range(tokens: TokenStream) -> TokenStream {
+    let (pointer, start_index, end_index) = handle_result!(parse_three_expressions::<syn::Token![,]>(tokens));
+    unsafe_spec_function_call(quote! {
+        prusti_split_range(std::ptr::addr_of!(#pointer), {#start_index}, #end_index)
+    })
+}
+
+/// FIXME: For `start_index` and `end_index`, we should do the same as for
+/// `body_invariant!`.
+pub fn stash_range(tokens: TokenStream) -> TokenStream {
+    let (pointer, start_index, end_index, witness) = handle_result!(parse_four_expressions::<syn::Token![,]>(tokens));
+    let witness_str = handle_result!(expression_to_string(&witness));
+    unsafe_spec_function_call(quote! {
+        prusti_stash_range(std::ptr::addr_of!(#pointer), {#start_index}, {#end_index}, #witness_str)
+    })
+}
+
+/// FIXME: For `new_start_index`, we should do the same as for
+/// `body_invariant!`.
+pub fn restore_stash_range(tokens: TokenStream) -> TokenStream {
+    let (pointer, new_start_index, witness) = handle_result!(parse_three_expressions::<syn::Token![,]>(tokens));
+    let witness_str = handle_result!(expression_to_string(&witness));
+    unsafe_spec_function_call(quote! {
+        prusti_restore_stash_range(std::ptr::addr_of!(#pointer), {#new_start_index}, #witness_str)
+    })
+}
+
+pub fn close_ref(tokens: TokenStream) -> TokenStream {
+    // generate_place_function(tokens, quote!{prusti_close_ref_place});
+    let witness: syn::Ident = handle_result!(syn::parse2(tokens));
+    let witness_str = witness.to_string();
+    // let callsite_span = Span::call_site();
+    unsafe_spec_function_call(quote! { prusti_close_ref_place(#witness_str) })
+    // quote_spanned! { callsite_span =>
+    //     #[allow(unused_must_use, unused_variables)]
+    //     #[prusti::specs_version = #SPECS_VERSION]
+    //     if false {
+    //         #[prusti::spec_only]
+    //         || -> bool { true };
+    //         unsafe { prusti_close_ref_place(#witness_str) };
+    //     }
+    // }
+}
+
+pub fn open_ref(tokens: TokenStream) -> TokenStream {
+    let (lifetime_name, reference, witness) = handle_result!(parse_three_expressions::<syn::Token![,]>(tokens));
+    let lifetime_name_str = handle_result!(expression_to_string(&lifetime_name));
+    let witness_str = handle_result!(expression_to_string(&witness));
+    unsafe_spec_function_call(quote! {
+        prusti_open_ref_place(#lifetime_name_str, std::ptr::addr_of!(#reference), #witness_str)
+    })
+    // let parser = syn::punctuated::Punctuated::<syn::Expr, syn::Token![=>]>::parse_terminated;
+    // let mut args = handle_result!(syn::parse::Parser::parse2(parser, tokens));
+    // let witness = if let Some(witness) = args.pop() {
+    //     witness.into_value()
+    // } else {
+    //     return syn::Error::new(
+    //         args.span(),
+    //         "`open_ref!` needs to contain two arguments `<reference>` and `<open witness>`"
+    //     ).to_compile_error();
+    // };
+    // let witness_str = if let syn::Expr::Path(syn::ExprPath { qself: None, path, ..}) = witness {
+    //     if let Some(ident) = path.get_ident() {
+    //         ident.to_string()
+    //     } else {
+    //         return syn::Error::new(
+    //             path.span(),
+    //             "witness needs to be an identifier"
+    //         ).to_compile_error();
+    //     }
+    // } else {
+    //     return syn::Error::new(
+    //         witness.span(),
+    //         "witness needs to be an identifier"
+    //     ).to_compile_error();
+    // };
+    // let reference = if let Some(reference) = args.pop() {
+    //     reference.into_value()
+    // } else {
+    //     return syn::Error::new(
+    //         args.span(),
+    //         "`open_ref!` needs to contain two arguments `<reference>` and `<open witness>`"
+    //     ).to_compile_error();
+    // };
+    // let callsite_span = Span::call_site();
+    // quote_spanned! { callsite_span =>
+    //     #[allow(unused_must_use, unused_variables)]
+    //     #[prusti::specs_version = #SPECS_VERSION]
+    //     if false {
+    //         #[prusti::spec_only]
+    //         || -> bool { true };
+    //         unsafe { prusti_open_ref_place(std::ptr::addr_of!(#reference), #witness_str) };
+    //     }
+    // }
+}
+
+pub fn close_mut_ref(tokens: TokenStream) -> TokenStream {
+    let witness: syn::Ident = handle_result!(syn::parse2(tokens));
+    let witness_str = witness.to_string();
+    unsafe_spec_function_call(quote! { prusti_close_mut_ref_place(#witness_str) })
+}
+
+pub fn open_mut_ref(tokens: TokenStream) -> TokenStream {
+    let (lifetime_name, reference, witness) = handle_result!(parse_three_expressions::<syn::Token![,]>(tokens));
+    let lifetime_name_str = handle_result!(expression_to_string(&lifetime_name));
+    let witness_str = handle_result!(expression_to_string(&witness));
+    unsafe_spec_function_call(quote! {
+        prusti_open_mut_ref_place(#lifetime_name_str, std::ptr::addr_of!(#reference), #witness_str)
+    })
+}
+
+pub fn set_union_active_field(tokens: TokenStream) -> TokenStream {
+    generate_place_function(tokens, quote!{prusti_set_union_active_field})
+}
+
+pub fn forget_initialization(tokens: TokenStream) -> TokenStream {
+    generate_place_function(tokens, quote!{prusti_forget_initialization})
+}
+
+fn generate_place_function(tokens: TokenStream, function: TokenStream) -> TokenStream {
+    let callsite_span = Span::call_site();
+    quote_spanned! { callsite_span =>
+        #[allow(unused_must_use, unused_variables)]
+        #[prusti::specs_version = #SPECS_VERSION]
+        if false {
+            #[prusti::spec_only]
+            || -> bool { true };
+            unsafe { #function(std::ptr::addr_of!(#tokens)) };
+        }
+    }
+}
+
+pub fn restore(tokens: TokenStream) -> TokenStream {
+    let parser = syn::punctuated::Punctuated::<syn::Expr, syn::Token![,]>::parse_terminated;
+    let mut args = handle_result!(syn::parse::Parser::parse2(parser, tokens));
+    let restored_place = if let Some(restored_place) = args.pop() {
+        restored_place.into_value()
+    } else {
+        return syn::Error::new(
+            args.span(),
+            "`restore!` needs to contain two arguments `<borrowing place>` and `<place to restore>`"
+        ).to_compile_error();
+    };
+    let borrowing_place = if let Some(borrowing_place) = args.pop() {
+        borrowing_place.into_value()
+    } else {
+        return syn::Error::new(
+            args.span(),
+            "`restore!` needs to contain two arguments `<borrowing place>` and `<place to restore>`"
+        ).to_compile_error();
+    };
+    let callsite_span = Span::call_site();
+    quote_spanned! { callsite_span =>
+        #[allow(unused_must_use, unused_variables)]
+        #[prusti::specs_version = #SPECS_VERSION]
+        if false {
+            #[prusti::spec_only]
+            || -> bool { true };
+            unsafe { prusti_restore_place(std::ptr::addr_of!(#borrowing_place), std::ptr::addr_of!(#restored_place)) };
+        }
     }
 }

@@ -115,10 +115,25 @@ impl<'l, 'p, 'v, 'tcx> CopyPlaceMethodBuilder<'l, 'p, 'v, 'tcx> {
         )
     }
 
-    pub(in super::super::super::super) fn create_target_owned(
+    pub(in super::super::super::super) fn create_source_owned_predicate(
         &mut self,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        self.inner.create_target_owned()
+        self.inner.inner.lowerer.owned_non_aliased_predicate(
+            CallContext::BuiltinMethod,
+            self.inner.inner.ty,
+            self.inner.inner.type_decl,
+            self.inner.source_place.clone().into(),
+            self.inner.source_root_address.clone().into(),
+            self.inner.source_snapshot.clone().into(),
+            Some(self.source_permission_amount.clone().into()),
+        )
+    }
+
+    pub(in super::super::super::super) fn create_target_owned(
+        &mut self,
+        must_be_predicate: bool,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        self.inner.create_target_owned(must_be_predicate)
     }
 
     pub(in super::super::super::super) fn add_target_validity_postcondition(

@@ -32,7 +32,7 @@ impl SpecificationBlocks {
     pub fn build<'tcx>(
         env_query: EnvQuery<'tcx>,
         body: &mir::Body<'tcx>,
-        procedure: &Procedure<'tcx>,
+        procedure: Option<&Procedure<'tcx>>,
         collect_loop_invariants: bool,
     ) -> Self {
         // Blocks that contain closures marked with `#[spec_only]` attributes.
@@ -77,11 +77,13 @@ impl SpecificationBlocks {
         }
 
         // Collect loop invariant blocks.
-        let loop_info = procedure.loop_info();
-        let predecessors = body.basic_blocks.predecessors();
         let mut loop_invariant_blocks = BTreeMap::<_, LoopInvariantBlocks>::new();
         let mut loop_spec_blocks_flat = BTreeSet::new();
         if collect_loop_invariants {
+            let loop_info = procedure
+                .expect("procedure needs to be Some when collect_loop_invariants is true")
+                .loop_info();
+            let predecessors = body.basic_blocks.predecessors();
             // We use reverse_postorder here because we need to make sure that we
             // preserve the order of invariants in which they were specified by the
             // user.
@@ -176,7 +178,7 @@ impl SpecificationBlocks {
         self.specification_entry_blocks.iter().cloned()
     }
 
-    pub(super) fn is_specification_block(&self, bb: mir::BasicBlock) -> bool {
+    pub fn is_specification_block(&self, bb: mir::BasicBlock) -> bool {
         self.specification_blocks.contains(&bb)
     }
 

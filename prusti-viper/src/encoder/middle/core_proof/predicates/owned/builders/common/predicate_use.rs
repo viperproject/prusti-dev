@@ -53,12 +53,16 @@ where
 
     pub(in super::super) fn build(self) -> vir_low::Expression {
         vir_low::Expression::predicate_access_predicate(
-            format!("{}${}", self.predicate_name, self.ty.get_identifier()),
+            self.predicate_name(),
             self.arguments,
             self.permission_amount
                 .unwrap_or_else(vir_low::Expression::full_permission),
             self.position,
         )
+    }
+
+    pub(in super::super) fn predicate_name(&self) -> String {
+        format!("{}${}", self.predicate_name, self.ty.get_identifier())
     }
 
     pub(in super::super) fn add_lifetime_arguments(&mut self) -> SpannedEncodingResult<()> {

@@ -42,29 +42,32 @@ impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::E
             );
             return Ok(());
         }
-        let procedure = self.encode_procedure_core_proof(proc_def_id, check_mode)?;
-        let super::lowerer::LoweringResult {
-            procedures,
-            domains,
-            functions,
-            predicates,
-            methods,
-        } = super::lowerer::lower_procedure(self, proc_def_id, procedure)?;
-        let mut program = vir_low::Program {
-            name: self.env().name.get_absolute_item_name(proc_def_id),
-            check_mode,
-            procedures,
-            domains,
-            predicates,
-            functions,
-            methods,
-        };
-        if config::inline_caller_for() {
-            super::transformations::inline_functions::inline_caller_for(&mut program);
+        for procedure in self.encode_procedure_core_proof(proc_def_id, check_mode)? {
+            let name = procedure.name.clone();
+            let super::lowerer::LoweringResult {
+                procedures,
+                domains,
+                functions,
+                predicates,
+                methods,
+            } = super::lowerer::lower_procedure(self, proc_def_id, procedure)?;
+            let mut program = vir_low::Program {
+                name,
+                // name: self.env().name.get_absolute_item_name(proc_def_id),
+                check_mode,
+                procedures,
+                domains,
+                predicates,
+                functions,
+                methods,
+            };
+            if config::inline_caller_for() {
+                super::transformations::inline_functions::inline_caller_for(&mut program);
+            }
+            self.mid_core_proof_encoder_state
+                .encoded_programs
+                .push(program);
         }
-        self.mid_core_proof_encoder_state
-            .encoded_programs
-            .push(program);
         Ok(())
     }
 

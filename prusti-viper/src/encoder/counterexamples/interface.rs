@@ -92,8 +92,9 @@ impl<'v, 'tcx: 'v> MirProcedureMappingInterface for super::super::Encoder<'v, 't
     fn add_mapping(&mut self, program: &vir_low::Program) {
         if let Some(vir_low_procedure) = program.procedures.first() {
             //at the moment a counterexample is only produced for the specifications-poof
-            if matches!(program.check_mode, CheckMode::Specifications)
-                || matches!(program.check_mode, CheckMode::Both)
+            if program.check_mode.check_specifications()
+            // matches!(program.check_mode, CheckMode::Specifications)
+            //     || matches!(program.check_mode, CheckMode::Both)
             {
                 let procedure_new = self
                     .mir_procedure_mapping

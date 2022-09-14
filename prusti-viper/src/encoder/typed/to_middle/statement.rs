@@ -110,4 +110,46 @@ impl<'v, 'tcx> TypedToMiddleStatementLowerer for crate::encoder::Encoder<'v, 'tc
     ) -> Result<vir_mid::statement::Statement, Self::Error> {
         unreachable!("ObtainMutRef statement cannot be lowered");
     }
+
+    fn typed_to_middle_statement_statement_unpack(
+        &self,
+        _statement: vir_typed::Unpack,
+    ) -> Result<vir_mid::Statement, Self::Error> {
+        unreachable!("Unpack statement cannot be lowered");
+    }
+
+    fn typed_to_middle_statement_statement_pack(
+        &self,
+        _statement: vir_typed::Pack,
+    ) -> Result<vir_mid::Statement, Self::Error> {
+        unreachable!("Pack statement cannot be lowered");
+    }
+
+    fn typed_to_middle_statement_statement_forget_initialization(
+        &self,
+        _statement: vir_typed::ForgetInitialization,
+    ) -> Result<vir_mid::Statement, Self::Error> {
+        unreachable!("ForgetInitialization statement cannot be lowered");
+    }
+
+    fn typed_to_middle_statement_statement_split(
+        &self,
+        _statement: vir_typed::Split,
+    ) -> Result<vir_mid::Statement, Self::Error> {
+        unreachable!("Split statement cannot be lowered");
+    }
+
+    fn typed_to_middle_statement_statement_join(
+        &self,
+        _statement: vir_typed::Join,
+    ) -> Result<vir_mid::Statement, Self::Error> {
+        unreachable!("Join statement cannot be lowered");
+    }
+
+    // fn typed_to_middle_statement_statement_restore(
+    //             &self,
+    //             _statement: vir_typed::Restore,
+    //         ) -> Result<vir_mid::Statement, Self::Error> {
+    //     unreachable!("Restore statement cannot be lowered");
+    // }
 }

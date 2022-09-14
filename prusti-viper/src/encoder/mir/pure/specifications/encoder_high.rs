@@ -75,16 +75,32 @@ pub(super) fn inline_spec_item_high<'tcx>(
     parent_def_id: DefId,
     substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_high::Expression> {
+    assert_eq!(
+        substs.len(),
+        encoder.env().query.identity_substs(def_id).len()
+    );
+
     let mir = encoder
         .env()
         .body
-        .get_spec_body(def_id, substs, parent_def_id);
+        .get_expression_body(def_id, substs, parent_def_id);
     assert_eq!(
         mir.arg_count,
         target_args.len() + usize::from(target_return.is_some()),
         "def_id: {:?}",
         def_id
     );
+
+    // let mir = encoder
+    //     .env()
+    //     .body
+    //     .get_spec_body(def_id, substs, parent_def_id);
+    // assert_eq!(
+    //     mir.arg_count,
+    //     target_args.len() + if target_return.is_some() { 1 } else { 0 },
+    //     "def_id: {:?}",
+    //     def_id
+    // );
     let mir_encoder = MirEncoder::new(encoder, &mir, def_id);
     let mut body_replacements = vec![];
     for (arg_idx, arg_local) in mir.args_iter().enumerate() {

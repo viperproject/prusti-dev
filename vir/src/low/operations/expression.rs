@@ -124,6 +124,30 @@ impl Expression {
         replacer.fold_expression(self)
     }
     #[must_use]
+    pub fn replace_self(self, replacement: &Expression) -> Self {
+        struct PlaceReplacer<'a> {
+            replacement: &'a Expression,
+        }
+        impl<'a> ExpressionFolder for PlaceReplacer<'a> {
+            fn fold_local_enum(&mut self, local: Local) -> Expression {
+                if local.variable.name == "self$" {
+                    assert_eq!(
+                        &local.variable.ty,
+                        self.replacement.get_type(),
+                        "{} → {}",
+                        local.variable.ty,
+                        self.replacement
+                    );
+                    self.replacement.clone()
+                } else {
+                    Expression::Local(local)
+                }
+            }
+        }
+        let mut replacer = PlaceReplacer { replacement };
+        replacer.fold_expression(self)
+    }
+    #[must_use]
     pub fn substitute_variables(
         self,
         replacements: &FxHashMap<&VariableDecl, &Expression>,
@@ -174,5 +198,11 @@ impl Expression {
             Self::full_permission(),
             denominator.into(),
         )
+    }
+    pub fn into_unfolding(self, base: Self) -> Self {
+        let predicate = self.unwrap_predicate_access_predicate();
+        // Self::unfolding(predicate.name, predicate.arguments, *predicate.permission, base, predicate.position)
+        let position = predicate.position;
+        Self::unfolding(predicate, base, position)
     }
 }

@@ -98,6 +98,21 @@ pub(in super::super::super) trait BuiltinMethodCallsInterface {
     ) -> SpannedEncodingResult<vir_low::Statement>
     where
         G: WithLifetimes + WithConstArguments;
+
+    #[allow(clippy::too_many_arguments)]
+    fn call_restore_raw_borrowed_method<G>(
+        &mut self,
+        context: CallContext,
+        ty: &vir_mid::Type,
+        generics: &G,
+        position: vir_low::Position,
+        borrowing_address: vir_low::Expression,
+        restored_place: vir_low::Expression,
+        restored_root_address: vir_low::Expression,
+        snapshot: vir_low::Expression,
+    ) -> SpannedEncodingResult<vir_low::Statement>
+    where
+        G: WithLifetimes + WithConstArguments;
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodCallsInterface for Lowerer<'p, 'v, 'tcx> {
@@ -247,6 +262,35 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodCallsInterface for Lowerer<'p, 'v, 'tcx>
         }
         builder.add_lifetime_arguments()?;
         builder.add_const_arguments()?;
+        Ok(builder.build())
+    }
+
+    fn call_restore_raw_borrowed_method<G>(
+        &mut self,
+        context: CallContext,
+        ty: &vir_mid::Type,
+        generics: &G,
+        position: vir_low::Position,
+        borrowing_address: vir_low::Expression,
+        restored_place: vir_low::Expression,
+        restored_root_address: vir_low::Expression,
+        snapshot: vir_low::Expression,
+    ) -> SpannedEncodingResult<vir_low::Statement>
+    where
+        G: WithLifetimes + WithConstArguments,
+    {
+        let mut builder = BuiltinMethodCallBuilder::new(
+            self,
+            context,
+            "restore_raw_borrowed",
+            ty,
+            generics,
+            position,
+        )?;
+        builder.add_argument(borrowing_address);
+        builder.add_argument(restored_place);
+        builder.add_argument(restored_root_address);
+        builder.add_argument(snapshot);
         Ok(builder.build())
     }
 }

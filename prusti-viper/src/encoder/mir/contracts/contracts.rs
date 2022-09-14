@@ -109,7 +109,7 @@ impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
         &'a self,
         env: &'a Environment<'tcx>,
         substs: SubstsRef<'tcx>,
-    ) -> Option<(LocalDefId, SubstsRef<'tcx>)> {
+    ) -> Option<(DefId, SubstsRef<'tcx>)> {
         match self.specification.terminates {
             typed::SpecificationItem::Empty => None,
             typed::SpecificationItem::Inherent(t) | typed::SpecificationItem::Refined(_, t) => {

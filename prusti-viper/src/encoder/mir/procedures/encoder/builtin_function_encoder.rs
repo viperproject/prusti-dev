@@ -78,12 +78,12 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
                     size,
                 );
                 block_builder.add_statement(encoder.encoder.set_statement_error_ctxt(
-                    vir_high::Statement::exhale_no_pos(target_memory_block),
+                    vir_high::Statement::exhale_predicate_no_pos(target_memory_block),
                     span,
                     ErrorCtxt::ProcedureCall,
                     encoder.def_id,
                 )?);
-                let inhale_statement = vir_high::Statement::inhale_no_pos(
+                let inhale_statement = vir_high::Statement::inhale_predicate_no_pos(
                     vir_high::Predicate::owned_non_aliased_no_pos(encoded_target_place.clone()),
                 );
                 block_builder.add_statement(encoder.encoder.set_statement_error_ctxt(
@@ -198,6 +198,9 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
                 } else {
                     unimplemented!();
                 }
+            }
+            "prusti_contracts::prusti_take_lifetime" => {
+                make_builtin_call(self, block_builder, vir_high::BuiltinFunc::TakeLifetime)?
             }
             "prusti_contracts::Int::new" => {
                 make_builtin_call(self, block_builder, vir_high::BuiltinFunc::NewInt)?

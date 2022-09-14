@@ -25,7 +25,7 @@ pub(in super::super) fn propagate_assertions_back<'v, 'tcx: 'v>(
                     can_be_soundly_skipped = match &block.statements[statement_index] {
                         vir_high::Statement::Comment(_)
                         | vir_high::Statement::OldLabel(_)
-                        | vir_high::Statement::Inhale(vir_high::Inhale {
+                        | vir_high::Statement::InhalePredicate(vir_high::InhalePredicate {
                             predicate:
                                 vir_high::Predicate::LifetimeToken(_)
                                 | vir_high::Predicate::MemoryBlockStack(_)
@@ -34,10 +34,12 @@ pub(in super::super) fn propagate_assertions_back<'v, 'tcx: 'v>(
                                 | vir_high::Predicate::MemoryBlockHeapDrop(_),
                             position: _,
                         })
-                        | vir_high::Statement::Exhale(_)
+                        | vir_high::Statement::ExhalePredicate(_)
+                        | vir_high::Statement::ExhaleExpression(_)
                         | vir_high::Statement::Consume(_)
                         | vir_high::Statement::Havoc(_)
                         | vir_high::Statement::GhostHavoc(_)
+                        | vir_high::Statement::HeapHavoc(_)
                         | vir_high::Statement::Assert(_)
                         | vir_high::Statement::MovePlace(_)
                         | vir_high::Statement::CopyPlace(_)
@@ -59,7 +61,19 @@ pub(in super::super) fn propagate_assertions_back<'v, 'tcx: 'v>(
                         | vir_high::Statement::CloseMutRef(_)
                         | vir_high::Statement::CloseFracRef(_)
                         | vir_high::Statement::BorShorten(_) => true,
-                        vir_high::Statement::Assume(_) | vir_high::Statement::Inhale(_) => false,
+                        vir_high::Statement::Pack(_)
+                        | vir_high::Statement::Unpack(_)
+                        | vir_high::Statement::Join(_)
+                        | vir_high::Statement::JoinRange(_)
+                        | vir_high::Statement::Split(_)
+                        | vir_high::Statement::SplitRange(_)
+                        | vir_high::Statement::ForgetInitialization(_)
+                        | vir_high::Statement::RestoreRawBorrowed(_)
+                        | vir_high::Statement::Assume(_)
+                        | vir_high::Statement::InhalePredicate(_)
+                        | vir_high::Statement::InhaleExpression(_)
+                        | vir_high::Statement::StashRange(_)
+                        | vir_high::Statement::StashRangeRestore(_) => false,
                         vir_high::Statement::LoopInvariant(_) => unreachable!(),
                     };
                 }

@@ -8,7 +8,7 @@ use crate::encoder::{
 };
 use vir_crate::{
     low as vir_low,
-    middle::{self as vir_mid},
+    middle::{self as vir_mid, operations::ty::Typed},
 };
 
 pub(super) struct PlaceEncoder {}
@@ -42,7 +42,12 @@ impl PlaceExpressionDomainEncoder for PlaceEncoder {
         lowerer: &mut Lowerer,
         arg: vir_low::Expression,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        lowerer.encode_deref_place(arg, deref.position)
+        if deref.base.get_type().is_reference() {
+            lowerer.encode_deref_place(arg, deref.position)
+        } else {
+            assert!(deref.base.get_type().is_pointer());
+            lowerer.encode_aliased_place_root(deref.position)
+        }
     }
 
     fn encode_array_index_axioms(
@@ -51,5 +56,13 @@ impl PlaceExpressionDomainEncoder for PlaceEncoder {
         lowerer: &mut Lowerer,
     ) -> SpannedEncodingResult<()> {
         lowerer.encode_place_array_index_axioms(ty)
+    }
+
+    fn encode_labelled_old(
+        &mut self,
+        expression: &vir_mid::expression::LabelledOld,
+        lowerer: &mut Lowerer,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        self.encode_expression(&expression.base, lowerer)
     }
 }

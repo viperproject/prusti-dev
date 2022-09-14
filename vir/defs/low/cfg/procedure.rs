@@ -12,6 +12,7 @@ use crate::{
 pub struct ProcedureDecl {
     pub name: String,
     pub locals: Vec<VariableDecl>,
+    pub custom_labels: Vec<Label>,
     pub basic_blocks: Vec<BasicBlock>,
 }
 
@@ -28,6 +29,7 @@ pub struct BasicBlock {
 }
 
 #[display(fmt = "label {}", name)]
+#[derive(PartialOrd, Ord)]
 pub struct Label {
     pub name: String,
 }

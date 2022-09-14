@@ -22,6 +22,8 @@ impl Positioned for Expression {
             Self::FuncApp(expression) => expression.position(),
             Self::Downcast(expression) => expression.position(),
             Self::BuiltinFuncApp(expression) => expression.position(),
+            Self::AccPredicate(expression) => expression.position(),
+            Self::Unfolding(expression) => expression.position(),
         }
     }
 }
@@ -129,6 +131,18 @@ impl Positioned for BuiltinFuncApp {
 }
 
 impl Positioned for Downcast {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for AccPredicate {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for Unfolding {
     fn position(&self) -> Position {
         self.position
     }

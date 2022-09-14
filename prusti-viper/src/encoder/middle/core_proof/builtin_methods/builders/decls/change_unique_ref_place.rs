@@ -6,7 +6,7 @@ use crate::encoder::{
         lifetimes::LifetimesInterface,
         lowerer::Lowerer,
         places::PlacesInterface,
-        predicates::UniqueRefUseBuilder,
+        predicates::PredicatesOwnedInterface,
         references::ReferencesInterface,
         snapshots::{IntoPureSnapshot, IntoSnapshot},
     },
@@ -106,6 +106,11 @@ impl<'l, 'p, 'v, 'tcx> ChangeUniqueRefPlaceMethodBuilder<'l, 'p, 'v, 'tcx> {
             self.source_snapshot.clone().into(),
             self.inner.position,
         )?;
+        let slice_len = self.inner.lowerer.reference_slice_len(
+            self.inner.ty,
+            self.source_snapshot.clone().into(),
+            self.inner.position,
+        )?;
         let deref_source_place = self
             .inner
             .lowerer
@@ -133,8 +138,7 @@ impl<'l, 'p, 'v, 'tcx> ChangeUniqueRefPlaceMethodBuilder<'l, 'p, 'v, 'tcx> {
             .lowerer
             .encode_lifetime_const_into_pure_is_alive_variable(lifetime)?;
         let lifetime = lifetime.to_pure_snapshot(self.inner.lowerer)?;
-        let mut builder = UniqueRefUseBuilder::new(
-            self.lowerer(),
+        let source_expression = self.lowerer().unique_ref(
             CallContext::BuiltinMethod,
             &target_type,
             &target_type_decl,
@@ -143,14 +147,11 @@ impl<'l, 'p, 'v, 'tcx> ChangeUniqueRefPlaceMethodBuilder<'l, 'p, 'v, 'tcx> {
             current_snapshot.clone(),
             final_snapshot.clone(),
             lifetime.clone().into(),
+            slice_len.clone(),
         )?;
-        builder.add_lifetime_arguments()?;
-        builder.add_const_arguments()?;
-        let source_expression = builder.build();
 
         self.add_precondition(expr! { [lifetime_alive.clone().into()] ==> [source_expression] });
-        let mut builder = UniqueRefUseBuilder::new(
-            self.lowerer(),
+        let target_expression = self.lowerer().unique_ref(
             CallContext::BuiltinMethod,
             &target_type,
             &target_type_decl,
@@ -159,10 +160,8 @@ impl<'l, 'p, 'v, 'tcx> ChangeUniqueRefPlaceMethodBuilder<'l, 'p, 'v, 'tcx> {
             current_snapshot,
             final_snapshot,
             lifetime.into(),
+            slice_len,
         )?;
-        builder.add_lifetime_arguments()?;
-        builder.add_const_arguments()?;
-        let target_expression = builder.build();
         self.add_postcondition(expr! { [lifetime_alive.into()] ==> [target_expression] });
         Ok(())
     }

@@ -2,10 +2,13 @@ use crate::encoder::{
     errors::SpannedEncodingResult,
     high::pure_functions::HighPureFunctionEncoderInterface,
     middle::core_proof::{
+        footprint::FootprintInterface,
         function_gas::FunctionGasInterface,
         lowerer::{DomainsLowererInterface, Lowerer},
         snapshots::{
-            IntoPureBoolExpression, IntoPureSnapshot, IntoSnapshot, SnapshotValidityInterface,
+            FramedExpressionToSnapshot, IntoFramedPureSnapshot, IntoPureBoolExpression,
+            IntoPureSnapshot, IntoSnapshot, IntoSnapshotLowerer, ProcedureExpressionToSnapshot,
+            SnapshotValidityInterface,
         },
         types::TypesInterface,
     },
@@ -124,7 +127,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     return_type,
                 );
                 let body = if let Some(body) = function_decl.body {
-                    expr! { ([call.clone()] == [body.to_pure_snapshot(self)?]) }
+                    eprintln!("body: {}", body);
+                    let framing_variables = &function_decl.parameters;
+                    for variable in framing_variables {
+                        eprintln!("variable: {}", variable);
+                    }
+                    // let deref_fields = self.framing_variable_deref_fields(framing_variables)?;
+                    // for (e, name, ty) in &deref_fields {
+                    //     eprintln!("field: {} {} {}", e, name, ty);
+                    // }
+                    let mut body_encoder =
+                        FramedExpressionToSnapshot::for_function_body(framing_variables);
+                    let encoded_body = body_encoder.expression_to_snapshot(self, &body, false)?;
+                    expr! { ([call.clone()] == [encoded_body]) }
                 } else {
                     true.into()
                 };

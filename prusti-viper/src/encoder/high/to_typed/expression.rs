@@ -1,7 +1,10 @@
 use crate::encoder::errors::{SpannedEncodingError, SpannedEncodingResult};
 use vir_crate::{
-    high as vir_high, typed as vir_typed,
-    typed::operations::{HighToTypedExpressionLowerer, HighToTypedType},
+    high as vir_high,
+    typed::{
+        self as vir_typed,
+        operations::{HighToTypedExpressionLowerer, HighToTypedPredicateLowerer, HighToTypedType},
+    },
 };
 
 impl<'v, 'tcx> HighToTypedExpressionLowerer for crate::encoder::Encoder<'v, 'tcx> {
@@ -63,5 +66,12 @@ impl<'v, 'tcx> HighToTypedExpressionLowerer for crate::encoder::Encoder<'v, 'tcx
         Ok(vir_typed::ty::VariantIndex {
             index: variant_index.index,
         })
+    }
+
+    fn high_to_typed_expression_predicate(
+        &mut self,
+        predicate: vir_high::Predicate,
+    ) -> Result<vir_typed::Predicate, Self::Error> {
+        self.high_to_typed_predicate_predicate(predicate)
     }
 }

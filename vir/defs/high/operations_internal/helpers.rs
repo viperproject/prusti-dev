@@ -117,22 +117,44 @@ impl ConstantHelpers for Expression {
 
 impl SyntacticEvaluation for Expression {
     fn is_true(&self) -> bool {
-        matches!(
-            self,
+        match self {
             Self::Constant(Constant {
                 value: ConstantValue::Bool(true),
                 ..
-            })
-        )
+            }) => true,
+            Self::UnaryOp(UnaryOp {
+                op_kind: UnaryOpKind::Not,
+                argument,
+                ..
+            }) => argument.is_false(),
+            Self::BinaryOp(BinaryOp {
+                op_kind: BinaryOpKind::Or,
+                left,
+                right,
+                ..
+            }) => left.is_true() || right.is_true(),
+            _ => false,
+        }
     }
     fn is_false(&self) -> bool {
-        matches!(
-            self,
+        match self {
             Self::Constant(Constant {
                 value: ConstantValue::Bool(false),
                 ..
-            })
-        )
+            }) => true,
+            Self::UnaryOp(UnaryOp {
+                op_kind: UnaryOpKind::Not,
+                argument,
+                ..
+            }) => argument.is_true(),
+            Self::BinaryOp(BinaryOp {
+                op_kind: BinaryOpKind::And,
+                left,
+                right,
+                ..
+            }) => left.is_false() || right.is_false(),
+            _ => false,
+        }
     }
     fn is_zero(&self) -> bool {
         matches!(

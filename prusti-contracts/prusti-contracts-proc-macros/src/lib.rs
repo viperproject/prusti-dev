@@ -18,6 +18,12 @@ pub fn invariant(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
 
 #[cfg(not(feature = "prusti"))]
 #[proc_macro_attribute]
+pub fn structural_invariant(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    tokens
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro_attribute]
 pub fn ensures(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
     tokens
 }
@@ -118,6 +124,132 @@ pub fn body_variant(_tokens: TokenStream) -> TokenStream {
     TokenStream::new()
 }
 
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
+pub fn manually_manage(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
+pub fn pack(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
+pub fn unpack(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
+pub fn pack_ref(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
+pub fn unpack_ref(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
+pub fn pack_mut_ref(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
+pub fn unpack_mut_ref(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
+pub fn take_lifetime(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
+pub fn join(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
+pub fn join_range(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
+pub fn split(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
+pub fn split_range(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
+pub fn stash_range(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
+pub fn restore_stash_range(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
+pub fn close_ref(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
+pub fn open_ref(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
+pub fn close_mut_ref(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
+pub fn open_mut_ref(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
+pub fn forget_initialization(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
+pub fn restore(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
+pub fn set_union_active_field(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
 // ----------------------
 // --- PRUSTI ENABLED ---
 
@@ -204,7 +336,13 @@ pub fn extern_spec(attr: TokenStream, tokens: TokenStream) -> TokenStream {
 #[cfg(feature = "prusti")]
 #[proc_macro_attribute]
 pub fn invariant(attr: TokenStream, tokens: TokenStream) -> TokenStream {
-    prusti_specs::invariant(attr.into(), tokens.into()).into()
+    prusti_specs::invariant(attr.into(), tokens.into(), false).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro_attribute]
+pub fn structural_invariant(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    prusti_specs::invariant(attr.into(), tokens.into(), true).into()
 }
 
 #[cfg(feature = "prusti")]
@@ -252,6 +390,132 @@ pub fn terminates(attr: TokenStream, tokens: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn body_variant(tokens: TokenStream) -> TokenStream {
     prusti_specs::body_variant(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn manually_manage(tokens: TokenStream) -> TokenStream {
+    prusti_specs::manually_manage(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn pack(tokens: TokenStream) -> TokenStream {
+    prusti_specs::pack(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn unpack(tokens: TokenStream) -> TokenStream {
+    prusti_specs::unpack(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn pack_ref(tokens: TokenStream) -> TokenStream {
+    prusti_specs::pack_ref(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn unpack_ref(tokens: TokenStream) -> TokenStream {
+    prusti_specs::unpack_ref(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn pack_mut_ref(tokens: TokenStream) -> TokenStream {
+    prusti_specs::pack_mut_ref(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn unpack_mut_ref(tokens: TokenStream) -> TokenStream {
+    prusti_specs::unpack_mut_ref(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn take_lifetime(tokens: TokenStream) -> TokenStream {
+    prusti_specs::take_lifetime(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn join(tokens: TokenStream) -> TokenStream {
+    prusti_specs::join(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn join_range(tokens: TokenStream) -> TokenStream {
+    prusti_specs::join_range(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn split(tokens: TokenStream) -> TokenStream {
+    prusti_specs::split(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn split_range(tokens: TokenStream) -> TokenStream {
+    prusti_specs::split_range(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn stash_range(tokens: TokenStream) -> TokenStream {
+    prusti_specs::stash_range(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn restore_stash_range(tokens: TokenStream) -> TokenStream {
+    prusti_specs::restore_stash_range(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn close_ref(tokens: TokenStream) -> TokenStream {
+    prusti_specs::close_ref(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn open_ref(tokens: TokenStream) -> TokenStream {
+    prusti_specs::open_ref(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn close_mut_ref(tokens: TokenStream) -> TokenStream {
+    prusti_specs::close_mut_ref(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn open_mut_ref(tokens: TokenStream) -> TokenStream {
+    prusti_specs::open_mut_ref(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn forget_initialization(tokens: TokenStream) -> TokenStream {
+    prusti_specs::forget_initialization(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn restore(tokens: TokenStream) -> TokenStream {
+    prusti_specs::restore(tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn set_union_active_field(tokens: TokenStream) -> TokenStream {
+    prusti_specs::set_union_active_field(tokens.into()).into()
 }
 
 // Ensure that you've also crated a transparent `#[cfg(not(feature = "prusti"))]`

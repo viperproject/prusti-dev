@@ -35,7 +35,7 @@ impl<'v, 'tcx: 'v> HighToTypedTypeEncoderInterface
         ty: &vir_typed::Type,
     ) -> SpannedEncodingResult<vir_typed::TypeDecl> {
         let high_type = &self.typed_type_encoder_state.encoded_types_inverse[ty];
-        let type_decl_high = self.encode_type_def_high(high_type)?;
+        let type_decl_high = self.encode_type_def_high(high_type, true)?;
         type_decl_high.high_to_typed_type_decl(self)
     }
 

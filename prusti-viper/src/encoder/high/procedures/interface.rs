@@ -98,7 +98,7 @@ pub(crate) trait HighProcedureEncoderInterface<'tcx> {
         &mut self,
         proc_def_id: DefId,
         check_mode: CheckMode,
-    ) -> SpannedEncodingResult<vir_mid::ProcedureDecl>;
+    ) -> SpannedEncodingResult<Vec<vir_mid::ProcedureDecl>>;
     fn encode_type_core_proof(
         &mut self,
         ty: ty::Ty<'tcx>,
@@ -111,14 +111,17 @@ impl<'v, 'tcx: 'v> HighProcedureEncoderInterface<'tcx> for super::super::super::
         &mut self,
         proc_def_id: DefId,
         check_mode: CheckMode,
-    ) -> SpannedEncodingResult<vir_mid::ProcedureDecl> {
-        let procedure_high = self.encode_procedure_core_proof_high(proc_def_id, check_mode)?;
-        debug!("procedure_high:\n{}", procedure_high);
-        let procedure_typed = self.procedure_high_to_typed(procedure_high)?;
-        debug!("procedure_typed:\n{}", procedure_typed);
-        let procedure =
-            super::inference::infer_shape_operations(self, proc_def_id, procedure_typed)?;
-        Ok(procedure)
+    ) -> SpannedEncodingResult<Vec<vir_mid::ProcedureDecl>> {
+        let mut procedures = Vec::new();
+        for procedure_high in self.encode_procedure_core_proof_high(proc_def_id, check_mode)? {
+            debug!("procedure_high:\n{}", procedure_high);
+            let procedure_typed = self.procedure_high_to_typed(procedure_high)?;
+            debug!("procedure_typed:\n{}", procedure_typed);
+            let procedure =
+                super::inference::infer_shape_operations(self, proc_def_id, procedure_typed)?;
+            procedures.push(procedure);
+        }
+        Ok(procedures)
     }
 
     fn encode_type_core_proof(
@@ -126,7 +129,7 @@ impl<'v, 'tcx: 'v> HighProcedureEncoderInterface<'tcx> for super::super::super::
         ty: ty::Ty<'tcx>,
         check_mode: CheckMode,
     ) -> SpannedEncodingResult<vir_mid::Type> {
-        assert_eq!(check_mode, CheckMode::CoreProof);
+        assert_eq!(check_mode, CheckMode::MemorySafety);
         let ty_high = self.encode_type_high(ty)?;
         ty_high.high_to_middle(self)
     }

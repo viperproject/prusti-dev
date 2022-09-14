@@ -6,7 +6,27 @@ use super::super::ast::{
     variable::VariableDecl,
 };
 
+impl VariableDecl {
+    pub fn self_variable(ty: Type) -> Self {
+        VariableDecl::new("self$", ty)
+    }
+    pub fn is_self_variable(&self) -> bool {
+        self.name == "self$"
+    }
+}
+
 impl Expression {
+    pub fn self_variable(ty: Type) -> Self {
+        let variable = VariableDecl::self_variable(ty);
+        Expression::local_no_pos(variable)
+    }
+    pub fn is_self_variable(&self) -> bool {
+        if let Expression::Local(Local { variable, .. }) = self {
+            variable.is_self_variable()
+        } else {
+            false
+        }
+    }
     pub fn discriminant() -> Self {
         let variable = VariableDecl::new("discriminant$", Type::MInt);
         Expression::local_no_pos(variable)

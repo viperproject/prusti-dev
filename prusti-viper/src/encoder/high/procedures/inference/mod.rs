@@ -25,6 +25,7 @@ mod permission;
 mod semantics;
 mod state;
 mod visitor;
+mod unfolding_expressions;
 
 pub(super) fn infer_shape_operations<'v, 'tcx: 'v>(
     encoder: &mut Encoder<'v, 'tcx>,

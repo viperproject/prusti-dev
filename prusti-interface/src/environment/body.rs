@@ -182,12 +182,27 @@ impl<'tcx> EnvBody<'tcx> {
 
     /// Get the MIR body of a local impure function, without any substitutions.
     pub fn get_impure_fn_body_identity(&self, def_id: LocalDefId) -> MirBody<'tcx> {
-        let mut impure = self.local_impure_fns.borrow_mut();
-        impure
-            .entry(def_id)
-            .or_insert_with(|| Self::load_local_mir_with_facts(self.tcx, def_id))
-            .body
-            .clone()
+        // let mut impure = self.local_impure_fns.borrow_mut();
+        // impure
+        //     .entry(def_id)
+        //     .or_insert_with(|| Self::load_local_mir_with_facts(self.tcx, def_id))
+        //     .body
+        //     .clone()
+        self.borrow_impure_fn_body_identity(def_id).clone()
+    }
+
+    /// Borrow the MIR body of a local impure function, without any substitutions.
+    pub fn borrow_impure_fn_body_identity(
+        &self,
+        def_id: LocalDefId,
+    ) -> std::cell::RefMut<MirBody<'tcx>> {
+        let impure = self.local_impure_fns.borrow_mut();
+        std::cell::RefMut::map(impure, |impure| {
+            &mut impure
+                .entry(def_id)
+                .or_insert_with(|| Self::load_local_mir_with_facts(self.tcx, def_id))
+                .body
+        })
     }
 
     /// Get the MIR body of a local impure function, monomorphised

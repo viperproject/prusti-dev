@@ -23,6 +23,14 @@ pub(in super::super::super) trait SnapshotValuesInterface {
         argument: vir_low::Expression,
         position: vir_mid::Position,
     ) -> SpannedEncodingResult<vir_low::Expression>;
+    fn obtain_parameter_snapshot(
+        &mut self,
+        base_type: &vir_mid::Type,
+        parameter_name: &str,
+        parameter_type: vir_low::Type,
+        base_snapshot: vir_low::Expression,
+        position: vir_mid::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
     fn obtain_struct_field_snapshot(
         &mut self,
         base_type: &vir_mid::Type,
@@ -118,6 +126,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValuesInterface for Lowerer<'p, 'v, 'tcx> {
             position,
         )
     }
+    fn obtain_parameter_snapshot(
+        &mut self,
+        base_type: &vir_mid::Type,
+        parameter_name: &str,
+        parameter_type: vir_low::Type,
+        base_snapshot: vir_low::Expression,
+        position: vir_mid::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let domain_name = self.encode_snapshot_domain_name(base_type)?;
+        let return_type = parameter_type;
+        Ok(self
+            .snapshot_destructor_struct_call(
+                &domain_name,
+                parameter_name,
+                return_type,
+                base_snapshot,
+            )?
+            .set_default_position(position))
+    }
     fn obtain_struct_field_snapshot(
         &mut self,
         base_type: &vir_mid::Type,
@@ -125,11 +152,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValuesInterface for Lowerer<'p, 'v, 'tcx> {
         base_snapshot: vir_low::Expression,
         position: vir_mid::Position,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        let domain_name = self.encode_snapshot_domain_name(base_type)?;
-        let return_type = field.ty.to_snapshot(self)?;
-        Ok(self
-            .snapshot_destructor_struct_call(&domain_name, &field.name, return_type, base_snapshot)?
-            .set_default_position(position))
+        let parameter_type = field.ty.to_snapshot(self)?;
+        self.obtain_parameter_snapshot(
+            base_type,
+            &field.name,
+            parameter_type,
+            base_snapshot,
+            position,
+        )
+        // let domain_name = self.encode_snapshot_domain_name(base_type)?;
+        // let return_type = field.ty.to_snapshot(self)?;
+        // Ok(self
+        //     .snapshot_destructor_struct_call(&domain_name, &field.name, return_type, base_snapshot)?
+        //     .set_default_position(position))
     }
     fn obtain_enum_variant_snapshot(
         &mut self,
@@ -209,7 +244,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValuesInterface for Lowerer<'p, 'v, 'tcx> {
             vir_mid::Type::Reference(_) => self.address_type()?,
             x => unimplemented!("{:?}", x),
         };
-        vir_low::operations::ty::Typed::set_type(&mut argument, low_type);
+        if !ty.is_bool() {
+            vir_low::operations::ty::Typed::set_type(&mut argument, low_type);
+        }
         Ok(self
             .snapshot_constructor_constant_call(&domain_name, vec![argument])?
             .set_default_position(position))

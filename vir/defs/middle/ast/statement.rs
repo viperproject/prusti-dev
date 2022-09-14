@@ -14,19 +14,24 @@ use crate::common::display;
 pub enum Statement {
     Comment(Comment),
     OldLabel(OldLabel),
-    Inhale(Inhale),
-    Exhale(Exhale),
+    InhalePredicate(InhalePredicate),
+    ExhalePredicate(ExhalePredicate),
+    InhaleExpression(InhaleExpression),
+    ExhaleExpression(ExhaleExpression),
+    Assume(Assume),
+    Assert(Assert),
     Consume(Consume),
     Havoc(Havoc),
     GhostHavoc(GhostHavoc),
-    Assume(Assume),
-    Assert(Assert),
+    HeapHavoc(HeapHavoc),
     FoldOwned(FoldOwned),
     UnfoldOwned(UnfoldOwned),
     FoldRef(FoldRef),
     UnfoldRef(UnfoldRef),
     JoinBlock(JoinBlock),
+    JoinRange(JoinRange),
     SplitBlock(SplitBlock),
+    SplitRange(SplitRange),
     ConvertOwnedIntoMemoryBlock(ConvertOwnedIntoMemoryBlock),
     RestoreMutBorrowed(RestoreMutBorrowed),
     MovePlace(MovePlace),
@@ -36,6 +41,11 @@ pub enum Statement {
     Assign(Assign),
     GhostAssign(GhostAssign),
     SetUnionVariant(SetUnionVariant),
+    // Pack(Pack),
+    // Unpack(Unpack),
+    RestoreRawBorrowed(RestoreRawBorrowed),
+    StashRange(StashRange),
+    StashRangeRestore(StashRangeRestore),
     NewLft(NewLft),
     EndLft(EndLft),
     DeadReference(DeadReference),
@@ -62,16 +72,18 @@ pub struct OldLabel {
     pub position: Position,
 }
 
-/// Inhale the permission denoted by the place.
-#[display(fmt = "inhale {}", predicate)]
-pub struct Inhale {
+/// Inhale the permission denoted by the place. This operation is automatically
+/// managed by fold-unfold.
+#[display(fmt = "inhale-pred {}", predicate)]
+pub struct InhalePredicate {
     pub predicate: Predicate,
     pub position: Position,
 }
 
-#[display(fmt = "exhale {}", predicate)]
-/// Exhale the permission denoted by the place.
-pub struct Exhale {
+#[display(fmt = "exhale-pred {}", predicate)]
+/// Exhale the permission denoted by the place. This operation is automatically
+/// managed by fold-unfold.
+pub struct ExhalePredicate {
     pub predicate: Predicate,
     pub position: Position,
 }
@@ -96,8 +108,28 @@ pub struct GhostHavoc {
     pub position: Position,
 }
 
+#[display(fmt = "heap-havoc")]
+/// Havoc the heap.
+pub struct HeapHavoc {
+    pub position: Position,
+}
+
+#[display(fmt = "inhale-expr {}", expression)]
+/// Inhale the boolean expression. This operation is ignored by fold-unfold.
+pub struct InhaleExpression {
+    pub expression: Expression,
+    pub position: Position,
+}
+
+#[display(fmt = "exhale-expr {}", expression)]
+/// Exhale the boolean expression. This operation is ignored by fold-unfold.
+pub struct ExhaleExpression {
+    pub expression: Expression,
+    pub position: Position,
+}
+
 #[display(fmt = "assume {}", expression)]
-/// Assume the boolean expression.
+/// Assume the pure boolean expression.
 pub struct Assume {
     pub expression: Expression,
     pub position: Position,
@@ -108,7 +140,7 @@ pub struct Assume {
     "display::option!(condition, \"<{}>\", \"\")",
     expression
 )]
-/// Assert the boolean expression.
+/// Assert the pure boolean expression.
 pub struct Assert {
     pub expression: Expression,
     pub condition: Option<BlockMarkerCondition>,
@@ -203,6 +235,14 @@ pub struct JoinBlock {
     pub position: Position,
 }
 
+#[display(fmt = "join-range {} {} {}", address, start_index, end_index)]
+pub struct JoinRange {
+    pub address: Expression,
+    pub start_index: Expression,
+    pub end_index: Expression,
+    pub position: Position,
+}
+
 #[display(
     fmt = "split{} {}{}",
     "display::option!(condition, \"<{}>\", \"\")",
@@ -215,6 +255,14 @@ pub struct SplitBlock {
     pub condition: Option<BlockMarkerCondition>,
     /// If we are splitting for enum, then we need to know for which variant.
     pub enum_variant: Option<VariantIndex>,
+    pub position: Position,
+}
+
+#[display(fmt = "split-range {} {} {}", address, start_index, end_index)]
+pub struct SplitRange {
+    pub address: Expression,
+    pub start_index: Expression,
+    pub end_index: Expression,
     pub position: Position,
 }
 
@@ -301,6 +349,63 @@ pub struct GhostAssign {
 #[display(fmt = "set-union-variant {}", variant_place)]
 pub struct SetUnionVariant {
     pub variant_place: Expression,
+    pub position: Position,
+}
+
+// #[display(fmt = "pack {}", place)]
+// pub struct Pack {
+//     pub place: Expression,
+//     pub position: Position,
+// }
+
+// #[display(fmt = "unpack {}", place)]
+// pub struct Unpack {
+//     pub place: Expression,
+//     pub position: Position,
+// }
+
+#[display(
+    fmt = "restore-raw-borrowed {} --* {}",
+    borrowing_place,
+    restored_place
+)]
+pub struct RestoreRawBorrowed {
+    pub borrowing_place: Expression,
+    pub restored_place: Expression,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "stash-range {} {} {} {}",
+    address,
+    start_index,
+    end_index,
+    label
+)]
+pub struct StashRange {
+    pub address: Expression,
+    pub start_index: Expression,
+    pub end_index: Expression,
+    pub label: String,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "stash-range-restore {} {} {} {} → {} {}",
+    old_address,
+    old_start_index,
+    old_end_index,
+    old_label,
+    new_address,
+    new_start_index
+)]
+pub struct StashRangeRestore {
+    pub old_address: Expression,
+    pub old_start_index: Expression,
+    pub old_end_index: Expression,
+    pub old_label: String,
+    pub new_address: Expression,
+    pub new_start_index: Expression,
     pub position: Position,
 }
 

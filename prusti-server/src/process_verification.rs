@@ -99,13 +99,13 @@ pub fn process_verification_request<'v, 't: 'v>(
 
     ast_utils.with_local_frame(16, || {
         let viper_program = build_or_dump_viper_program();
-        let program_name = request.program.get_name();
+        let program_name = request.program.get_name_with_check_mode();
 
         // Create a new verifier each time.
         // Workaround for https://github.com/viperproject/prusti-dev/issues/744
         let mut stopwatch = Stopwatch::start("prusti-server", "verifier startup");
         let mut verifier =
-            new_viper_verifier(program_name, verification_context, request.backend_config);
+            new_viper_verifier(&program_name, verification_context, request.backend_config);
 
         stopwatch.start_next("verification");
         let mut result = verifier.verify(viper_program);

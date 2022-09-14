@@ -5,11 +5,12 @@ use crate::encoder::{
         lowerer::{
             DomainsLowererInterface, FunctionsLowererInterface, Lowerer, PredicatesLowererInterface,
         },
+        snapshots::SnapshotValuesInterface,
         type_layouts::TypeLayoutsInterface,
     },
 };
 use rustc_hash::FxHashSet;
-use vir_crate::low as vir_low;
+use vir_crate::{common::expression::QuantifierHelpers, low as vir_low, middle as vir_mid};
 
 #[derive(Default)]
 pub(in super::super) struct PredicatesMemoryBlockState {
@@ -78,8 +79,35 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
 
 pub(in super::super::super) trait PredicatesMemoryBlockInterface {
     fn bytes_type(&mut self) -> SpannedEncodingResult<vir_low::Type>;
+    fn byte_type(&mut self) -> SpannedEncodingResult<vir_low::Type>;
+    fn encode_read_byte_expression(
+        &mut self,
+        bytes: vir_low::Expression,
+        index: vir_low::Expression,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
     fn encode_memory_block_predicate(&mut self) -> SpannedEncodingResult<()>;
+    fn encode_memory_block_stack_acc(
+        &mut self,
+        place: vir_low::Expression,
+        size: vir_low::Expression,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
+    fn encode_memory_block_range_acc(
+        &mut self,
+        address: vir_low::Expression,
+        size: vir_low::Expression,
+        start_index: vir_low::Expression,
+        end_index: vir_low::Expression,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
     fn encode_memory_block_stack_drop_acc(
+        &mut self,
+        place: vir_low::Expression,
+        size: vir_low::Expression,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
+    fn encode_memory_block_heap_drop_acc(
         &mut self,
         place: vir_low::Expression,
         size: vir_low::Expression,
@@ -97,8 +125,63 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesMemoryBlockInterface for Lowerer<'p, 'v, 't
     fn bytes_type(&mut self) -> SpannedEncodingResult<vir_low::Type> {
         self.domain_type("Bytes")
     }
+    fn byte_type(&mut self) -> SpannedEncodingResult<vir_low::Type> {
+        self.domain_type("Byte")
+    }
+    fn encode_read_byte_expression(
+        &mut self,
+        bytes: vir_low::Expression,
+        index: vir_low::Expression,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let byte_type = self.byte_type()?;
+        self.create_domain_func_app(
+            "Byte",
+            "Byte$read_byte",
+            vec![bytes, index],
+            byte_type,
+            position,
+        )
+    }
     fn encode_memory_block_predicate(&mut self) -> SpannedEncodingResult<()> {
         self.encode_generic_memory_block_predicate("MemoryBlock")
+    }
+    fn encode_memory_block_stack_acc(
+        &mut self,
+        place: vir_low::Expression,
+        size: vir_low::Expression,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        self.encode_generic_memory_block_acc("MemoryBlock", place, size, position)
+    }
+    fn encode_memory_block_range_acc(
+        &mut self,
+        address: vir_low::Expression,
+        size: vir_low::Expression,
+        start_index: vir_low::Expression,
+        end_index: vir_low::Expression,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        use vir_low::macros::*;
+        let size_type = self.size_type_mid()?;
+        var_decls! {
+            index: Int
+        }
+        let element_address =
+            self.address_offset(size.clone(), address, index.clone().into(), position)?;
+        let predicate =
+            self.encode_memory_block_stack_acc(element_address.clone(), size.clone(), position)?;
+        let start_index = self.obtain_constant_value(&size_type, start_index, position)?;
+        let end_index = self.obtain_constant_value(&size_type, end_index, position)?;
+        let body = expr!(
+            (([start_index] <= index) && (index < [end_index])) ==> [predicate]
+        );
+        let expression = vir_low::Expression::forall(
+            vec![index],
+            vec![vir_low::Trigger::new(vec![element_address])],
+            body,
+        );
+        Ok(expression)
     }
     fn encode_memory_block_stack_drop_acc(
         &mut self,
@@ -107,6 +190,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesMemoryBlockInterface for Lowerer<'p, 'v, 't
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression> {
         self.encode_generic_memory_block_acc("MemoryBlockStackDrop", place, size, position)
+    }
+    fn encode_memory_block_heap_drop_acc(
+        &mut self,
+        place: vir_low::Expression,
+        size: vir_low::Expression,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        self.encode_generic_memory_block_acc("MemoryBlockHeapDrop", place, size, position)
     }
     fn encode_memory_block_bytes_function_name(&mut self) -> SpannedEncodingResult<String> {
         Ok("MemoryBlock$bytes".to_string())

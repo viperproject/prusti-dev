@@ -3,7 +3,7 @@ use crate::common::display;
 
 #[derive_helpers]
 #[derive_visitors]
-#[derive(derive_more::From, derive_more::IsVariant)]
+#[derive(derive_more::From, derive_more::IsVariant, derive_more::Unwrap)]
 pub enum Expression {
     /// A Viper variable.
     ///
@@ -90,17 +90,9 @@ pub struct FieldAccessPredicate {
     pub position: Position,
 }
 
-#[display(
-    fmt = "(unfolding acc({}({}), {}) in {})",
-    predicate,
-    "display::cjoin(arguments)",
-    permission,
-    base
-)]
+#[display(fmt = "(unfolding {} in {})", predicate, base)]
 pub struct Unfolding {
-    pub predicate: String,
-    pub arguments: Vec<Expression>,
-    pub permission: Box<Expression>,
+    pub predicate: PredicateAccessPredicate,
     pub base: Box<Expression>,
     pub position: Position,
 }

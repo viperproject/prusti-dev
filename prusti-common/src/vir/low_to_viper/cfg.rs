@@ -23,6 +23,9 @@ impl<'a, 'v> ToViper<'v, viper::Method<'v>> for &'a ProcedureDecl {
         }
         statements.push(ast.label(RETURN_LABEL, &[]));
         declarations.push(ast.label(RETURN_LABEL, &[]).into());
+        for label in &self.custom_labels {
+            declarations.push(label.to_viper_decl(context, ast).into());
+        }
         let body = Some(ast.seqn(&statements, &declarations));
         ast.method(&self.name, &[], &[], &[], &[], body)
     }

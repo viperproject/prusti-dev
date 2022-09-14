@@ -5,6 +5,7 @@ impl Positioned for Statement {
     fn position(&self) -> Position {
         match self {
             Self::Comment(statement) => statement.position(),
+            Self::Label(statement) => statement.position(),
             Self::LogEvent(statement) => statement.position(),
             Self::Assume(statement) => statement.position(),
             Self::Assert(statement) => statement.position(),
@@ -23,6 +24,12 @@ impl Positioned for Statement {
 impl Positioned for Comment {
     fn position(&self) -> Position {
         Default::default()
+    }
+}
+
+impl Positioned for Label {
+    fn position(&self) -> Position {
+        self.position
     }
 }
 

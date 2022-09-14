@@ -62,7 +62,7 @@ impl PredicateStateOnPath {
         self.memory_block_stack.is_empty()
             && self.owned_non_aliased.iter().all(|place| {
                 // `UniqueRef` and `FracRef` predicates can be leaked.
-                place.get_dereference_base().is_some()
+                place.get_last_dereferenced_reference().is_some()
             })
     }
 

@@ -17,7 +17,7 @@ pub enum Rvalue {
     // ThreadLocalRef(ThreadLocalRef),
     AddressOf(AddressOf),
     Len(Len),
-    // Cast(Cast),
+    Cast(Cast),
     BinaryOp(BinaryOp),
     CheckedBinaryOp(CheckedBinaryOp),
     // NullaryOp(NullaryOp),
@@ -65,6 +65,13 @@ pub struct AddressOf {
 #[display(fmt = "len({})", place)]
 pub struct Len {
     pub place: Expression,
+}
+
+#[display(fmt = "cast({} -> {})", operand, ty)]
+pub struct Cast {
+    // TODO: kind: CastKind,
+    pub operand: Operand,
+    pub ty: Type,
 }
 
 #[display(fmt = "{}({}, {})", kind, left, right)]
