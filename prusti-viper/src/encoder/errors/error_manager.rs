@@ -45,6 +45,7 @@ pub enum PanicCause {
 pub enum BuiltinMethodKind {
     WriteConstant,
     MovePlace,
+    CopyPlace,
     IntoMemoryBlock,
     SplitMemoryBlock,
     JoinMemoryBlock,
@@ -52,6 +53,7 @@ pub enum BuiltinMethodKind {
     ChangeUniqueRefPlace,
     DuplicateFracRef,
     Assign,
+    RestoreRawBorrowed,
 }
 
 /// In case of verification error, this enum will contain additional information
@@ -62,16 +64,28 @@ pub enum ErrorCtxt {
     Panic(PanicCause),
     /// A Viper `exhale expr` that encodes the call of a Rust procedure with precondition `expr`
     ExhaleMethodPrecondition,
+    /// A Viper `exhale expr` that encodes the call of a Rust procedure with
+    /// precondition `expr`; missing permission.
+    ExhaleMethodPreconditionPermissionExhale,
     /// An error when assuming method's functional specification.
     UnexpectedAssumeMethodPrecondition,
     /// An error when assuming method's functional specification.
     UnexpectedAssumeMethodPostcondition,
     /// A Viper `assert expr` that encodes the call of a Rust procedure with precondition `expr`
     AssertMethodPostcondition,
+    /// A Viper `assert expr` that encodes the call of a Rust procedure with
+    /// precondition `expr`; missing permission.
+    AssertMethodPostconditionPermissionExhale,
+    /// A Viper `assert expr` that encodes the call of a Rust procedure with
+    /// precondition `expr` when the precondition is not required to hold.
+    AssertMethodPostconditionNoPanic,
     /// A Viper `assert expr` that encodes the call of a Rust procedure with precondition `expr`
     AssertMethodPostconditionTypeInvariants,
     /// A Viper `exhale expr` that encodes the end of a Rust procedure with postcondition `expr`
     ExhaleMethodPostcondition,
+    /// A Viper `exhale expr` that encodes the end of a Rust procedure with
+    /// postcondition `expr`; missing permission.
+    ExhaleMethodPostconditionPermissionExhale,
     /// A generic loop invariant error.
     LoopInvariant,
     /// A Viper `exhale expr` that exhales the permissions of a loop invariant `expr`
@@ -161,8 +175,12 @@ pub enum ErrorCtxt {
     UnfoldUnionVariant,
     /// Failed to call a procedure.
     ProcedureCall,
+    /// Failed to call a procedure due to a missing permission.
+    ProcedureCallPermissionExhale,
     /// Failed to call a drop handler.
     DropCall,
+    /// Failed to call a drop handler due to a missing permission,
+    DropCallPermissionExhale,
     /// Failed to encode lifetimes
     LifetimeEncoding,
     /// Failed to encode LifetimeTake
@@ -181,6 +199,10 @@ pub enum ErrorCtxt {
     CloseMutRef,
     /// Failed to encode CloseFracRef
     CloseFracRef,
+    /// Closing a reference failed.
+    CloseRef,
+    /// Opening a reference failed.
+    OpenRef,
     /// Failed to set an active variant of an union.
     SetEnumVariant,
     /// A user assumption raised an error
@@ -188,6 +210,38 @@ pub enum ErrorCtxt {
     /// The state that fold-unfold algorithm deduced as unreachable, is actually
     /// reachable.
     UnreachableFoldingState,
+    /// A user-specified pack operation failed.
+    Pack,
+    /// A user-specified unpack operation failed.
+    Unpack,
+    /// A user-specified forget-initialization operation failed.
+    ForgetInitialization,
+    /// Restore a place borrowed via raw pointer.
+    RestoreRawBorrowed,
+    /// An error in the definition of the type invariant.
+    TypeInvariantDefinition,
+    /// Pointer dereference in the postcondition is not framed by permissions.
+    ///
+    /// Note: This can also be reported when the underlying solver failing to
+    /// prove that the postcondition implies itself.
+    MethodPostconditionFraming,
+    /// An unexpected error when assuming false to end method postcondition
+    /// framing check.
+    UnexpectedAssumeEndMethodPostconditionFraming,
+    StashRange,
+    RestoreStashRange,
+    JoinRange,
+    SplitRange,
+    UnexpectedSpecificationExpression,
+    Resolve,
+    ExhaleNonAliasedPredicate,
+    UnexpectedUnreachable,
+    /// A function annotated with #[no_panic] may panic.
+    NoPanicPanics,
+    /// Precondition of a checked binary operation failed.
+    CheckedBinaryOpPrecondition,
+    // /// Permission error when dereferencing a raw pointer.
+    // EnsureOwnedPredicate,
 }
 
 /// The error manager
@@ -238,6 +292,11 @@ impl<'tcx> ErrorManager<'tcx> {
             );
         }
         self.error_contexts.insert(pos.id(), error_ctxt);
+    }
+
+    pub fn get_error(&mut self, pos: Position) -> ErrorCtxt {
+        assert_ne!(pos, Position::default(), "Trying to obtain an error on a default position");
+        self.error_contexts[&pos.id()].clone()
     }
 
     /// Creates a new position with `error_ctxt` that is linked to `pos`. This
@@ -403,6 +462,7 @@ impl<'tcx> ErrorManager<'tcx> {
                     .set_help("This might be a bug in the Rust compiler.")
             }
 
+            ("exhale.failed:assertion.false", ErrorCtxt::ExhaleMethodPrecondition) |
             ("assert.failed:assertion.false", ErrorCtxt::ExhaleMethodPrecondition) => {
                 PrustiError::verification("precondition might not hold.", error_span)
                     .set_failing_assertion(opt_cause_span)
@@ -558,9 +618,24 @@ impl<'tcx> ErrorManager<'tcx> {
                     .set_failing_assertion(opt_cause_span)
             }
 
-            ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPostcondition) => {
+            ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPostcondition)
+            |("exhale.failed:assertion.false", ErrorCtxt::AssertMethodPostcondition)=> {
                 PrustiError::verification("postcondition might not hold.".to_string(), error_span)
                     .push_primary_span(opt_cause_span)
+            }
+
+            ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPostconditionNoPanic)
+            |("exhale.failed:assertion.false", ErrorCtxt::AssertMethodPostconditionNoPanic)=> {
+                PrustiError::verification("postcondition might not hold when precondition is not assumed.".to_string(), error_span)
+                    .push_primary_span(opt_cause_span)
+                    .set_help("Postcondition needs to hold without precondition because of `#[no_panic_ensures_postcondition]` annotation.")
+            }
+
+            ("inhale.failed:insufficient.permission", ErrorCtxt::MethodPostconditionFraming)
+            | ("application.precondition:insufficient.permission", ErrorCtxt::MethodPostconditionFraming) => {
+                PrustiError::verification("the postcondition might not be self-framing.".to_string(), error_span)
+                    .push_primary_span(opt_cause_span)
+                    .set_help("This error might be also caused by prover failing to prove that the postcondition implies itself")
             }
 
             (
@@ -703,6 +778,101 @@ impl<'tcx> ErrorManager<'tcx> {
                     "the refuted expression holds in all cases or could not be reached",
                     error_span,
                 )
+            }
+
+            ("assert.failed:assertion.false", ErrorCtxt::ExhaleNonAliasedPredicate) => {
+                PrustiError::verification(
+                    "there might be insufficient permission to a place".to_string(),
+                    error_span
+                )
+            }
+
+            // ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPostconditionPermissionExhale) => {
+            //     PrustiError::verification(
+            //         "there might be insufficient permission to a place".to_string(),
+            //         error_span
+            //     )
+            // }
+
+            ("exhale.failed:insufficient.permission", ErrorCtxt::CopyPlace) |
+            ("exhale.failed:insufficient.permission", ErrorCtxt::MovePlace) |
+            ("assert.failed:assertion.false", ErrorCtxt::CopyPlace) |
+            ("assert.failed:assertion.false", ErrorCtxt::MovePlace) |
+            ("call.precondition:insufficient.permission", ErrorCtxt::CopyPlace) |
+            ("call.precondition:insufficient.permission", ErrorCtxt::MovePlace) => {
+                PrustiError::verification(
+                    "the accessed place may not be allocated or initialized".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("assert.failed:assertion.false", ErrorCtxt::WritePlace) |
+            ("exhale.failed:insufficient.permission", ErrorCtxt::WritePlace) |
+            ("call.precondition:insufficient.permission", ErrorCtxt::WritePlace) => {
+                PrustiError::verification(
+                    "the accessed memory location must be allocated and uninitialized".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPostconditionPermissionExhale) |
+            ("exhale.failed:insufficient.permission", ErrorCtxt::AssertMethodPostcondition) |
+            ("exhale.failed:insufficient.permission", ErrorCtxt::Assign) |
+            ("application.precondition:insufficient.permission", ErrorCtxt::AssertMethodPostcondition) |
+            ("application.precondition:insufficient.permission", ErrorCtxt::TypeInvariantDefinition) => {
+                PrustiError::verification(
+                    "there might be insufficient permission to dereference a raw pointer".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("assert.failed:assertion.false", ErrorCtxt::ExhaleMethodPreconditionPermissionExhale) |
+            ("exhale.failed:insufficient.permission", ErrorCtxt::ExhaleMethodPrecondition) => {
+                PrustiError::verification(
+                    "the permission specified in the precondition might be missing".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("call.precondition:assertion.false", ErrorCtxt::Assign | ErrorCtxt::CopyPlace) => {
+                PrustiError::verification(
+                    "the type invariant of the constructed object might not hold".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("call.precondition:insufficient.permission", ErrorCtxt::LifetimeEncoding) => {
+                PrustiError::verification(
+                    "there might be insufficient permission to a lifetime token".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+                .set_help("This could be caused by an unclosed reference.")
+            }
+
+            ("assert.failed:assertion.false", ErrorCtxt::UnexpectedStorageDead) |
+            ("exhale.failed:insufficient.permission", ErrorCtxt::UnexpectedStorageDead) |
+            ("application.precondition:insufficient.permission", ErrorCtxt::UnexpectedStorageDead) => {
+                PrustiError::verification(
+                    "there might be insufficient permission to a place".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+                .set_help("This could be caused by lifetime contraints not matching the real borrows.")
+            }
+
+            ("assert.failed:assertion.false", ErrorCtxt::NoPanicPanics) => {
+                PrustiError::verification(
+                    "the function may panic".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+                .set_help("The function is required not to panic because of `#[no_panic]` annotation.")
+            }
+
+            ("exhale.failed:assertion.false", ErrorCtxt::CheckedBinaryOpPrecondition) |
+            ("call.precondition:assertion.false", ErrorCtxt::CheckedBinaryOpPrecondition) => {
+                PrustiError::verification(
+                    "the operation may overflow or underflow".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
             }
 
             (full_err_id, ErrorCtxt::Unexpected) => {

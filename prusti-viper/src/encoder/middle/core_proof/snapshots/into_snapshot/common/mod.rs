@@ -3,20 +3,37 @@ use crate::encoder::{
     errors::SpannedEncodingResult,
     high::types::HighTypeEncoderInterface,
     middle::core_proof::{
+        addresses::AddressesInterface,
+        builtin_methods::CallContext,
+        casts::CastsInterface,
         lifetimes::*,
         lowerer::DomainsLowererInterface,
+        places::PlacesInterface,
+        pointers::PointersInterface,
+        predicates::{PredicatesMemoryBlockInterface, PredicatesOwnedInterface},
         references::ReferencesInterface,
-        snapshots::{IntoSnapshot, SnapshotDomainsInterface, SnapshotValuesInterface},
+        snapshots::{
+            IntoSnapshot, SnapshotDomainsInterface, SnapshotValidityInterface,
+            SnapshotValuesInterface,
+        },
+        type_layouts::TypeLayoutsInterface,
         types::TypesInterface,
     },
 };
 use vir_crate::{
-    common::{identifier::WithIdentifier, position::Positioned},
+    common::{
+        builtin_constants::LIFETIME_DOMAIN_NAME,
+        expression::{BinaryOperationHelpers, ExpressionIterator},
+        identifier::WithIdentifier,
+        position::Positioned,
+    },
     low::{self as vir_low},
     middle::{self as vir_mid, operations::ty::Typed},
 };
 
-pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
+pub(in super::super::super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v>:
+    Sized
+{
     fn expression_vec_to_snapshot(
         &mut self,
         lowerer: &mut Lowerer<'p, 'v, 'tcx>,
@@ -39,6 +56,15 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
         expression: &vir_mid::Expression,
         expect_math_bool: bool,
     ) -> SpannedEncodingResult<vir_low::Expression> {
+        self.expression_to_snapshot_impl(lowerer, expression, expect_math_bool)
+    }
+
+    fn expression_to_snapshot_impl(
+        &mut self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        expression: &vir_mid::Expression,
+        expect_math_bool: bool,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
         match expression {
             vir_mid::Expression::Local(expression) => {
                 self.local_to_snapshot(lowerer, expression, expect_math_bool)
@@ -54,6 +80,9 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
             }
             vir_mid::Expression::Deref(expression) => {
                 self.deref_to_snapshot(lowerer, expression, expect_math_bool)
+            }
+            vir_mid::Expression::Final(expression) => {
+                self.final_to_snapshot(lowerer, expression, expect_math_bool)
             }
             vir_mid::Expression::AddrOf(expression) => {
                 self.addr_of_to_snapshot(lowerer, expression, expect_math_bool)
@@ -75,7 +104,9 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
             vir_mid::Expression::Conditional(expression) => {
                 self.conditional_to_snapshot(lowerer, expression, expect_math_bool)
             }
-            // vir_mid::Expression::Quantifier(expression) => self.quantifier_to_snapshot(lowerer, expression, expect_math_bool),
+            vir_mid::Expression::Quantifier(expression) => {
+                self.quantifier_to_snapshot(lowerer, expression, expect_math_bool)
+            }
             // vir_mid::Expression::LetExpr(expression) => self.letexpr_to_snapshot(lowerer, expression, expect_math_bool),
             vir_mid::Expression::FuncApp(expression) => {
                 self.func_app_to_snapshot(lowerer, expression, expect_math_bool)
@@ -84,6 +115,15 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
                 self.builtin_func_app_to_snapshot(lowerer, expression, expect_math_bool)
             }
             // vir_mid::Expression::Downcast(expression) => self.downcast_to_snapshot(lowerer, expression, expect_math_bool),
+            vir_mid::Expression::AccPredicate(expression) => {
+                self.acc_predicate_to_snapshot(lowerer, expression, expect_math_bool)
+            }
+            vir_mid::Expression::Unfolding(expression) => {
+                self.unfolding_to_snapshot(lowerer, expression, expect_math_bool)
+            }
+            vir_mid::Expression::EvalIn(expression) => {
+                self.eval_in_to_snapshot(lowerer, expression, expect_math_bool)
+            }
             x => unimplemented!("{:?}", x),
         }
     }
@@ -106,7 +146,7 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
     fn variable_to_snapshot(
         &mut self,
         lowerer: &mut Lowerer<'p, 'v, 'tcx>,
-        local: &vir_mid::VariableDecl,
+        variable: &vir_mid::VariableDecl,
     ) -> SpannedEncodingResult<vir_low::VariableDecl>;
 
     fn local_to_snapshot(
@@ -131,7 +171,21 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
         for argument in &constructor.arguments {
             arguments.push(self.expression_to_snapshot(lowerer, argument, false)?);
         }
-        lowerer.construct_struct_snapshot(&constructor.ty, arguments, constructor.position)
+        let struct_snapshot =
+            lowerer.construct_struct_snapshot(&constructor.ty, arguments, constructor.position)?;
+        if let vir_mid::Type::Enum(vir_mid::ty::Enum {
+            variant: Some(_), ..
+        }) = &constructor.ty
+        {
+            let enum_snapshot = lowerer.construct_enum_snapshot(
+                &constructor.ty,
+                struct_snapshot,
+                constructor.position,
+            )?;
+            Ok(enum_snapshot)
+        } else {
+            Ok(struct_snapshot)
+        }
     }
 
     fn variant_to_snapshot(
@@ -156,6 +210,15 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
         field: &vir_mid::Field,
         expect_math_bool: bool,
     ) -> SpannedEncodingResult<vir_low::Expression> {
+        self.field_to_snapshot_impl(lowerer, field, expect_math_bool)
+    }
+
+    fn field_to_snapshot_impl(
+        &mut self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        field: &vir_mid::Field,
+        expect_math_bool: bool,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
         let base_snapshot = self.expression_to_snapshot(lowerer, &field.base, expect_math_bool)?;
         let result = if field.field.is_discriminant() {
             let ty = field.base.get_type();
@@ -169,6 +232,8 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
                 discriminant_call,
                 field.position,
             )?
+        } else if field.field.is_address() {
+            lowerer.pointer_address(&field.field.ty, base_snapshot, field.position)?
         } else {
             lowerer.obtain_struct_field_snapshot(
                 field.base.get_type(),
@@ -187,12 +252,39 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
         expect_math_bool: bool,
     ) -> SpannedEncodingResult<vir_low::Expression> {
         let base_snapshot = self.expression_to_snapshot(lowerer, &deref.base, expect_math_bool)?;
-        let result = lowerer.reference_target_current_snapshot(
-            deref.base.get_type(),
-            base_snapshot,
-            Default::default(),
-        )?;
+        let ty = deref.base.get_type();
+        let result = if ty.is_reference() {
+            lowerer.reference_target_current_snapshot(ty, base_snapshot, deref.position)?
+        } else {
+            self.pointer_deref_to_snapshot(lowerer, deref, base_snapshot, expect_math_bool)?
+        };
         self.ensure_bool_expression(lowerer, deref.get_type(), result, expect_math_bool)
+    }
+
+    fn final_to_snapshot(
+        &mut self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        deref: &vir_mid::Final,
+        expect_math_bool: bool,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let base_snapshot = self.expression_to_snapshot(lowerer, &deref.base, expect_math_bool)?;
+        let ty = deref.base.get_type();
+        let result = if ty.is_reference() {
+            lowerer.reference_target_final_snapshot(ty, base_snapshot, deref.position)?
+        } else {
+            unreachable!("Final deref is not supported for non-reference types.")
+        };
+        self.ensure_bool_expression(lowerer, deref.get_type(), result, expect_math_bool)
+    }
+
+    fn pointer_deref_to_snapshot(
+        &mut self,
+        _lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        _deref: &vir_mid::Deref,
+        _base_snapshot: vir_low::Expression,
+        _expect_math_bool: bool,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        unreachable!("Should be overriden.");
     }
 
     fn addr_of_to_snapshot(
@@ -203,15 +295,14 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
     ) -> SpannedEncodingResult<vir_low::Expression> {
         let result = match &addr_of.ty {
             vir_mid::Type::Reference(reference) if reference.uniqueness.is_shared() => {
-                let base_snapshot =
-                    self.expression_to_snapshot(lowerer, &addr_of.base, expect_math_bool)?;
+                let base_snapshot = self.expression_to_snapshot(lowerer, &addr_of.base, false)?;
                 lowerer.shared_non_alloc_reference_snapshot_constructor(
                     &addr_of.ty,
                     base_snapshot,
                     Default::default(),
                 )?
             }
-            _ => unimplemented!("ty: {}", addr_of.ty),
+            _ => unimplemented!("addr_of: {addr_of}\n{addr_of:?}\n ty: {}", addr_of.ty),
         };
         self.ensure_bool_expression(lowerer, &addr_of.ty, result, expect_math_bool)
     }
@@ -317,6 +408,15 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
         op: &vir_mid::BinaryOp,
         expect_math_bool: bool,
     ) -> SpannedEncodingResult<vir_low::Expression> {
+        self.binary_op_to_snapshot_impl(lowerer, op, expect_math_bool)
+    }
+
+    fn binary_op_to_snapshot_impl(
+        &mut self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        op: &vir_mid::BinaryOp,
+        expect_math_bool: bool,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
         // FIXME: Binary Operations with MPerm should not be handled manually as special cases
         //   They are difficult because binary operations with MPerm and Integer values are allowed.
         //   Also some of them translate tot PermBinaryOp.
@@ -376,15 +476,26 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
             self.expression_to_snapshot(lowerer, &op.right, expect_math_bool_args)?;
         let arg_type = op.left.get_type().clone().erase_lifetimes();
         assert_eq!(arg_type, op.right.get_type().clone().erase_lifetimes());
-        let result = lowerer.construct_binary_op_snapshot(
-            op.op_kind,
-            ty,
-            &arg_type,
-            left_snapshot,
-            right_snapshot,
-            op.position,
-        )?;
-        self.ensure_bool_expression(lowerer, ty, result, expect_math_bool)
+        if expect_math_bool && op.op_kind == vir_mid::BinaryOpKind::EqCmp {
+            // FIXME: Instead of this ad-hoc optimization, have a proper
+            // optimization pass.
+            Ok(vir_low::Expression::binary_op(
+                vir_low::BinaryOpKind::EqCmp,
+                left_snapshot,
+                right_snapshot,
+                op.position,
+            ))
+        } else {
+            let result = lowerer.construct_binary_op_snapshot(
+                op.op_kind,
+                ty,
+                &arg_type,
+                left_snapshot,
+                right_snapshot,
+                op.position,
+            )?;
+            self.ensure_bool_expression(lowerer, ty, result, expect_math_bool)
+        }
     }
 
     fn binary_op_kind_to_snapshot(
@@ -422,8 +533,11 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
             self.expression_to_snapshot(lowerer, &conditional.then_expr, expect_math_bool)?;
         let else_expr_snapshot =
             self.expression_to_snapshot(lowerer, &conditional.else_expr, expect_math_bool)?;
-        let arg_type = conditional.then_expr.get_type();
-        assert_eq!(arg_type, conditional.else_expr.get_type());
+        let arg_type = vir_low::operations::ty::Typed::get_type(&then_expr_snapshot);
+        assert_eq!(
+            arg_type,
+            vir_low::operations::ty::Typed::get_type(&else_expr_snapshot)
+        );
         // We do not need to ensure expect_math_bool because we pushed this
         // responsibility to the arguments.
         Ok(vir_low::Expression::conditional(
@@ -433,6 +547,75 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
             conditional.position,
         ))
     }
+
+    fn quantifier_to_snapshot(
+        &mut self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        quantifier: &vir_mid::Quantifier,
+        expect_math_bool: bool,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        assert!(expect_math_bool);
+        let quantifier_kind = match quantifier.kind {
+            vir_mid::expression::QuantifierKind::ForAll => {
+                vir_low::expression::QuantifierKind::ForAll
+            }
+            vir_mid::expression::QuantifierKind::Exists => {
+                vir_low::expression::QuantifierKind::Exists
+            }
+        };
+        self.push_bound_variables(&quantifier.variables)?;
+        let body_snapshot = self.expression_to_snapshot(lowerer, &quantifier.body, true)?;
+        let mut variables = Vec::new();
+        let mut variable_validity = Vec::new();
+        for variable_mid in &quantifier.variables {
+            let variable = vir_low::VariableDecl::new(
+                variable_mid.name.clone(),
+                self.type_to_snapshot(lowerer, &variable_mid.ty)?,
+            );
+            variables.push(variable.clone());
+            let validity =
+                lowerer.encode_snapshot_valid_call_for_type(variable.into(), &variable_mid.ty)?;
+            variable_validity.push(validity);
+        }
+        let variable_validity = variable_validity.into_iter().conjoin();
+        let body = match quantifier.kind {
+            vir_mid::expression::QuantifierKind::ForAll => {
+                vir_low::Expression::implies(variable_validity, body_snapshot)
+            }
+            vir_mid::expression::QuantifierKind::Exists => {
+                vir_low::Expression::and(variable_validity, body_snapshot)
+            }
+        };
+        let triggers = quantifier
+            .triggers
+            .iter()
+            .map(|trigger| {
+                trigger
+                    .terms
+                    .iter()
+                    .map(|expr| self.expression_to_snapshot(lowerer, expr, true))
+                    .collect::<SpannedEncodingResult<Vec<_>>>()
+                    .map(vir_low::Trigger::new)
+            })
+            .collect::<SpannedEncodingResult<Vec<_>>>()?;
+        let result = vir_low::Expression::quantifier(
+            quantifier_kind,
+            variables,
+            triggers,
+            body,
+            quantifier.position,
+        );
+        self.pop_bound_variables()?;
+        // self.ensure_bool_expression(lowerer, &vir_mid::Type::Bool, result, expect_math_bool)
+        Ok(result)
+    }
+
+    fn push_bound_variables(
+        &mut self,
+        variables: &[vir_mid::VariableDecl],
+    ) -> SpannedEncodingResult<()>;
+
+    fn pop_bound_variables(&mut self) -> SpannedEncodingResult<()>;
 
     fn func_app_to_snapshot(
         &mut self,
@@ -444,7 +627,7 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
     fn builtin_func_app_to_snapshot(
         &mut self,
         lowerer: &mut Lowerer<'p, 'v, 'tcx>,
-        app: &vir_crate::middle::expression::BuiltinFuncApp,
+        app: &vir_mid::BuiltinFuncApp,
         expect_math_bool: bool,
     ) -> SpannedEncodingResult<vir_low::Expression> {
         use vir_low::expression::ContainerOpKind;
@@ -455,26 +638,29 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
             .iter()
             .map(|ty| self.type_to_snapshot(lowerer, ty))
             .collect::<Result<Vec<_>, _>>()?;
-        let mut args =
-            self.expression_vec_to_snapshot(lowerer, &app.arguments, expect_math_bool)?;
-        if !app.arguments.is_empty() {
-            let first_arg_type = app.arguments[0].get_type();
-            if first_arg_type.is_reference()
-                && app.function != vir_mid::BuiltinFunc::SnapshotEquality
-            {
-                // The first argument is a reference, dereference it.
-                args[0] = lowerer.reference_target_current_snapshot(
-                    first_arg_type,
-                    args[0].clone(),
-                    app.position,
-                )?;
+        let construct_args = |this: &mut Self, lowerer: &mut _| -> Result<_, _> {
+            let mut args =
+                this.expression_vec_to_snapshot(lowerer, &app.arguments, expect_math_bool)?;
+            if !app.arguments.is_empty() {
+                let first_arg_type = app.arguments[0].get_type();
+                if first_arg_type.is_reference()
+                    && app.function != vir_mid::BuiltinFunc::SnapshotEquality
+                {
+                    // The first argument is a reference, dereference it.
+                    args[0] = lowerer.reference_target_current_snapshot(
+                        first_arg_type,
+                        args[0].clone(),
+                        app.position,
+                    )?;
+                }
             }
-        }
+            Ok(args)
+        };
         lowerer.ensure_type_definition(&app.return_type)?;
 
-        let map = |low_kind| {
+        let map = |this, lowerer, low_kind| {
             let map_ty = vir_low::Type::map(ty_args[0].clone(), ty_args[1].clone());
-            let args = args.clone();
+            let args = construct_args(this, lowerer)?;
             Ok(vir_low::Expression::container_op(
                 low_kind,
                 map_ty,
@@ -483,11 +669,12 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
             ))
         };
 
-        let seq = |low_kind| {
+        let seq = |this, lowerer, low_kind| {
+            let args = construct_args(this, lowerer)?;
             Ok(vir_low::Expression::container_op(
                 low_kind,
                 vir_low::Type::seq(ty_args[0].clone()),
-                args.clone(),
+                args,
                 app.position,
             ))
         };
@@ -495,15 +682,78 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
         match app.function {
             BuiltinFunc::Size => {
                 let return_type = self.type_to_snapshot(lowerer, &app.return_type)?;
-                lowerer.create_domain_func_app(
-                    "Size",
-                    app.get_identifier(),
-                    args,
-                    return_type,
-                    app.position,
-                )
+                let args = construct_args(self, lowerer)?;
+                assert_eq!(app.type_arguments.len(), 1);
+                match &app.type_arguments[0] {
+                    vir_mid::Type::Int(ty)
+                        if !matches!(
+                            ty,
+                            vir_mid::ty::Int::Isize
+                                | vir_mid::ty::Int::Usize
+                                | vir_mid::ty::Int::Char
+                                | vir_mid::ty::Int::Unbounded
+                        ) =>
+                    {
+                        let size = match ty {
+                            vir_mid::ty::Int::I8 => 1,
+                            vir_mid::ty::Int::I16 => 2,
+                            vir_mid::ty::Int::I32 => 4,
+                            vir_mid::ty::Int::I64 => 8,
+                            vir_mid::ty::Int::I128 => 16,
+                            vir_mid::ty::Int::U8 => 1,
+                            vir_mid::ty::Int::U16 => 2,
+                            vir_mid::ty::Int::U32 => 4,
+                            vir_mid::ty::Int::U64 => 8,
+                            vir_mid::ty::Int::U128 => 16,
+                            vir_mid::ty::Int::Isize => unreachable!(),
+                            vir_mid::ty::Int::Usize => unreachable!(),
+                            vir_mid::ty::Int::Char => unreachable!(),
+                            vir_mid::ty::Int::Unbounded => unreachable!(),
+                        };
+                        let constant =
+                            vir_low::Expression::constant_no_pos(size.into(), vir_low::Type::Int);
+                        lowerer.construct_constant_snapshot(
+                            &app.return_type,
+                            constant,
+                            app.position,
+                        )
+                    }
+                    vir_mid::Type::Struct(_ty) => {
+                        let type_decl = lowerer
+                            .encoder
+                            .get_type_decl_mid(&app.type_arguments[0])?
+                            .unwrap_struct();
+                        if let Some(size) = type_decl.size {
+                            let constant = vir_low::Expression::constant_no_pos(
+                                size.into(),
+                                vir_low::Type::Int,
+                            );
+                            lowerer.construct_constant_snapshot(
+                                &app.return_type,
+                                constant,
+                                app.position,
+                            )
+                        } else {
+                            lowerer.create_domain_func_app(
+                                "Size",
+                                app.get_identifier(),
+                                args,
+                                return_type,
+                                app.position,
+                            )
+                        }
+                    }
+                    _ => lowerer.create_domain_func_app(
+                        "Size",
+                        app.get_identifier(),
+                        args,
+                        return_type,
+                        app.position,
+                    ),
+                }
             }
             BuiltinFunc::PaddingSize => {
+                let args = construct_args(self, lowerer)?;
                 assert_eq!(args.len(), 0);
                 let return_type = self.type_to_snapshot(lowerer, &app.return_type)?;
                 lowerer.create_domain_func_app(
@@ -514,7 +764,56 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
                     app.position,
                 )
             }
+            BuiltinFunc::Align => {
+                let args = construct_args(self, lowerer)?;
+                assert_eq!(args.len(), 0);
+                let return_type = self.type_to_snapshot(lowerer, &app.return_type)?;
+                assert_eq!(app.type_arguments.len(), 1);
+                match app.type_arguments[0] {
+                    vir_mid::Type::Int(ty)
+                        if !matches!(
+                            ty,
+                            vir_mid::ty::Int::Isize
+                                | vir_mid::ty::Int::Usize
+                                | vir_mid::ty::Int::Char
+                                | vir_mid::ty::Int::Unbounded
+                        ) =>
+                    {
+                        let size = match ty {
+                            vir_mid::ty::Int::I8 => 1,
+                            vir_mid::ty::Int::I16 => 2,
+                            vir_mid::ty::Int::I32 => 4,
+                            vir_mid::ty::Int::I64 => 8,
+                            vir_mid::ty::Int::I128 => 8,
+                            vir_mid::ty::Int::U8 => 1,
+                            vir_mid::ty::Int::U16 => 2,
+                            vir_mid::ty::Int::U32 => 4,
+                            vir_mid::ty::Int::U64 => 8,
+                            vir_mid::ty::Int::U128 => 8,
+                            vir_mid::ty::Int::Isize => unreachable!(),
+                            vir_mid::ty::Int::Usize => unreachable!(),
+                            vir_mid::ty::Int::Char => unreachable!(),
+                            vir_mid::ty::Int::Unbounded => unreachable!(),
+                        };
+                        let constant =
+                            vir_low::Expression::constant_no_pos(size.into(), vir_low::Type::Int);
+                        lowerer.construct_constant_snapshot(
+                            &app.return_type,
+                            constant,
+                            app.position,
+                        )
+                    }
+                    _ => lowerer.create_domain_func_app(
+                        "Align",
+                        app.get_identifier(),
+                        args,
+                        return_type,
+                        app.position,
+                    ),
+                }
+            }
             BuiltinFunc::Discriminant => {
+                let mut args = construct_args(self, lowerer)?;
                 assert_eq!(args.len(), 1);
                 let discriminant_call = lowerer.obtain_enum_discriminant(
                     args.pop().unwrap(),
@@ -527,10 +826,10 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
                     app.position,
                 )
             }
-            BuiltinFunc::EmptyMap => map(ContainerOpKind::MapEmpty),
-            BuiltinFunc::UpdateMap => map(ContainerOpKind::MapUpdate),
+            BuiltinFunc::EmptyMap => map(self, lowerer, ContainerOpKind::MapEmpty),
+            BuiltinFunc::UpdateMap => map(self, lowerer, ContainerOpKind::MapUpdate),
             BuiltinFunc::LookupMap => {
-                let value = map(ContainerOpKind::MapLookup)?;
+                let value = map(self, lowerer, ContainerOpKind::MapLookup)?;
                 if app.return_type.is_reference() {
                     lowerer.shared_non_alloc_reference_snapshot_constructor(
                         &app.return_type,
@@ -542,16 +841,17 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
                 }
             }
             BuiltinFunc::MapLen => {
-                let value = map(ContainerOpKind::MapLen)?;
+                let value = map(self, lowerer, ContainerOpKind::MapLen)?;
                 lowerer.construct_constant_snapshot(app.get_type(), value, app.position)
             }
             BuiltinFunc::MapContains => {
-                let m = map(ContainerOpKind::MapContains)?;
+                let m = map(self, lowerer, ContainerOpKind::MapContains)?;
                 let m = lowerer.construct_constant_snapshot(app.get_type(), m, app.position)?;
                 self.ensure_bool_expression(lowerer, app.get_type(), m, expect_math_bool)
             }
             BuiltinFunc::LookupSeq => {
                 use vir_low::operations::ty::Typed;
+                let args = construct_args(self, lowerer)?;
                 assert!(
                     args[0].get_type().is_seq(),
                     "Expected Sequence type, got {:?}",
@@ -580,22 +880,24 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
                     Ok(value)
                 }
             }
-            BuiltinFunc::ConcatSeq => seq(ContainerOpKind::SeqConcat),
+            BuiltinFunc::ConcatSeq => seq(self, lowerer, ContainerOpKind::SeqConcat),
             BuiltinFunc::SeqLen => {
-                let value = seq(ContainerOpKind::SeqLen)?;
+                let value = seq(self, lowerer, ContainerOpKind::SeqLen)?;
                 lowerer.construct_constant_snapshot(app.get_type(), value, app.position)
             }
             BuiltinFunc::LifetimeIncluded => {
+                let args = construct_args(self, lowerer)?;
                 assert_eq!(args.len(), 2);
                 lowerer.encode_lifetime_included()?;
                 Ok(vir_low::Expression::domain_function_call(
-                    "Lifetime",
+                    LIFETIME_DOMAIN_NAME,
                     "included",
                     args,
                     vir_low::ty::Type::Bool,
                 ))
             }
             BuiltinFunc::LifetimeIntersect => {
+                let args = construct_args(self, lowerer)?;
                 assert!(!args.is_empty());
                 // FIXME: Fix code duplication.
                 let lifetime_set_type = lowerer.lifetime_set_type()?;
@@ -606,7 +908,7 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
                     args,
                 );
                 let intersect = lowerer.create_domain_func_app(
-                    "Lifetime",
+                    LIFETIME_DOMAIN_NAME,
                     "intersect",
                     vec![lifetime_set],
                     lifetime_type,
@@ -615,6 +917,7 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
                 Ok(intersect)
             }
             BuiltinFunc::EmptySeq | BuiltinFunc::SingleSeq => {
+                let args = construct_args(self, lowerer)?;
                 Ok(vir_low::Expression::container_op(
                     vir_low::ContainerOpKind::SeqConstructor,
                     vir_low::Type::seq(ty_args[0].clone()),
@@ -623,6 +926,7 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
                 ))
             }
             BuiltinFunc::NewInt => {
+                let mut args = construct_args(self, lowerer)?;
                 assert_eq!(args.len(), 1);
                 let arg = args.pop().unwrap();
                 let value = lowerer.obtain_constant_value(
@@ -633,6 +937,7 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
                 lowerer.construct_constant_snapshot(app.get_type(), value, app.position)
             }
             BuiltinFunc::Index => {
+                let args = construct_args(self, lowerer)?;
                 assert_eq!(args.len(), 2);
                 // FIXME: Remove duplication with LookupSeq.
                 let index = lowerer.obtain_constant_value(
@@ -648,13 +953,14 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
                 ))
             }
             BuiltinFunc::Len => {
-                assert_eq!(args.len(), 1);
+                assert_eq!(app.arguments.len(), 1);
                 // FIXME: Remove duplication with SeqLen.
-                let value = seq(ContainerOpKind::SeqLen)?;
+                let value = seq(self, lowerer, ContainerOpKind::SeqLen)?;
                 lowerer.construct_constant_snapshot(app.get_type(), value, app.position)
             }
             BuiltinFunc::SnapshotEquality => {
                 assert_eq!(app.arguments[0].get_type(), app.arguments[1].get_type());
+                let args = construct_args(self, lowerer)?;
                 let value = vir_low::Expression::binary_op(
                     vir_low::BinaryOpKind::EqCmp,
                     args[0].clone(),
@@ -667,8 +973,278 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
                     lowerer.construct_constant_snapshot(&vir_mid::Type::Bool, value, app.position)
                 }
             }
+            BuiltinFunc::PtrIsNull => {
+                let args = construct_args(self, lowerer)?;
+                assert_eq!(args.len(), 1);
+                let ty = app.arguments[0].get_type();
+                let address = lowerer.pointer_address(ty, args[0].clone(), app.position)?;
+                let null_address = lowerer.address_null(app.position)?;
+                let equals = vir_low::Expression::equals(address, null_address);
+                let equals =
+                    lowerer.construct_constant_snapshot(app.get_type(), equals, app.position)?;
+                self.ensure_bool_expression(lowerer, app.get_type(), equals, expect_math_bool)
+            }
+            BuiltinFunc::PtrWrappingOffset => {
+                let args = construct_args(self, lowerer)?;
+                assert_eq!(args.len(), 2);
+                let ty = app.arguments[0].get_type();
+                let address = lowerer.pointer_address(ty, args[0].clone(), app.position)?;
+                let vir_mid::Type::Pointer(pointer_type) = ty else {
+                    unreachable!()
+                };
+                let size = lowerer.encode_type_size_expression2(
+                    &pointer_type.target_type,
+                    &*pointer_type.target_type,
+                )?;
+                let offset = lowerer.obtain_constant_value(
+                    app.arguments[1].get_type(),
+                    args[1].clone(),
+                    app.position,
+                )?;
+                let new_address = lowerer.address_offset(size, address, offset, app.position)?;
+                lowerer.address_to_pointer(ty, new_address, app.position)
+            }
+            BuiltinFunc::IsValid => {
+                let mut args = construct_args(self, lowerer)?;
+                assert_eq!(app.arguments.len(), 1);
+                let argument = args.pop().unwrap();
+                let ty = app.arguments[0].get_type();
+                lowerer.encode_snapshot_valid_call_for_type(argument, ty)
+            }
+            BuiltinFunc::EnsureOwnedPredicate => {
+                assert_eq!(app.arguments.len(), 1);
+                fn peel_unfolding<'p, 'v: 'p, 'tcx: 'v>(
+                    lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+                    into_snap_lowerer: &mut impl IntoSnapshotLowerer<'p, 'v, 'tcx>,
+                    place: &vir_mid::Expression,
+                ) -> SpannedEncodingResult<vir_low::Expression> {
+                    match place {
+                        vir_mid::Expression::Unfolding(unfolding) => {
+                            let body = peel_unfolding(lowerer, into_snap_lowerer, &unfolding.body)?;
+                            into_snap_lowerer.unfolding_to_snapshot_with_body(
+                                lowerer,
+                                &unfolding.predicate,
+                                body,
+                                unfolding.position,
+                                true,
+                            )
+                        }
+                        _ => {
+                            let ty = place.get_type();
+                            let snap_call =
+                                into_snap_lowerer.owned_non_aliased_snap(lowerer, ty, place)?;
+                            let snapshot =
+                                into_snap_lowerer.expression_to_snapshot(lowerer, place, true)?;
+                            let position = place.position();
+                            Ok(vir_low::Expression::binary_op(
+                                vir_low::BinaryOpKind::EqCmp,
+                                snap_call,
+                                snapshot,
+                                position,
+                            ))
+                        }
+                    }
+                }
+                peel_unfolding(lowerer, self, &app.arguments[0])
+                // let argument = &app.arguments[0];
+                // let ty = argument.get_type();
+                // let snap_call = self.owned_non_aliased_snap(lowerer, ty, argument)?;
+                // lowerer.wrap_snap_into_bool(ty, snap_call.set_default_position(app.position))
+            }
+            BuiltinFunc::TakeLifetime => {
+                unimplemented!("TODO: Delete");
+            }
+            BuiltinFunc::ReadByte => {
+                let mut args = construct_args(self, lowerer)?;
+                let index = args.pop().unwrap();
+                let bytes = args.pop().unwrap();
+                lowerer.encode_read_byte_expression_usize(bytes, index, app.position)
+            }
+            BuiltinFunc::MemoryBlockBytes => {
+                assert_eq!(app.arguments.len(), 2);
+                // let mut args = construct_args(self, lowerer)?;
+                // let size = args.pop().unwrap();
+                let size =
+                    self.expression_to_snapshot(lowerer, &app.arguments[1], expect_math_bool)?;
+                // let pointer_value = args.pop().unwrap();
+                // let address = lowerer.pointer_address(
+                //     app.arguments[0].get_type(),
+                //     pointer_value,
+                //     app.position,
+                // )?;
+                let address = self.pointer_deref_into_address(lowerer, &app.arguments[0])?;
+                lowerer.encode_memory_block_bytes_expression(address, size)
+            }
+            BuiltinFunc::DerefOwn => {
+                let mut args = construct_args(self, lowerer)?;
+                let pointer_type = app.arguments[0].get_type();
+                // let address = lowerer.pointer_address(
+                //     pointer_type,
+                //     args[0].clone(),
+                //     app.position,
+                // )?;
+                let index = args.pop().unwrap();
+                let pointer = args.pop().unwrap();
+                self.deref_own(lowerer, pointer_type, pointer, index, app.position)
+            }
+            BuiltinFunc::CastMutToConstPointer => {
+                let mut args = construct_args(self, lowerer)?;
+                // We currently do not distinguish between mutable and immutable
+                // pointers so this is a no-op.
+                Ok(args.pop().unwrap())
+                // let address = lowerer.pointer_address(
+                //     app.arguments[0].get_type(),
+                //     args[0].clone(),
+                //     app.position,
+                // )?;
+                // lowerer.address_to_pointer(&app.return_type, address, app.position)
+            }
+            BuiltinFunc::CastIntToInt => {
+                let mut args = construct_args(self, lowerer)?;
+                assert_eq!(args.len(), 1);
+                let arg = args.pop().unwrap();
+                assert_eq!(app.type_arguments.len(), 2);
+                let source_type = &app.type_arguments[0];
+                let destination_type = &app.type_arguments[1];
+                lowerer.cast_int_to_int(source_type, destination_type, arg, app.position)
+            }
+            BuiltinFunc::BeforeExpiry => {
+                unreachable!("BeforeExpiry should be desugard before");
+            }
+            BuiltinFunc::AfterExpiry => {
+                unreachable!("AfterExpiry should be desugard before");
+            }
         }
     }
+
+    /// Deref a raw pointer with the specified offset.
+    fn deref_own(
+        &mut self,
+        _lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        _pointer_type: &vir_mid::Type,
+        _pointer: vir_low::Expression,
+        _index: vir_low::Expression,
+        _position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        unimplemented!();
+    }
+
+    // FIXME: Code duplication.
+    fn pointer_deref_into_address(
+        &mut self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        place: &vir_mid::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        if let Some(deref_place) = place.get_last_dereferenced_pointer() {
+            let base_snapshot = self.expression_to_snapshot(lowerer, deref_place, true)?;
+            let ty = deref_place.get_type();
+            lowerer.pointer_address(ty, base_snapshot, place.position())
+        } else {
+            unreachable!("place: {place}");
+        }
+    }
+
+    fn acc_predicate_to_snapshot(
+        &mut self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        acc_predicate: &vir_mid::AccPredicate,
+        expect_math_bool: bool,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
+
+    // fn unfolding_to_snapshot(
+    //     &mut self,
+    //     lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+    //     unfolding: &vir_mid::Unfolding,
+    //     expect_math_bool: bool,
+    // ) -> SpannedEncodingResult<vir_low::Expression>;
+
+    fn call_context(&self) -> CallContext;
+
+    fn unfolding_to_snapshot_with_body(
+        &mut self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        predicate: &vir_mid::Predicate,
+        body: vir_low::Expression,
+        position: vir_low::Position,
+        expect_math_bool: bool,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        assert!(expect_math_bool, "not implemented");
+        let predicate = match predicate {
+            vir_mid::Predicate::OwnedNonAliased(predicate) => {
+                let ty = predicate.place.get_type();
+                lowerer.mark_owned_predicate_as_unfolded(ty)?;
+                let place = lowerer.encode_expression_as_place(&predicate.place)?;
+                let address = lowerer.encode_expression_as_place_address(&predicate.place)?;
+                // let root_address = lowerer.extract_root_address(&predicate.place)?;
+                // let snapshot =
+                //     self.expression_to_snapshot(lowerer, &predicate.place, expect_math_bool)?;
+                // predicate.place.to_procedure_snapshot(lowerer)?; // FIXME: This is probably wrong. It should take into account the current old.
+                lowerer
+                    .owned_non_aliased(self.call_context(), ty, ty, place, address, None, position)?
+                    .unwrap_predicate_access_predicate()
+            }
+            _ => unimplemented!("{predicate}"),
+        };
+        let expression = vir_low::Expression::unfolding(predicate, body, position);
+        Ok(expression)
+    }
+
+    fn unfolding_to_snapshot(
+        &mut self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        unfolding: &vir_mid::Unfolding,
+        expect_math_bool: bool,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let body = self.expression_to_snapshot(lowerer, &unfolding.body, expect_math_bool)?;
+        self.unfolding_to_snapshot_with_body(
+            lowerer,
+            &unfolding.predicate,
+            body,
+            unfolding.position,
+            expect_math_bool,
+        )
+        // let predicate = match &*unfolding.predicate {
+        //     vir_mid::Predicate::OwnedNonAliased(predicate) => {
+        //         let ty = predicate.place.get_type();
+        //         lowerer.mark_owned_predicate_as_unfolded(ty)?;
+        //         let place = lowerer.encode_expression_as_place(&predicate.place)?;
+        //         let root_address = lowerer.extract_root_address(&predicate.place)?;
+        //         let snapshot = self.expression_to_snapshot(lowerer, &predicate.place, expect_math_bool)?;
+        //         // predicate.place.to_procedure_snapshot(lowerer)?; // FIXME: This is probably wrong. It should take into account the current old.
+        //         lowerer
+        //             .owned_non_aliased(
+        //                 self.call_context(),
+        //                 ty,
+        //                 ty,
+        //                 place,
+        //                 root_address,
+        //                 snapshot,
+        //                 None,
+        //             )?
+        //             .unwrap_predicate_access_predicate()
+        //     }
+        //     _ => unimplemented!("{unfolding}"),
+        // };
+        // let body = self.expression_to_snapshot(lowerer, &unfolding.body, expect_math_bool)?;
+        // let expression = vir_low::Expression::unfolding(predicate, body, unfolding.position);
+        // Ok(expression)
+    }
+
+    fn eval_in_to_snapshot(
+        &mut self,
+        _lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        _eval_in: &vir_mid::EvalIn,
+        _expect_math_bool: bool,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        unimplemented!("FIXME: Make this abstract.");
+    }
+
+    fn owned_non_aliased_snap(
+        &mut self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        ty: &vir_mid::Type,
+        pointer_place: &vir_mid::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
 
     fn type_to_snapshot(
         &mut self,

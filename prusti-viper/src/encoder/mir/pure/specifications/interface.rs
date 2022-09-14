@@ -64,6 +64,7 @@ pub(crate) trait SpecificationEncoderInterface<'tcx> {
         invariant_block: mir::BasicBlock, // in which the invariant is defined
         parent_def_id: DefId,
         substs: SubstsRef<'tcx>,
+        keep_lifetimes: bool,
     ) -> SpannedEncodingResult<vir_high::Expression>;
 
     fn encode_prusti_operation(
@@ -121,13 +122,13 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
     fn encode_assertion_high(
         &self,
         assertion: DefId,
-        _pre_label: Option<&str>, // TODO: use pre_label (map labels)
+        pre_label: Option<&str>,
         target_args: &[vir_high::Expression],
         target_return: Option<&vir_high::Expression>,
         parent_def_id: DefId,
         substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_high::Expression> {
-        let encoded_assertion = inline_spec_item_high(
+        let mut encoded_assertion = inline_spec_item_high(
             self,
             assertion,
             target_args,
@@ -136,6 +137,18 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
             parent_def_id,
             substs,
         )?;
+
+        // map old labels
+        if let Some(pre_label) = pre_label {
+            encoded_assertion = encoded_assertion.map_old_expression_label(|label| {
+                if label == PRECONDITION_LABEL {
+                    pre_label.to_string()
+                } else {
+                    label
+                }
+            });
+        }
+
         let position = self
             .error_manager()
             .register_span(parent_def_id, self.env().query.get_def_span(assertion));
@@ -148,11 +161,12 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         invariant_block: mir::BasicBlock, // in which the invariant is defined
         parent_def_id: DefId,
         substs: SubstsRef<'tcx>,
+        keep_lifetimes: bool,
     ) -> SpannedEncodingResult<vir_high::Expression> {
-        // identify previous block: there should only be one
-        let predecessors = &mir.basic_blocks.predecessors()[invariant_block];
-        assert_eq!(predecessors.len(), 1);
-        let predecessor = predecessors[0];
+        // // identify previous block: there should only be one
+        // let predecessors = &mir.basic_blocks.predecessors()[invariant_block];
+        // assert_eq!(predecessors.len(), 1);
+        // let predecessor = predecessors[0];
 
         // identify closure aggregate assign (the invariant body)
         let closure_assigns = mir.basic_blocks[invariant_block]
@@ -190,7 +204,8 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
             .encode_place_high(mir, inv_cl_expr, Some(span))
             .with_span(span)?;
         let closure_borrow_type = vir_high::Type::reference(
-            vir_high::ty::LifetimeConst::erased(),
+            // vir_high::ty::LifetimeConst::erased(),
+            vir_high::ty::LifetimeConst::new("fixme_closure_lifetime"),
             vir_high::ty::Uniqueness::Shared,
             inv_cl_expr_encoded.get_type().clone(),
         );
@@ -206,22 +221,23 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
             vec![],
             parent_def_id,
             substs,
-        )?
-        .erase_lifetime();
+            keep_lifetimes,
+        )?;
 
         // backward interpret the body to get rid of the upvars
         let interpreter = ExpressionBackwardInterpreter::new(
             self,
             mir,
             parent_def_id,
-            PureEncodingContext::Code,
+            PureEncodingContext::Assertion,
             parent_def_id,
             substs,
         );
         let invariant = run_backward_interpretation_point_to_point(
              mir,
              &interpreter,
-             predecessor,
+            //  predecessor,
+        invariant_block,
              invariant_block,
              inv_loc + 1, // include the closure assign itself
              crate::encoder::mir::pure::interpreter::state_high::ExprBackwardInterpreterState::new_defined(encoded_invariant),
@@ -353,7 +369,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
             self,
             mir,
             parent_def_id,
-            PureEncodingContext::Code,
+            PureEncodingContext::Assertion,
             parent_def_id,
         );
         let invariant = run_backward_interpretation_point_to_point(

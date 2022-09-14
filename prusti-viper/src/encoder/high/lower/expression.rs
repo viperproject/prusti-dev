@@ -33,6 +33,9 @@ impl IntoPolymorphic<vir_poly::Expr> for vir_high::Expression {
             vir_high::Expression::Deref(expression) => {
                 vir_poly::Expr::Field(expression.lower(encoder))
             }
+            vir_high::Expression::Final(expression) => {
+                unimplemented!("not supported lowering: {}", expression);
+            }
             vir_high::Expression::AddrOf(expression) => {
                 vir_poly::Expr::AddrOf(expression.lower(encoder))
             }
@@ -74,6 +77,15 @@ impl IntoPolymorphic<vir_poly::Expr> for vir_high::Expression {
             }
             vir_high::Expression::Downcast(expression) => {
                 vir_poly::Expr::Downcast(expression.lower(encoder))
+            }
+            vir_high::Expression::AccPredicate(_expression) => {
+                todo!()
+            }
+            vir_high::Expression::Unfolding(_expression) => {
+                todo!()
+            }
+            vir_high::Expression::EvalIn(_expression) => {
+                todo!()
             }
         }
     }

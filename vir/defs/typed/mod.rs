@@ -6,10 +6,10 @@ pub(crate) mod operations_internal;
 pub use self::{
     ast::{
         expression::{
-            self, visitors, AddrOf, BinaryOp, BinaryOpKind, BuiltinFunc, BuiltinFuncApp,
-            Conditional, Constant, Constructor, ContainerOp, Deref, Downcast, Expression, Field,
-            FuncApp, LabelledOld, LetExpr, Local, Quantifier, Seq, Trigger, UnaryOp, UnaryOpKind,
-            Variant,
+            self, visitors, AccPredicate, AddrOf, BinaryOp, BinaryOpKind, BuiltinFunc,
+            BuiltinFuncApp, Conditional, Constant, Constructor, ContainerOp, Deref, Downcast,
+            EvalIn, EvalInContextKind, Expression, Field, Final, FuncApp, LabelledOld, LetExpr,
+            Local, Quantifier, Seq, Trigger, UnaryOp, UnaryOpKind, Unfolding, Variant,
         },
         field::FieldDecl,
         function::FunctionDecl,
@@ -21,9 +21,12 @@ pub use self::{
         rvalue::{Operand, OperandKind, Rvalue},
         statement::{
             Assert, Assign, Assume, BorShorten, CloseFracRef, CloseMutRef, Comment, Consume,
-            CopyPlace, DeadInclusion, DeadLifetime, EndLft, Exhale, GhostAssign, GhostHavoc, Havoc,
-            Inhale, LeakAll, LifetimeReturn, LifetimeTake, LoopInvariant, MovePlace, NewLft,
-            ObtainMutRef, OldLabel, OpenFracRef, OpenMutRef, SetUnionVariant, Statement,
+            CopyPlace, DeadInclusion, DeadLifetime, DeadReference, DeadReferenceRange, EndLft,
+            ExhaleExpression, ExhalePredicate, ForgetInitialization, ForgetInitializationRange,
+            GhostAssign, GhostHavoc, Havoc, HeapHavoc, InhaleExpression, InhalePredicate, Join,
+            JoinRange, LeakAll, LifetimeReturn, LifetimeTake, LoopInvariant, MovePlace, NewLft,
+            Obtain, ObtainMutRef, OldLabel, OpenFracRef, OpenMutRef, Pack, RestoreRawBorrowed,
+            SetUnionVariant, Split, SplitRange, StashRange, StashRangeRestore, Statement, Unpack,
             WriteAddress, WritePlace,
         },
         ty::{self, Type},

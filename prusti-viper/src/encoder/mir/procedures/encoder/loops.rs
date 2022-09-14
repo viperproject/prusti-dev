@@ -51,6 +51,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> super::ProcedureEncoder<'p, 'v, 'tcx> {
                             block,
                             self.def_id,
                             cl_substs,
+                            false,
                         )?,
                         span,
                         err_ctxt,
@@ -69,7 +70,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> super::ProcedureEncoder<'p, 'v, 'tcx> {
                 .map(|back_edge| self.encode_basic_block_label(*back_edge))
                 .collect()
         };
-        self.init_data.seek_before(invariant_location);
+        // self.init_data.seek_before(invariant_location);
 
         // Encode permissions.
         let initialized_places = self.initialization.get_after_statement(invariant_location);

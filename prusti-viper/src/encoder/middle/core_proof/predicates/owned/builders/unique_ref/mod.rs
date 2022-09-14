@@ -1,2 +1,11 @@
+pub(super) mod function_current_decl;
+pub(super) mod function_final_decl;
+pub(super) mod function_current_use;
+pub(super) mod function_final_use;
+pub(super) mod function_current_range_decl;
+pub(super) mod function_final_range_decl;
+pub(super) mod function_current_range_use;
+pub(super) mod function_final_range_use;
 pub(super) mod predicate_decl;
 pub(super) mod predicate_use;
+pub(super) mod predicate_range_use;

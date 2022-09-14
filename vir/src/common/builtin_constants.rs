@@ -1,0 +1,13 @@
+pub const ERASED_LIFETIME_NAME: &str = "lft_erased";
+pub const RESULT_VARIABLE_NAME: &str = "__result";
+pub const SELF_VARIABLE_NAME: &str = "self$";
+pub const DISCRIMINANT_VARIABLE_NAME: &str = "discriminant$";
+pub const DISCRIMINANT_FIELD_NAME: &str = "discriminant";
+pub const ADDRESS_FIELD_NAME: &str = "address$";
+pub const PLACE_DOMAIN_NAME: &str = "Place";
+pub const PLACE_OPTION_DOMAIN_NAME: &str = "PlaceOption";
+pub const ADDRESS_DOMAIN_NAME: &str = "Address";
+pub const LIFETIME_DOMAIN_NAME: &str = "Lifetime";
+pub const BYTE_DOMAIN_NAME: &str = "Byte";
+pub const BYTES_DOMAIN_NAME: &str = "Bytes";
+pub const MEMORY_BLOCK_PREDICATE_NAME: &str = "MemoryBlock";

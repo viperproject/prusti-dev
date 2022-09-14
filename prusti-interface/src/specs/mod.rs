@@ -43,6 +43,8 @@ struct ProcedureSpecRefs {
     pure: bool,
     abstract_predicate: bool,
     trusted: bool,
+    no_panic: bool,
+    no_panic_ensures_postcondition: bool,
 }
 
 impl From<&ProcedureSpecRefs> for ProcedureSpecificationKind {
@@ -60,6 +62,7 @@ impl From<&ProcedureSpecRefs> for ProcedureSpecificationKind {
 #[derive(Debug, Default)]
 struct TypeSpecRefs {
     invariants: Vec<LocalDefId>,
+    structural_invariants: Vec<LocalDefId>,
     trusted: bool,
     model: Option<(String, LocalDefId)>,
     countexample_print: Vec<(Option<String>, LocalDefId)>,
@@ -82,10 +85,15 @@ pub struct SpecCollector<'a, 'tcx> {
     loop_variants: Vec<LocalDefId>,
     type_specs: FxHashMap<LocalDefId, TypeSpecRefs>,
     prusti_assertions: Vec<LocalDefId>,
+    prusti_structural_assertions: Vec<LocalDefId>,
     prusti_assumptions: Vec<LocalDefId>,
     prusti_refutations: Vec<LocalDefId>,
+    prusti_structural_assumptions: Vec<LocalDefId>,
     ghost_begin: Vec<LocalDefId>,
     ghost_end: Vec<LocalDefId>,
+    specification_region_begin: Vec<LocalDefId>,
+    specification_region_end: Vec<LocalDefId>,
+    specification_expression: Vec<LocalDefId>,
 }
 
 impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
@@ -99,10 +107,15 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             loop_variants: vec![],
             type_specs: FxHashMap::default(),
             prusti_assertions: vec![],
+            prusti_structural_assertions: vec![],
             prusti_assumptions: vec![],
             prusti_refutations: vec![],
+            prusti_structural_assumptions: vec![],
             ghost_begin: vec![],
             ghost_end: vec![],
+            specification_region_begin: vec![],
+            specification_region_end: vec![],
+            specification_expression: vec![],
         }
     }
 
@@ -123,6 +136,8 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         self.determine_prusti_assumptions(&mut def_spec);
         self.determine_prusti_refutations(&mut def_spec);
         self.determine_ghost_begin_ends(&mut def_spec);
+        self.determine_specification_region_begin_ends(&mut def_spec);
+        self.determine_specification_expressions(&mut def_spec);
         // TODO: remove spec functions (make sure none are duplicated or left over)
         // Load all local spec MIR bodies, for export and later use
         self.ensure_local_mirs_fetched(&def_spec);
@@ -150,6 +165,16 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                             self.env,
                         );
                     }
+                    SpecIdRef::BrokenPrecondition(spec_id) => {
+                        spec.add_broken_precondition(
+                            self.spec_functions.get(spec_id).unwrap().to_def_id(),
+                        );
+                    }
+                    SpecIdRef::BrokenPostcondition(spec_id) => {
+                        spec.add_broken_postcondition(
+                            self.spec_functions.get(spec_id).unwrap().to_def_id(),
+                        );
+                    }
                     SpecIdRef::Purity(spec_id) => {
                         spec.add_purity(*self.spec_functions.get(spec_id).unwrap(), self.env);
                     }
@@ -168,12 +193,14 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                         )));
                     }
                     SpecIdRef::Terminates(spec_id) => {
-                        spec.set_terminates(*self.spec_functions.get(spec_id).unwrap());
+                        spec.set_terminates(self.spec_functions.get(spec_id).unwrap().to_def_id());
                     }
                 }
             }
 
             spec.set_trusted(refs.trusted);
+            spec.set_no_panic(refs.no_panic);
+            spec.set_no_panic_ensures_postcondition(refs.no_panic_ensures_postcondition);
 
             if let Some(kind) = kind_override {
                 spec.set_kind(kind);
@@ -231,7 +258,9 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
 
     fn determine_type_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
         for (type_id, refs) in self.type_specs.iter() {
-            if !refs.invariants.is_empty() && !prusti_common::config::enable_type_invariants() {
+            if !(refs.invariants.is_empty() && refs.structural_invariants.is_empty())
+                && !prusti_common::config::enable_type_invariants()
+            {
                 let span = self.env.query.get_def_span(*type_id);
                 PrustiError::unsupported(
                     "Type invariants need to be enabled with the feature flag `enable_type_invariants`",
@@ -251,6 +280,13 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                             .map(LocalDefId::to_def_id)
                             .collect(),
                     ),
+                    structural_invariant: SpecificationItem::Inherent(
+                        refs.structural_invariants
+                            .clone()
+                            .into_iter()
+                            .map(LocalDefId::to_def_id)
+                            .collect(),
+                    ),
                     trusted: SpecificationItem::Inherent(refs.trusted),
                     model: refs.model.clone(),
                     counterexample_print: refs.countexample_print.clone(),
@@ -259,21 +295,41 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         }
     }
     fn determine_prusti_assertions(&self, def_spec: &mut typed::DefSpecificationMap) {
-        for local_id in self.prusti_assertions.iter() {
+        for local_id in &self.prusti_assertions {
             def_spec.prusti_assertions.insert(
                 local_id.to_def_id(),
                 typed::PrustiAssertion {
                     assertion: *local_id,
+                    is_structural: false,
+                },
+            );
+        }
+        for local_id in &self.prusti_structural_assertions {
+            def_spec.prusti_assertions.insert(
+                local_id.to_def_id(),
+                typed::PrustiAssertion {
+                    assertion: *local_id,
+                    is_structural: true,
                 },
             );
         }
     }
     fn determine_prusti_assumptions(&self, def_spec: &mut typed::DefSpecificationMap) {
-        for local_id in self.prusti_assumptions.iter() {
+        for local_id in &self.prusti_assumptions {
             def_spec.prusti_assumptions.insert(
                 local_id.to_def_id(),
                 typed::PrustiAssumption {
                     assumption: *local_id,
+                    is_structural: false,
+                },
+            );
+        }
+        for local_id in &self.prusti_structural_assumptions {
+            def_spec.prusti_assumptions.insert(
+                local_id.to_def_id(),
+                typed::PrustiAssumption {
+                    assumption: *local_id,
+                    is_structural: true,
                 },
             );
         }
@@ -299,6 +355,30 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             def_spec
                 .ghost_end
                 .insert(local_id.to_def_id(), typed::GhostEnd { marker: *local_id });
+        }
+    }
+    fn determine_specification_region_begin_ends(&self, def_spec: &mut typed::DefSpecificationMap) {
+        for local_id in self.specification_region_begin.iter() {
+            def_spec.specification_region_begin.insert(
+                local_id.to_def_id(),
+                typed::SpecificationRegionBegin { marker: *local_id },
+            );
+        }
+        for local_id in self.specification_region_end.iter() {
+            def_spec.specification_region_end.insert(
+                local_id.to_def_id(),
+                typed::SpecificationRegionEnd { marker: *local_id },
+            );
+        }
+    }
+    fn determine_specification_expressions(&self, def_spec: &mut typed::DefSpecificationMap) {
+        for local_id in self.specification_expression.iter() {
+            def_spec.specification_expression.insert(
+                local_id.to_def_id(),
+                typed::SpecificationExpression {
+                    expression: *local_id,
+                },
+            );
         }
     }
 
@@ -382,6 +462,16 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<Pro
             .map(|raw_spec_id| SpecIdRef::Postcondition(parse_spec_id(raw_spec_id, def_id))),
     );
     spec_id_refs.extend(
+        read_prusti_attrs("pre_broken_spec_id_ref", attrs)
+            .into_iter()
+            .map(|raw_spec_id| SpecIdRef::BrokenPrecondition(parse_spec_id(raw_spec_id, def_id))),
+    );
+    spec_id_refs.extend(
+        read_prusti_attrs("post_broken_spec_id_ref", attrs)
+            .into_iter()
+            .map(|raw_spec_id| SpecIdRef::BrokenPostcondition(parse_spec_id(raw_spec_id, def_id))),
+    );
+    spec_id_refs.extend(
         read_prusti_attrs("pure_spec_id_ref", attrs)
             .into_iter()
             .map(|raw_spec_id| SpecIdRef::Purity(parse_spec_id(raw_spec_id, def_id))),
@@ -427,14 +517,24 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<Pro
     let pure = has_prusti_attr(attrs, "pure");
     let trusted = has_prusti_attr(attrs, "trusted")
         || (!is_predicate && config::opt_in_verification() && !has_prusti_attr(attrs, "verified"));
+    let no_panic = has_prusti_attr(attrs, "no_panic");
+    let no_panic_ensures_postcondition = has_prusti_attr(attrs, "no_panic_ensures_postcondition");
     let abstract_predicate = has_abstract_predicate_attr(attrs);
 
-    if abstract_predicate || pure || trusted || !spec_id_refs.is_empty() {
+    if abstract_predicate
+        || pure
+        || trusted
+        || no_panic
+        || no_panic_ensures_postcondition
+        || !spec_id_refs.is_empty()
+    {
         Some(ProcedureSpecRefs {
             spec_id_refs,
             pure,
             abstract_predicate,
             trusted,
+            no_panic,
+            no_panic_ensures_postcondition,
         })
     } else {
         None
@@ -498,11 +598,20 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
                 let hir = self.env.query.hir();
                 let impl_id = hir.parent_id(hir.parent_id(self_id));
                 let type_id = get_type_id_from_impl_node(hir.get(impl_id)).unwrap();
-                self.type_specs
-                    .entry(type_id.as_local().unwrap())
-                    .or_default()
-                    .invariants
-                    .push(local_id);
+                if has_prusti_attr(attrs, "type_invariant_structural") {
+                    self.type_specs
+                        .entry(type_id.as_local().unwrap())
+                        .or_default()
+                        .structural_invariants
+                        .push(local_id);
+                } else {
+                    assert!(has_prusti_attr(attrs, "type_invariant_non_structural"));
+                    self.type_specs
+                        .entry(type_id.as_local().unwrap())
+                        .or_default()
+                        .invariants
+                        .push(local_id);
+                }
             }
 
             // Collect trusted type flag
@@ -535,6 +644,10 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
                 self.prusti_assertions.push(local_id);
             }
 
+            if has_prusti_attr(attrs, "prusti_structural_assertion") {
+                self.prusti_structural_assertions.push(local_id);
+            }
+
             if has_prusti_attr(attrs, "prusti_assumption") {
                 self.prusti_assumptions.push(local_id);
             }
@@ -543,12 +656,28 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
                 self.prusti_refutations.push(local_id);
             }
 
+            if has_prusti_attr(attrs, "prusti_structural_assumption") {
+                self.prusti_structural_assumptions.push(local_id);
+            }
+
             if has_prusti_attr(attrs, "ghost_begin") {
                 self.ghost_begin.push(local_id);
             }
 
             if has_prusti_attr(attrs, "ghost_end") {
                 self.ghost_end.push(local_id);
+            }
+
+            if has_prusti_attr(attrs, "specification_region_begin") {
+                self.specification_region_begin.push(local_id);
+            }
+
+            if has_prusti_attr(attrs, "specification_region_end") {
+                self.specification_region_end.push(local_id);
+            }
+
+            if has_prusti_attr(attrs, "prusti_specification_expression") {
+                self.specification_expression.push(local_id);
             }
         } else {
             // Don't collect specs "for" spec items

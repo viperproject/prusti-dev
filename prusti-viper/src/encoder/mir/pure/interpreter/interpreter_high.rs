@@ -17,6 +17,7 @@ use crate::encoder::{
         casts::CastsEncoderInterface,
         generics::MirGenericsEncoderInterface,
         places::PlacesEncoderInterface,
+        procedures::encoder::specification_blocks::SpecificationBlocks,
         pure::{
             interpreter::BackwardMirInterpreter, PureEncodingContext, PureFunctionEncoderInterface,
             SpecificationEncoderInterface,
@@ -29,7 +30,7 @@ use crate::encoder::{
 };
 use log::{debug, trace};
 use prusti_common::vir_high_local;
-use prusti_interface::environment::mir_utils::SliceOrArrayRef;
+use prusti_interface::environment::{debug_utils::to_text::ToText, mir_utils::SliceOrArrayRef};
 use prusti_rustc_interface::{
     hir::def_id::DefId,
     middle::{mir, ty, ty::subst::SubstsRef},
@@ -50,6 +51,9 @@ pub(in super::super) struct ExpressionBackwardInterpreter<'p, 'v: 'p, 'tcx: 'v> 
     encoder: &'p Encoder<'v, 'tcx>,
     /// MIR of the pure function being encoded.
     mir: &'p mir::Body<'tcx>,
+    /// The specification blocks used in the pure function. When encoding
+    /// something else than a pure function, this is None.
+    specification_blocks: Option<SpecificationBlocks>,
     /// MirEncoder of the pure function being encoded.
     mir_encoder: MirEncoder<'p, 'v, 'tcx>,
     /// How panics are handled depending on the encoding context.
@@ -73,9 +77,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         caller_def_id: DefId,
         substs: SubstsRef<'tcx>,
     ) -> Self {
+        let specification_blocks = if pure_encoding_context == PureEncodingContext::Code {
+            Some(SpecificationBlocks::build(
+                encoder.env().query,
+                mir,
+                None,
+                false,
+            ))
+        } else {
+            None
+        };
         Self {
             encoder,
             mir,
+            specification_blocks,
             mir_encoder: MirEncoder::new(encoder, mir, def_id),
             pure_encoding_context,
             caller_def_id,
@@ -122,6 +137,30 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             arguments.push(encoded_operand);
         }
         match aggregate {
+            mir::AggregateKind::Closure(def_id, substs)
+                if self.encoder.is_spec_closure(*def_id) =>
+            {
+                let cl_substs = substs.as_closure();
+                let position = lhs.position();
+                for (field_index, field_ty) in cl_substs.upvar_tys().enumerate() {
+                    let operand = &operands[field_index];
+                    let encoded_operand = self.encode_operand(operand, span)?;
+                    let field_name = format!("closure_{field_index}");
+                    let encoded_field_type = self.encoder.encode_type_high(field_ty)?;
+                    let field_decl =
+                        vir_high::FieldDecl::new(field_name, field_index, encoded_field_type);
+                    // Note: We are using `lhs`, which is the closure variable
+                    // outside of the closure as it was inside the closure. This
+                    // sometimes works because we are not checking that `lhs`
+                    // type is `Closure` not, `&Closure`. However, we need to try both
+                    // `_1.closure_0` and `_1.*.closure_0` as substitution targets.
+                    let closure_self_deref = lhs.clone().deref(ty.clone(), position);
+                    let field_place = closure_self_deref.field(field_decl.clone(), position);
+                    state.substitute_value(&field_place, encoded_operand.clone());
+                    let field_place = lhs.clone().field(field_decl, position);
+                    state.substitute_value(&field_place, encoded_operand);
+                }
+            }
             mir::AggregateKind::Array(_)
             | mir::AggregateKind::Tuple
             | mir::AggregateKind::Closure(_, _) => {
@@ -161,7 +200,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         rhs: &mir::Rvalue<'tcx>,
         span: Span,
     ) -> SpannedEncodingResult<()> {
-        let encoded_lhs = self.encode_place(lhs)?.erase_lifetime();
+        let encoded_lhs = self.encode_place(lhs)?;
+        // Our encoding for field assignments is unsound, so just disable them
+        // for now. FIXME: Have a proper error message.
+        assert!(
+            encoded_lhs.is_local(),
+            "Currently only local variables as assignment targets are supported"
+        );
         let ty = self
             .encoder
             .encode_type_of_place_high(self.mir, lhs)
@@ -239,7 +284,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     .with_span(span)?;
                 state.substitute_value(&encoded_lhs, expr);
             }
-            &mir::Rvalue::Ref(_, kind, place) => {
+            &mir::Rvalue::Ref(region, kind, place) => {
                 if !matches!(
                     kind,
                     mir::BorrowKind::Unique | mir::BorrowKind::Mut { .. } | mir::BorrowKind::Shared
@@ -254,7 +299,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     .encoder
                     .encode_type_of_place_high(self.mir, place)
                     .with_span(span)?;
-                let pure_lifetime = vir_high::ty::LifetimeConst::erased();
+                let pure_lifetime = vir_high::ty::LifetimeConst::new(region.to_text());
                 let uniqueness = if matches!(kind, mir::BorrowKind::Mut { .. }) {
                     vir_high::ty::Uniqueness::Unique
                 } else {
@@ -298,6 +343,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     ));
                 }
             }
+            mir::Rvalue::Cast(
+                mir::CastKind::Pointer(ty::adjustment::PointerCast::MutToConstPointer),
+                operand,
+                _cast_ty,
+            ) => {
+                let arg = self.encode_operand(operand, span)?;
+                let expr = vir_high::Expression::builtin_func_app_no_pos(
+                    vir_high::BuiltinFunc::CastMutToConstPointer,
+                    Vec::new(),
+                    vec![arg],
+                    encoded_lhs.get_type().clone(),
+                );
+                state.substitute_value(&encoded_lhs, expr);
+            }
             mir::Rvalue::Cast(kind, _, _) => {
                 return Err(SpannedEncodingError::unsupported(
                     format!("unsupported kind of cast: {kind:?}"),
@@ -323,8 +382,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 let expr = vir_high::Expression::constructor_no_pos(ty, arguments);
                 state.substitute_value(&encoded_lhs, expr);
             }
+            mir::Rvalue::AddressOf(_, place) => {
+                let encoded_place = self.encoder.encode_place_high(self.mir, *place, None)?;
+                let ty = self
+                    .encoder
+                    .encode_type_of_place_high(self.mir, *place)
+                    .with_span(span)?;
+                let expr = vir_high::Expression::addr_of_no_pos(
+                    encoded_place,
+                    vir_high::Type::pointer(ty),
+                );
+                state.substitute_value(&encoded_lhs, expr);
+            }
             mir::Rvalue::ThreadLocalRef(..)
-            | mir::Rvalue::AddressOf(..)
             | mir::Rvalue::ShallowInitBox(..)
             | mir::Rvalue::NullaryOp(..) => {
                 return Err(SpannedEncodingError::unsupported(
@@ -649,11 +719,108 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         }
 
         match proc_name {
+            "prusti_contracts::prusti_own" => {
+                assert_eq!(encoded_args.len(), 1);
+                let place = encoded_args[0].clone();
+                let position = place.position();
+                let encoded_rhs = vir_high::Expression::acc_predicate(
+                    vir_high::Predicate::owned_non_aliased(place, position),
+                    position,
+                );
+                subst_with(encoded_rhs)
+            }
+            "prusti_contracts::prusti_own_range" => {
+                assert_eq!(encoded_args.len(), 3);
+                let address = encoded_args[0].clone();
+                let start = encoded_args[1].clone();
+                let end = encoded_args[2].clone();
+                let position = address.position();
+                let encoded_rhs = vir_high::Expression::acc_predicate(
+                    vir_high::Predicate::owned_range(address, start, end, position),
+                    position,
+                );
+                subst_with(encoded_rhs)
+            }
+            "prusti_contracts::prusti_deref_own" => {
+                assert_eq!(encoded_args.len(), 2);
+                let ref_type = encoded_lhs.get_type().clone();
+                builtin((DerefOwn, ref_type))
+            }
+            "prusti_contracts::prusti_raw" => {
+                assert_eq!(encoded_args.len(), 2);
+                let address = encoded_args[0].clone();
+                let size = encoded_args[1].clone();
+                let position = address.position();
+                let encoded_rhs = vir_high::Expression::acc_predicate(
+                    vir_high::Predicate::memory_block_heap(address, size, position),
+                    position,
+                );
+                subst_with(encoded_rhs)
+            }
+            "prusti_contracts::prusti_raw_range" => {
+                assert_eq!(encoded_args.len(), 4);
+                let address = encoded_args[0].clone();
+                let size = encoded_args[1].clone();
+                let start = encoded_args[2].clone();
+                let end = encoded_args[3].clone();
+                let position = address.position();
+                let encoded_rhs = vir_high::Expression::acc_predicate(
+                    vir_high::Predicate::memory_block_heap_range(
+                        address, size, start, end, position,
+                    ),
+                    position,
+                );
+                subst_with(encoded_rhs)
+            }
+            "prusti_contracts::prusti_raw_dealloc" => {
+                assert_eq!(encoded_args.len(), 2);
+                let address = encoded_args[0].clone();
+                let size = encoded_args[1].clone();
+                let position = address.position();
+                let encoded_rhs = vir_high::Expression::acc_predicate(
+                    vir_high::Predicate::memory_block_heap_drop(address, size, position),
+                    position,
+                );
+                subst_with(encoded_rhs)
+            }
+            "prusti_contracts::prusti_bytes" => {
+                assert_eq!(encoded_args.len(), 2);
+                builtin((MemoryBlockBytes, vir_high::Type::MBytes))
+            }
+            "prusti_contracts::read_byte" => {
+                assert_eq!(encoded_args.len(), 2);
+                builtin((ReadByte, vir_high::Type::MByte))
+            }
+            "prusti_contracts::prusti_unpacking" => {
+                assert_eq!(encoded_args.len(), 2);
+                let place = encoded_args[0].clone();
+                let body = encoded_args[1].clone();
+                let position = place.position();
+                let encoded_rhs = vir_high::Expression::unfolding(
+                    vir_high::Predicate::owned_non_aliased(place, position),
+                    body,
+                    position,
+                );
+                subst_with(encoded_rhs)
+            }
             "prusti_contracts::old" => {
                 let argument = encoded_args.last().cloned().unwrap();
                 let position = argument.position();
                 let encoded_rhs = vir_high::Expression::labelled_old(
                     PRECONDITION_LABEL.to_string(),
+                    argument,
+                    position,
+                );
+                subst_with(encoded_rhs)
+            }
+            "prusti_contracts::prusti_eval_in" => {
+                assert_eq!(encoded_args.len(), 2);
+                let predicate = encoded_args[0].clone();
+                let argument = encoded_args[1].clone();
+                let position = argument.position();
+                let encoded_rhs = vir_high::Expression::eval_in(
+                    predicate,
+                    vir_high::EvalInContextKind::Predicate,
                     argument,
                     position,
                 );
@@ -671,8 +838,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 subst_with(encoded_rhs)
             }
             "prusti_contracts::before_expiry" => {
-                // self.encode_call_before_expiry()?
-                unimplemented!();
+                assert_eq!(encoded_args.len(), 1);
+                let position = encoded_args[0].position();
+                let ty = encoded_args[0].get_type().clone();
+                let encoded_rhs = vir_high::Expression::builtin_func_app(
+                    vir_high::BuiltinFunc::BeforeExpiry,
+                    Vec::new(),
+                    encoded_args.into(),
+                    ty,
+                    position,
+                );
+                subst_with(encoded_rhs)
             }
             "std::cmp::PartialEq::eq" | "core::cmp::PartialEq::eq"
                 if self.has_structural_eq_impl(&args[0]).with_span(span)? =>
@@ -734,6 +910,53 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                         )
                         .map(Some),
                 }
+            }
+            "std::ptr::const_ptr::<impl *const T>::is_null"
+            | "std::ptr::mut_ptr::<impl *mut T>::is_null" => {
+                assert_eq!(encoded_args.len(), 1);
+                builtin((PtrIsNull, vir_high::Type::Bool))
+            }
+            "std::ptr::const_ptr::<impl *const T>::wrapping_offset"
+            | "std::ptr::mut_ptr::<impl *mut T>::wrapping_offset" => {
+                assert_eq!(encoded_args.len(), 2);
+                builtin((PtrWrappingOffset, encoded_args[0].get_type().clone()))
+            }
+            "std::mem::size_of" => {
+                assert_eq!(encoded_args.len(), 0);
+                assert_eq!(type_arguments.len(), 1);
+                let size_ty = vir_high::Type::Int(vir_high::ty::Int::Usize);
+                // match &type_arguments[0] {
+                //     vir_high::Type::Int(ty)
+                //         if !matches!(
+                //             ty,
+                //             vir_high::ty::Int::Isize
+                //                 | vir_high::ty::Int::Usize
+                //                 | vir_high::ty::Int::Char
+                //         ) =>
+                //     {
+                //         let size = match ty {
+                //             vir_high::ty::Int::I8 => 1,
+                //             vir_high::ty::Int::I16 => 2,
+                //             vir_high::ty::Int::I32 => 4,
+                //             vir_high::ty::Int::I64 => 8,
+                //             vir_high::ty::Int::I128 => 16,
+                //             vir_high::ty::Int::U8 => 1,
+                //             vir_high::ty::Int::U16 => 2,
+                //             vir_high::ty::Int::U32 => 4,
+                //             vir_high::ty::Int::U64 => 8,
+                //             vir_high::ty::Int::U128 => 16,
+                //             _ => unreachable!(),
+                //         };
+                //         let value = vir_high::Expression::constant_no_pos(size.into(), size_ty);
+                //         subst_with(value)
+                //     }
+                //     _ => builtin((Size, size_ty)),
+                // }
+                builtin((Size, size_ty))
+            }
+            "std::mem::align_of" => {
+                assert_eq!(encoded_args.len(), 0);
+                builtin((Align, vir_high::Type::Int(vir_high::ty::Int::Usize)))
             }
 
             // Prusti-specific syntax
@@ -871,7 +1094,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
     #[tracing::instrument(level = "debug", skip(self, states))]
     fn apply_terminator(
         &self,
-        _bb: mir::BasicBlock,
+        bb: mir::BasicBlock,
         terminator: &mir::Terminator<'tcx>,
         states: FxHashMap<mir::BasicBlock, &Self::State>,
     ) -> Result<Self::State, Self::Error> {
@@ -947,6 +1170,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 func: mir::Operand::Constant(box mir::Constant { literal, .. }),
                 ..
             } => {
+                if self
+                    .specification_blocks
+                    .as_ref()
+                    .map(|sb| sb.is_specification_block(bb))
+                    .unwrap_or(false)
+                {
+                    if let Some(target) = target {
+                        return Ok(states[target].clone());
+                    } else {
+                        unimplemented!();
+                    }
+                }
                 self.apply_call_terminator(args, *destination, target, literal.ty(), states, span)?
             }
 
@@ -1044,6 +1279,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
         statement: &mir::Statement<'tcx>,
         state: &mut Self::State,
     ) -> Result<(), Self::Error> {
+        if self
+            .specification_blocks
+            .as_ref()
+            .map(|sb| sb.is_specification_block(bb))
+            .unwrap_or(false)
+        {
+            trace!("Skipping statement because inside a specification block");
+            return Ok(());
+        }
         let span = statement.source_info.span;
         let location = mir::Location {
             block: bb,

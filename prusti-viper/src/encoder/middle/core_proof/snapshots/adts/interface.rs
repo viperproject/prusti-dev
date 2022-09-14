@@ -60,6 +60,16 @@ pub(in super::super::super) trait SnapshotAdtsInterface {
         argument: vir_low::Expression,
     ) -> SpannedEncodingResult<vir_low::Expression>;
 
+    // Equality calls.
+    fn snapshot_equality_call(
+        &mut self,
+        domain_name: &str,
+        variant_name: &str,
+        left: vir_low::Expression,
+        right: vir_low::Expression,
+        gas: vir_low::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
+
     // Registration.
 
     fn register_constant_constructor(
@@ -78,6 +88,8 @@ pub(in super::super::super) trait SnapshotAdtsInterface {
         &mut self,
         domain_name: &str,
         variant_name: &str,
+        unary_operation: Option<vir_low::UnaryOpKind>,
+        binary_operation: Option<vir_low::BinaryOpKind>,
         use_main_constructor_destructors: bool,
         parameters: Vec<vir_low::VariableDecl>,
     ) -> SpannedEncodingResult<()>;
@@ -102,13 +114,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotAdtsInterface for Lowerer<'p, 'v, 'tcx> {
         &mut self,
         domain_name: &str,
     ) -> SpannedEncodingResult<String> {
-        self.adt_destructor_main_name(domain_name, "value")
+        let name = self.adt_destructor_main_name(domain_name, "value")?;
+        self.snapshots_state
+            .snapshot_domains_info
+            .register_constant_destructor(domain_name, &name)?;
+        Ok(name)
     }
     fn snapshot_constructor_struct_name(
         &mut self,
         domain_name: &str,
     ) -> SpannedEncodingResult<String> {
-        self.adt_constructor_main_name(domain_name)
+        let name = self.adt_constructor_main_name(domain_name)?;
+        self.snapshots_state
+            .snapshot_domains_info
+            .register_constant_constructor(domain_name, &name)?;
+        Ok(name)
     }
     fn snapshot_constructor_struct_alternative_name(
         &mut self,
@@ -129,6 +149,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotAdtsInterface for Lowerer<'p, 'v, 'tcx> {
         domain_name: &str,
         arguments: Vec<vir_low::Expression>,
     ) -> SpannedEncodingResult<vir_low::Expression> {
+        let _ = self.snapshot_constructor_struct_name(domain_name)?; // FIXME: this is a hack to trigger registration.
         self.adt_constructor_main_call(domain_name, arguments)
     }
     fn snapshot_alternative_constructor_struct_call(
@@ -157,6 +178,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotAdtsInterface for Lowerer<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<vir_low::Expression> {
         self.adt_destructor_variant_call(domain_name, variant_name, "value", variant_type, argument)
     }
+    fn snapshot_equality_call(
+        &mut self,
+        domain_name: &str,
+        variant_name: &str,
+        left: vir_low::Expression,
+        right: vir_low::Expression,
+        gas: vir_low::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        self.adt_snapshot_equality_variant_call(domain_name, variant_name, left, right, gas)
+    }
     fn register_constant_constructor(
         &mut self,
         domain_name: &str,
@@ -181,12 +212,27 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotAdtsInterface for Lowerer<'p, 'v, 'tcx> {
         &mut self,
         domain_name: &str,
         variant_name: &str,
+        unary_operation: Option<vir_low::UnaryOpKind>,
+        binary_operation: Option<vir_low::BinaryOpKind>,
         use_main_constructor_destructors: bool,
         parameters: Vec<vir_low::VariableDecl>,
     ) -> SpannedEncodingResult<()> {
+        if let Some(op) = unary_operation {
+            let constructor_name = self.adt_constructor_variant_name(domain_name, variant_name)?;
+            self.snapshots_state
+                .snapshot_domains_info
+                .register_unary_operation(domain_name, op, constructor_name)?;
+        }
+        if let Some(op) = binary_operation {
+            let constructor_name = self.adt_constructor_variant_name(domain_name, variant_name)?;
+            self.snapshots_state
+                .snapshot_domains_info
+                .register_binary_operation(domain_name, op, constructor_name)?;
+        }
         self.adt_register_variant_constructor(
             domain_name,
             variant_name,
+            // operation,
             use_main_constructor_destructors,
             parameters,
             false,
@@ -203,6 +249,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotAdtsInterface for Lowerer<'p, 'v, 'tcx> {
         self.adt_register_variant_constructor(
             domain_name,
             variant_name,
+            // None,
             use_main_constructor_destructors,
             parameters,
             true,
@@ -235,6 +282,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotAdtsInterface for Lowerer<'p, 'v, 'tcx> {
         self.adt_register_variant_constructor(
             domain_name,
             variant_name,
+            // None,
             false,
             vars! { value: {parameter_type}},
             true,

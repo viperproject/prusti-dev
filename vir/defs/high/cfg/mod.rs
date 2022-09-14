@@ -4,9 +4,9 @@
     Clone,
     serde::Serialize,
     serde::Deserialize,
-    PartialEq(ignore=[position]),
+    PartialEq(trait_type=std::cmp::PartialEq,ignore=[position]),
     Eq,
-    Hash(ignore=[position])
+    Hash(trait_type=core::hash::Hash,ignore=[position])
 )]
 
 pub mod procedure;

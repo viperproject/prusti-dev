@@ -19,6 +19,7 @@ use prusti_rustc_interface::{
     },
     span::Span,
 };
+use prusti_specs::specifications::untyped::SpecificationId;
 
 /// Index of a Basic Block
 pub type BasicBlockIndex = mir::BasicBlock;
@@ -286,6 +287,57 @@ pub fn is_ghost_end_marker<'tcx>(env_query: EnvQuery, bb: &BasicBlockData<'tcx>)
     is_spec_block_kind(env_query, bb, "ghost_end")
 }
 
+/// Returns specification id.
+pub fn is_specification_begin_marker<'tcx>(
+    env_query: EnvQuery,
+    bb_data: &BasicBlockData<'tcx>,
+) -> Option<SpecificationId> {
+    let kind = "specification_region_begin";
+    get_spec_block_kind_id(env_query, bb_data, kind)
+}
+
+pub fn is_specification_end_marker<'tcx>(env_query: EnvQuery, bb: &BasicBlockData<'tcx>) -> bool {
+    is_spec_block_kind(env_query, bb, "specification_region_end")
+}
+
+pub fn is_try_finally_begin_marker<'tcx>(
+    env_query: EnvQuery,
+    bb_data: &BasicBlockData<'tcx>,
+) -> Option<(SpecificationId, SpecificationId)> {
+    let kind = "try_finally_executed_block_begin";
+    for stmt in &bb_data.statements {
+        if let StatementKind::Assign(box (
+            _,
+            Rvalue::Aggregate(box AggregateKind::Closure(def_id, _), _),
+        )) = &stmt.kind
+        {
+            let attrs = env_query.get_attributes(def_id);
+            if is_spec_closure(env_query, *def_id) && crate::utils::has_prusti_attr(attrs, kind) {
+                let on_panic_spec_id_string =
+                    crate::utils::read_prusti_attr("on_panic_spec_id", attrs).unwrap();
+                let on_panic_spec_id = on_panic_spec_id_string.try_into().unwrap();
+                let finally_spec_id_string =
+                    crate::utils::read_prusti_attr("finally_spec_id", attrs).unwrap();
+                let finally_spec_id = finally_spec_id_string.try_into().unwrap();
+                return Some((on_panic_spec_id, finally_spec_id));
+            }
+        }
+    }
+    None
+}
+
+pub fn is_try_finally_end_marker<'tcx>(env_query: EnvQuery, bb: &BasicBlockData<'tcx>) -> bool {
+    is_spec_block_kind(env_query, bb, "try_finally_executed_block_end")
+}
+
+pub fn is_checked_block_begin_marker<'tcx>(env_query: EnvQuery, bb: &BasicBlockData<'tcx>) -> bool {
+    is_spec_block_kind(env_query, bb, "checked_block_begin")
+}
+
+pub fn is_checked_block_end_marker<'tcx>(env_query: EnvQuery, bb: &BasicBlockData<'tcx>) -> bool {
+    is_spec_block_kind(env_query, bb, "checked_block_end")
+}
+
 fn is_spec_block_kind(env_query: EnvQuery, bb_data: &BasicBlockData, kind: &str) -> bool {
     for stmt in &bb_data.statements {
         if let StatementKind::Assign(box (
@@ -301,6 +353,28 @@ fn is_spec_block_kind(env_query: EnvQuery, bb_data: &BasicBlockData, kind: &str)
         }
     }
     false
+}
+
+fn get_spec_block_kind_id(
+    env_query: EnvQuery,
+    bb_data: &BasicBlockData,
+    kind: &str,
+) -> Option<SpecificationId> {
+    for stmt in &bb_data.statements {
+        if let StatementKind::Assign(box (
+            _,
+            Rvalue::Aggregate(box AggregateKind::Closure(def_id, _), _),
+        )) = &stmt.kind
+        {
+            let attrs = env_query.get_attributes(def_id);
+            if is_spec_closure(env_query, *def_id) && crate::utils::has_prusti_attr(attrs, kind) {
+                let spec_id_string = crate::utils::read_prusti_attr("spec_id", attrs).unwrap();
+                let spec_id = spec_id_string.try_into().unwrap();
+                return Some(spec_id);
+            }
+        }
+    }
+    None
 }
 
 #[derive(Debug)]

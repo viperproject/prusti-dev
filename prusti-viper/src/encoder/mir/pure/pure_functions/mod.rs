@@ -6,6 +6,7 @@
 
 //! Encoders of pure functions.
 
+mod cleaner;
 mod interface;
 mod encoder_high;
 mod encoder_poly;

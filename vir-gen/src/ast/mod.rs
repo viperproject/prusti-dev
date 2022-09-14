@@ -50,6 +50,8 @@ pub(crate) struct DeriveLower {
 }
 
 pub(crate) struct CustomDeriveOptions {
+    /// The type of the trait that should be derived.
+    pub(crate) trait_type: syn::Type,
     /// The fields that should be ignored when deriving.
     pub(crate) ignored_fields: Vec<syn::Ident>,
 }

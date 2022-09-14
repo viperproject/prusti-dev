@@ -7,7 +7,10 @@ use std::collections::BTreeMap;
 pub struct ProcedureBuilder {
     name: String,
     check_mode: CheckMode,
+    position: vir_high::Position,
+    non_aliased_places: Vec<vir_high::Expression>,
     pre_statements: Vec<vir_high::Statement>,
+    post_success_statements: Vec<vir_high::Statement>,
     post_statements: Vec<vir_high::Statement>,
     start_label: vir_high::BasicBlockId,
     entry_label: Option<vir_high::BasicBlockId>,
@@ -15,6 +18,8 @@ pub struct ProcedureBuilder {
     is_return_label_used: bool,
     resume_panic_label: vir_high::BasicBlockId,
     is_resume_panic_label_used: bool,
+    /// Note: this statements are emitted only if resume panic label is used.
+    resume_panic_statements: Vec<vir_high::Statement>,
     end_label: vir_high::BasicBlockId,
     basic_blocks: BTreeMap<vir_high::BasicBlockId, vir_high::BasicBlock>,
 }
@@ -45,13 +50,19 @@ impl ProcedureBuilder {
     pub fn new(
         name: String,
         check_mode: CheckMode,
+        position: vir_high::Position,
         pre_statements: Vec<vir_high::Statement>,
+        post_success_statements: Vec<vir_high::Statement>,
         post_statements: Vec<vir_high::Statement>,
+        resume_panic_statements: Vec<vir_high::Statement>,
     ) -> Self {
         Self {
             name,
             check_mode,
+            position,
+            non_aliased_places: Vec::new(),
             pre_statements,
+            post_success_statements,
             post_statements,
             start_label: vir_high::BasicBlockId::new("start_label".to_string()),
             entry_label: None,
@@ -59,6 +70,7 @@ impl ProcedureBuilder {
             is_return_label_used: false,
             resume_panic_label: vir_high::BasicBlockId::new("resume_panic_label".to_string()),
             is_resume_panic_label_used: false,
+            resume_panic_statements,
             end_label: vir_high::BasicBlockId::new("end_label".to_string()),
             basic_blocks: Default::default(),
         }
@@ -73,21 +85,23 @@ impl ProcedureBuilder {
             .insert(self.start_label.clone(), allocate)
             .is_none());
         let deallocate = vir_high::BasicBlock {
-            statements: self.post_statements,
+            statements: self.post_success_statements,
             successor: vir_high::Successor::Goto(self.end_label.clone()),
         };
         if self.is_return_label_used {
             assert!(basic_blocks.insert(self.return_label, deallocate).is_none());
         }
         if self.is_resume_panic_label_used {
-            let leak = vir_high::BasicBlock {
-                statements: vec![vir_high::Statement::leak_all()],
+            let block = vir_high::BasicBlock {
+                statements: self.resume_panic_statements,
                 successor: vir_high::Successor::Goto(self.end_label.clone()),
             };
-            assert!(basic_blocks.insert(self.resume_panic_label, leak).is_none());
+            assert!(basic_blocks
+                .insert(self.resume_panic_label, block)
+                .is_none());
         }
         let end_block = vir_high::BasicBlock {
-            statements: Vec::new(),
+            statements: self.post_statements,
             successor: vir_high::Successor::Exit,
         };
         assert!(basic_blocks
@@ -96,16 +110,21 @@ impl ProcedureBuilder {
         vir_high::ProcedureDecl {
             name: self.name,
             check_mode: self.check_mode,
+            position: self.position,
+            non_aliased_places: self.non_aliased_places,
             entry: self.start_label,
             exit: self.end_label,
             basic_blocks,
         }
     }
+    pub fn add_non_aliased_place(&mut self, place: vir_high::Expression) {
+        self.non_aliased_places.push(place);
+    }
     pub fn add_alloc_statement(&mut self, statement: vir_high::Statement) {
         self.pre_statements.push(statement);
     }
     pub fn add_dealloc_statement(&mut self, statement: vir_high::Statement) {
-        self.post_statements.push(statement);
+        self.post_success_statements.push(statement);
     }
     pub fn set_entry(&mut self, entry_label: vir_high::BasicBlockId) {
         assert!(self.entry_label.is_none());
@@ -118,6 +137,9 @@ impl ProcedureBuilder {
             statements: Vec::new(),
             successor: SuccessorBuilder::Undefined,
         }
+    }
+    pub fn name(&self) -> &str {
+        &self.name
     }
 }
 
@@ -149,15 +171,6 @@ impl<'a> BasicBlockBuilder<'a> {
     pub fn add_comment(&mut self, comment: String) {
         self.statements.push(vir_high::Statement::comment(comment));
     }
-    pub fn add_statement(&mut self, statement: vir_high::Statement) {
-        statement.check_no_default_position();
-        self.statements.push(statement);
-    }
-    pub fn add_statements(&mut self, statements: Vec<vir_high::Statement>) {
-        for statement in statements {
-            self.add_statement(statement);
-        }
-    }
     pub fn set_successor(&mut self, successor: SuccessorBuilder) {
         assert!(self.successor == SuccessorBuilder::Undefined);
         self.successor = successor;
@@ -187,5 +200,28 @@ impl SuccessorBuilder {
     }
     pub fn jump(successor: vir_high::Successor) -> Self {
         Self::Jump(successor)
+    }
+}
+
+pub trait StatementSequenceBuilder {
+    fn add_statement(&mut self, statement: vir_high::Statement);
+    fn add_statements(&mut self, statements: Vec<vir_high::Statement>) {
+        for statement in statements {
+            self.add_statement(statement);
+        }
+    }
+}
+
+impl<'a> StatementSequenceBuilder for BasicBlockBuilder<'a> {
+    fn add_statement(&mut self, statement: vir_high::Statement) {
+        statement.check_no_default_position();
+        self.statements.push(statement);
+    }
+}
+
+impl StatementSequenceBuilder for Vec<vir_high::Statement> {
+    fn add_statement(&mut self, statement: vir_high::Statement) {
+        statement.check_no_default_position();
+        self.push(statement);
     }
 }

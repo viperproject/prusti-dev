@@ -36,95 +36,96 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
             .name
             .get_absolute_item_name(called_def_id);
 
-        let make_manual_assign =
-            |encoder: &mut Self,
-             block_builder: &mut BasicBlockBuilder,
-             rhs_gen: &mut dyn FnMut(_, Vec<vir_high::Expression>, _) -> vir_high::Expression|
-             -> SpannedEncodingResult<()> {
-                let (target_place, target_block) = (destination, target.unwrap());
-                let position = encoder
-                    .encoder
-                    .error_manager()
-                    .register_error(span, ErrorCtxt::WritePlace, encoder.def_id)
-                    .into();
-                let encoded_target_place = encoder
-                    .encoder
-                    .encode_place_high(encoder.mir, target_place, None)?
-                    .set_default_position(position);
-                let encoded_args = args
-                    .iter()
-                    .map(|arg| encoder.encode_statement_operand(location, arg))
-                    .collect::<Result<Vec<_>, _>>()?;
-                for encoded_arg in encoded_args.iter() {
-                    let statement = vir_high::Statement::consume_no_pos(encoded_arg.clone());
-                    block_builder.add_statement(encoder.encoder.set_statement_error_ctxt(
-                        statement,
-                        span,
-                        ErrorCtxt::ProcedureCall,
-                        encoder.def_id,
-                    )?);
-                }
-                let target_place_local = if let Some(target_place_local) = target_place.as_local() {
-                    target_place_local
-                } else {
-                    unimplemented!()
-                };
-                let size = encoder.encoder.encode_type_size_expression(
-                    encoder
-                        .encoder
-                        .get_local_type(encoder.mir, target_place_local)?,
-                )?;
-                let target_memory_block = vir_high::Predicate::memory_block_stack_no_pos(
-                    encoded_target_place.clone(),
-                    size,
-                );
+        let make_manual_assign = |encoder: &mut Self,
+                                  block_builder: &mut BasicBlockBuilder,
+                                  rhs_gen: &mut dyn FnMut(
+            _,
+            Vec<vir_high::Expression>,
+            _,
+        ) -> vir_high::Expression|
+         -> SpannedEncodingResult<()> {
+            let (target_place, target_block) = (destination, target.unwrap());
+            let position = encoder
+                .encoder
+                .error_manager()
+                .register_error(span, ErrorCtxt::WritePlace, encoder.def_id)
+                .into();
+            let encoded_target_place = encoder
+                .encoder
+                .encode_place_high(encoder.mir, target_place, None)?
+                .set_default_position(position);
+            let encoded_args = args
+                .iter()
+                .map(|arg| encoder.encode_statement_operand_no_refs(block_builder, location, arg))
+                .collect::<Result<Vec<_>, _>>()?;
+            for encoded_arg in encoded_args.iter() {
+                let statement = vir_high::Statement::consume_no_pos(encoded_arg.clone());
                 block_builder.add_statement(encoder.encoder.set_statement_error_ctxt(
-                    vir_high::Statement::exhale_no_pos(target_memory_block),
+                    statement,
                     span,
                     ErrorCtxt::ProcedureCall,
                     encoder.def_id,
                 )?);
-                let inhale_statement = vir_high::Statement::inhale_no_pos(
-                    vir_high::Predicate::owned_non_aliased_no_pos(encoded_target_place.clone()),
-                );
-                block_builder.add_statement(encoder.encoder.set_statement_error_ctxt(
-                    inhale_statement,
-                    span,
-                    ErrorCtxt::ProcedureCall,
-                    encoder.def_id,
-                )?);
-                let type_arguments = encoder
-                    .encoder
-                    .encode_generic_arguments_high(called_def_id, call_substs)
-                    .with_span(span)?;
-
-                let encoded_arg_expressions =
-                    encoded_args.into_iter().map(|arg| arg.expression).collect();
-
-                let target_type = encoded_target_place.get_type().clone();
-
-                let expression = vir_high::Expression::equals(
-                    encoded_target_place,
-                    rhs_gen(type_arguments, encoded_arg_expressions, target_type),
-                );
-                let assume_statement = encoder.encoder.set_statement_error_ctxt(
-                    vir_high::Statement::assume_no_pos(expression),
-                    span,
-                    ErrorCtxt::UnexpectedAssumeMethodPostcondition,
-                    encoder.def_id,
-                )?;
-                block_builder.add_statement(encoder.encoder.set_statement_error_ctxt(
-                    assume_statement,
-                    span,
-                    ErrorCtxt::ProcedureCall,
-                    encoder.def_id,
-                )?);
-                encoder.encode_lft_for_block(target_block, location, block_builder)?;
-                let target_label = encoder.encode_basic_block_label(target_block);
-                let successor = vir_high::Successor::Goto(target_label);
-                block_builder.set_successor_jump(successor);
-                Ok(())
+            }
+            let target_place_local = if let Some(target_place_local) = target_place.as_local() {
+                target_place_local
+            } else {
+                unimplemented!()
             };
+            let size = encoder.encoder.encode_type_size_expression(
+                encoder
+                    .encoder
+                    .get_local_type(encoder.mir, target_place_local)?,
+            )?;
+            let target_memory_block =
+                vir_high::Predicate::memory_block_stack_no_pos(encoded_target_place.clone(), size);
+            block_builder.add_statement(encoder.encoder.set_statement_error_ctxt(
+                vir_high::Statement::exhale_predicate_no_pos(target_memory_block),
+                span,
+                ErrorCtxt::ProcedureCall,
+                encoder.def_id,
+            )?);
+            let inhale_statement = vir_high::Statement::inhale_predicate_no_pos(
+                vir_high::Predicate::owned_non_aliased_no_pos(encoded_target_place.clone()),
+            );
+            block_builder.add_statement(encoder.encoder.set_statement_error_ctxt(
+                inhale_statement,
+                span,
+                ErrorCtxt::ProcedureCall,
+                encoder.def_id,
+            )?);
+            let type_arguments = encoder
+                .encoder
+                .encode_generic_arguments_high(called_def_id, call_substs)
+                .with_span(span)?;
+
+            let encoded_arg_expressions =
+                encoded_args.into_iter().map(|arg| arg.expression).collect();
+
+            let target_type = encoded_target_place.get_type().clone();
+
+            let expression = vir_high::Expression::equals(
+                encoded_target_place,
+                rhs_gen(type_arguments, encoded_arg_expressions, target_type),
+            );
+            let assume_statement = encoder.encoder.set_statement_error_ctxt(
+                vir_high::Statement::assume_no_pos(expression),
+                span,
+                ErrorCtxt::UnexpectedAssumeMethodPostcondition,
+                encoder.def_id,
+            )?;
+            block_builder.add_statement(encoder.encoder.set_statement_error_ctxt(
+                assume_statement,
+                span,
+                ErrorCtxt::ProcedureCall,
+                encoder.def_id,
+            )?);
+            encoder.encode_lft_for_block(target_block, location, block_builder)?;
+            let target_label = encoder.encode_basic_block_label(target_block);
+            let successor = vir_high::Successor::Goto(target_label);
+            block_builder.set_successor_jump(successor);
+            Ok(())
+        };
 
         let make_builtin_call = |encoder: &mut Self,
                                  block_builder: &mut BasicBlockBuilder,
@@ -156,7 +157,7 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
             })
         {
             let lhs = self
-                .encode_statement_operand(location, &args[0])?
+                .encode_statement_operand_no_refs(block_builder, location, &args[0])?
                 .expression;
             if lhs.get_type() == &vir_high::Type::Int(vir_high::ty::Int::Unbounded) {
                 use vir_high::BinaryOpKind::*;
@@ -199,6 +200,13 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
                 } else {
                     unimplemented!();
                 }
+            }
+            "prusti_contracts::prusti_take_lifetime" => {
+                make_builtin_call(self, block_builder, vir_high::BuiltinFunc::TakeLifetime)?
+            }
+            "prusti_contracts::prusti_set_lifetime_for_raw_pointer_reference_casts" => {
+                // Do nothing, this function is used only by the drop
+                // elaboration pass.
             }
             "prusti_contracts::Int::new" => {
                 make_builtin_call(self, block_builder, vir_high::BuiltinFunc::NewInt)?
@@ -244,7 +252,7 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
             }
             "std::ops::Index::index" | "core::ops::Index::index" => {
                 let lhs = self
-                    .encode_statement_operand(location, &args[0])?
+                    .encode_statement_operand_no_refs(block_builder, location, &args[0])?
                     .expression;
                 let typ = match lhs.get_type() {
                     vir_high::Type::Reference(vir_high::ty::Reference { target_type, .. }) => {
@@ -264,7 +272,7 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
             }
             "std::cmp::PartialEq::eq" => {
                 let lhs = self
-                    .encode_statement_operand(location, &args[0])?
+                    .encode_statement_operand_no_refs(block_builder, location, &args[0])?
                     .expression;
                 if matches!(
                     lhs.get_type(),

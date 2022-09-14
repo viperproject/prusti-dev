@@ -3,7 +3,7 @@ use viper::{self, AstFactory};
 use vir::low::program::Program;
 
 impl<'v> ToViper<'v, viper::Program<'v>> for Program {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Program<'v> {
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Program<'v> {
         let Program {
             name: _,
             check_mode: _,
@@ -17,11 +17,11 @@ impl<'v> ToViper<'v, viper::Program<'v>> for Program {
             .iter()
             .map(|domain| domain.to_viper(context, ast))
             .collect();
-        let viper_methods: Vec<_> = procedures
+        let mut viper_methods: Vec<_> = procedures
             .iter()
             .map(|procedure| procedure.to_viper(context, ast))
-            .chain(methods.iter().map(|method| method.to_viper(context, ast)))
             .collect();
+        viper_methods.extend(methods.iter().map(|method| method.to_viper(context, ast)));
         let viper_predicates: Vec<_> = predicates
             .iter()
             .map(|predicate| predicate.to_viper(context, ast))

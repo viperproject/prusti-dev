@@ -103,7 +103,10 @@ lazy_static::lazy_static! {
         settings.set_default("quiet", false).unwrap();
         settings.set_default("assert_timeout", 10_000).unwrap();
         settings.set_default("smt_qi_eager_threshold", 1000).unwrap();
-        settings.set_default("use_more_complete_exhale", true).unwrap();
+        settings.set_default("smt_use_nonlinear_arithmetic_solver", false).unwrap();
+        settings.set_default("use_more_complete_exhale", false).unwrap();
+        settings.set_default("use_carbon_qps", true).unwrap();
+        settings.set_default("use_z3_api", false).unwrap();
         settings.set_default("skip_unsupported_features", false).unwrap();
         settings.set_default("internal_errors_as_warnings", false).unwrap();
         settings.set_default("allow_unreachable_unsupported_code", false).unwrap();
@@ -117,13 +120,26 @@ lazy_static::lazy_static! {
         settings.set_default("enable_purification_optimization", false).unwrap();
         // settings.set_default("enable_manual_axiomatization", false).unwrap();
         settings.set_default("unsafe_core_proof", false).unwrap();
+        settings.set_default("custom_heap_encoding", false).unwrap();
+        settings.set_default("trace_with_symbolic_execution", false).unwrap();
+        settings.set_default("trace_with_symbolic_execution_new", true).unwrap();
+        settings.set_default("purify_with_symbolic_execution", false).unwrap();
+        settings.set_default("symbolic_execution_single_method", true).unwrap();
+        settings.set_default("symbolic_execution_leak_check", true).unwrap();
+        settings.set_default("panic_on_failed_exhale", false).unwrap();
+        settings.set_default("panic_on_failed_exhale_materialization", true).unwrap();
+        settings.set_default("error_non_linear_arithmetic_simp", true).unwrap();
+        settings.set_default("expand_quantifiers", false).unwrap();
+        settings.set_default("report_symbolic_execution_failures", false).unwrap();
+        settings.set_default("report_symbolic_execution_purification", false).unwrap();
         settings.set_default("verify_core_proof", true).unwrap();
         settings.set_default("verify_specifications", true).unwrap();
         settings.set_default("verify_types", false).unwrap();
-        settings.set_default("verify_specifications_with_core_proof", false).unwrap();
+        settings.set_default("verify_specifications_with_core_proof", true).unwrap();
         settings.set_default("verify_specifications_backend", "Silicon").unwrap();
         settings.set_default("use_eval_axioms", true).unwrap();
         settings.set_default("inline_caller_for", false).unwrap();
+        settings.set_default("use_snapshot_parameters_in_predicates", false).unwrap();
         settings.set_default("check_no_drops", false).unwrap();
         settings.set_default("enable_type_invariants", false).unwrap();
         settings.set_default("use_new_encoder", true).unwrap();
@@ -500,6 +516,12 @@ pub fn smt_qi_eager_threshold() -> u64 {
     read_setting("smt_qi_eager_threshold")
 }
 
+/// Disable or enable the non-linear arithmetic solver by setting Z3
+/// `smt.arith.nl` and `smt.arith.nl.gb` values to the given one.
+pub fn smt_use_nonlinear_arithmetic_solver() -> bool {
+    read_setting("smt_use_nonlinear_arithmetic_solver")
+}
+
 /// Maximum time (in milliseconds) for the verifier to spend on checks.
 /// Set to None uses the verifier's default value. Maps to the verifier command-line
 /// argument `--checkTimeout`.
@@ -513,8 +535,33 @@ pub fn check_timeout() -> Option<u32> {
 /// See [`consolidate`](https://github.com/viperproject/silicon/blob/f48de7f6e2d90d9020812869c713a5d3e2035995/src/main/scala/rules/StateConsolidator.scala#L29-L46).
 /// Equivalent to the verifier command-line argument
 /// `--enableMoreCompleteExhale`.
+///
+/// Note: This option conflicts with `use_carbon_qps`.
 pub fn use_more_complete_exhale() -> bool {
-    read_setting("use_more_complete_exhale")
+    let result = read_setting("use_more_complete_exhale");
+    assert!(
+        !(result && read_setting::<bool>("use_carbon_qps")),
+        "use_more_complete_exhale and use_carbon_qps are mutually exclusive"
+    );
+    result
+}
+
+/// When enabled, a Carbon QPs version of Silicon is used. Equivalent to the
+/// Silicon command-line argument `--carbonQPs`.
+///
+/// Note: This option conflicts with `use_more_complete_exhale`.
+pub fn use_carbon_qps() -> bool {
+    let result = read_setting("use_carbon_qps");
+    assert!(
+        !(result && read_setting::<bool>("use_more_complete_exhale")),
+        "use_more_complete_exhale and use_carbon_qps are mutually exclusive"
+    );
+    result
+}
+
+/// When enabled, Z3 is used via API.
+pub fn use_z3_api() -> bool {
+    read_setting("use_z3_api")
 }
 
 /// When enabled, prints the items collected for verification.
@@ -870,6 +917,108 @@ pub fn unsafe_core_proof() -> bool {
     read_setting("unsafe_core_proof")
 }
 
+/// Use symbolic execution to split the procedure into traces that are verified
+/// separately.
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof` is
+/// true.
+pub fn trace_with_symbolic_execution() -> bool {
+    read_setting("trace_with_symbolic_execution") || purify_with_symbolic_execution()
+}
+
+pub fn trace_with_symbolic_execution_new() -> bool {
+    read_setting("trace_with_symbolic_execution_new")
+}
+
+/// Use symbolic execution based purification.
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof` is
+/// true.
+///
+/// **Note:** This option automatically enables
+/// `trace_with_symbolic_execution`.
+pub fn purify_with_symbolic_execution() -> bool {
+    read_setting("purify_with_symbolic_execution")
+}
+
+/// Puts all symbolic execution traces into a single method.
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof` is
+/// true.
+pub fn symbolic_execution_single_method() -> bool {
+    read_setting("symbolic_execution_single_method")
+}
+
+/// Performs predicate leak check during symbolic execution.
+///
+/// **Note:** This option is taken into account only when
+/// `purify_with_symbolic_execution` is true.
+pub fn symbolic_execution_leak_check() -> bool {
+    read_setting("symbolic_execution_leak_check")
+}
+
+/// Panics if symbolic execution failed to purify out an exhale.
+///
+/// **Note:** This option is taken into account only when
+/// `purify_with_symbolic_execution` is true.
+pub fn panic_on_failed_exhale() -> bool {
+    read_setting("panic_on_failed_exhale")
+}
+
+/// Panics if symbolic execution failed to purify out an exhale and it resulted
+/// in a materialization of resources. In other words, if symbolic execution
+/// failed to exhale an aliased resource.
+///
+/// **Note:** This option is taken into account only when
+/// `purify_with_symbolic_execution` is true.
+pub fn panic_on_failed_exhale_materialization() -> bool {
+    read_setting("panic_on_failed_exhale_materialization")
+}
+
+/// Error when simplifying non-linear arithmetic fails.
+///
+/// **Note:** This option is taken into account only when
+/// `purify_with_symbolic_execution` is true.
+pub fn error_non_linear_arithmetic_simp() -> bool {
+    read_setting("error_non_linear_arithmetic_simp")
+}
+
+/// Whether to expand the asserted quantifiers (skolemize them out).
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof`
+/// is true.
+pub fn expand_quantifiers() -> bool {
+    read_setting("expand_quantifiers")
+}
+
+/// Report an error when failing to purify a predicate in symbolic execution.
+///
+/// **Note:** This option requires `purify_with_symbolic_execution` to be
+/// enabled.
+pub fn report_symbolic_execution_failures() -> bool {
+    let result: bool = read_setting("report_symbolic_execution_failures");
+    assert!(!result || purify_with_symbolic_execution());
+    result
+}
+
+/// Add comments at the places where predicates were purified by the symbolic
+/// execution.
+///
+/// **Note:** This option requires `purify_with_symbolic_execution` to be
+/// enabled.
+pub fn report_symbolic_execution_purification() -> bool {
+    assert!(purify_with_symbolic_execution() || trace_with_symbolic_execution());
+    read_setting("report_symbolic_execution_purification")
+}
+
+/// Use custom heap encoding.
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof` is
+/// true.
+pub fn custom_heap_encoding() -> bool {
+    read_setting("custom_heap_encoding")
+}
+
 /// Whether the core proof (memory safety) should be verified.
 ///
 /// **Note:** This option is taken into account only when `unsafe_core_proof` is
@@ -922,6 +1071,14 @@ pub fn use_eval_axioms() -> bool {
 /// When enabled, inlines `caller_for` heap dependent functions.
 pub fn inline_caller_for() -> bool {
     read_setting("inline_caller_for")
+}
+
+/// Whether to make the snapshot, an explicit parameter of the predicate.
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof` is
+/// true.
+pub fn use_snapshot_parameters_in_predicates() -> bool {
+    read_setting("use_snapshot_parameters_in_predicates")
 }
 
 /// When enabled, replaces calls to the drop function with `assert false`.

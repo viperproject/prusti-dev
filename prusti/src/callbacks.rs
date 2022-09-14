@@ -26,7 +26,7 @@ pub struct PrustiCompilerCalls;
 #[tracing::instrument(level = "debug", skip(tcx))]
 fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> mir_borrowck<'tcx> {
     // *Don't take MIR bodies with borrowck info if we won't need them*
-    if !is_spec_fn(tcx, def_id.to_def_id()) {
+    if !is_spec_fn(tcx, def_id.to_def_id()) || config::unsafe_core_proof() {
         let def_kind = tcx.def_kind(def_id.to_def_id());
         let is_anon_const = matches!(def_kind, DefKind::AnonConst);
         // Anon Const bodies have already been stolen and so will result in a crash

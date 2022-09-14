@@ -17,7 +17,13 @@ fn test2() {
 }
 
 fn test3(a: i32, b: i32) -> i32 {
-    a + b   //~ ERROR assertion might fail with "attempt to add with overflow"
+    a + b   //~ ERROR: the operation may overflow or underflow
+}
+
+#[requires(-100 < a && a < 100)]
+#[requires(-100 < b && b < 100)]
+fn test3_core_proof(a: i32, b: i32) -> i32 {
+    a + b   //~ ERROR: the operation may overflow or underflow
 }
 
 fn test4() {

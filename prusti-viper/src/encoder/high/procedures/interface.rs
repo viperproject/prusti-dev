@@ -82,9 +82,16 @@ impl<'v, 'tcx: 'v> Private for super::super::super::Encoder<'v, 'tcx> {
                 self.lower_block(block)?,
             );
         }
+        let non_aliased_places = procedure_high
+            .non_aliased_places
+            .into_iter()
+            .map(|place| place.high_to_typed_expression(self))
+            .collect::<Result<_, _>>()?;
         let procedure_typed = vir_typed::ProcedureDecl {
             name: procedure_high.name,
             check_mode: procedure_high.check_mode,
+            position: procedure_high.position,
+            non_aliased_places,
             entry: procedure_high.entry.high_to_typed_statement(self)?,
             exit: procedure_high.exit.high_to_typed_statement(self)?,
             basic_blocks,
@@ -98,7 +105,7 @@ pub(crate) trait HighProcedureEncoderInterface<'tcx> {
         &mut self,
         proc_def_id: DefId,
         check_mode: CheckMode,
-    ) -> SpannedEncodingResult<vir_mid::ProcedureDecl>;
+    ) -> SpannedEncodingResult<Vec<vir_mid::ProcedureDecl>>;
     fn encode_type_core_proof(
         &mut self,
         ty: ty::Ty<'tcx>,
@@ -112,12 +119,15 @@ impl<'v, 'tcx: 'v> HighProcedureEncoderInterface<'tcx> for super::super::super::
         &mut self,
         proc_def_id: DefId,
         check_mode: CheckMode,
-    ) -> SpannedEncodingResult<vir_mid::ProcedureDecl> {
-        let procedure_high = self.encode_procedure_core_proof_high(proc_def_id, check_mode)?;
-        let procedure_typed = self.procedure_high_to_typed(procedure_high)?;
-        let procedure =
-            super::inference::infer_shape_operations(self, proc_def_id, procedure_typed)?;
-        Ok(procedure)
+    ) -> SpannedEncodingResult<Vec<vir_mid::ProcedureDecl>> {
+        let mut procedures = Vec::new();
+        for procedure_high in self.encode_procedure_core_proof_high(proc_def_id, check_mode)? {
+            let procedure_typed = self.procedure_high_to_typed(procedure_high)?;
+            let procedure =
+                super::inference::infer_shape_operations(self, proc_def_id, procedure_typed)?;
+            procedures.push(procedure);
+        }
+        Ok(procedures)
     }
 
     fn encode_type_core_proof(
@@ -125,7 +135,7 @@ impl<'v, 'tcx: 'v> HighProcedureEncoderInterface<'tcx> for super::super::super::
         ty: ty::Ty<'tcx>,
         check_mode: CheckMode,
     ) -> SpannedEncodingResult<vir_mid::Type> {
-        assert_eq!(check_mode, CheckMode::CoreProof);
+        assert_eq!(check_mode, CheckMode::MemorySafety);
         let ty_high = self.encode_type_high(ty)?;
         ty_high.high_to_middle(self)
     }

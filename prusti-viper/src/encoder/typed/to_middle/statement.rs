@@ -4,7 +4,7 @@ use vir_crate::{
         self as vir_mid,
         operations::{
             TypedToMiddleExpression, TypedToMiddlePredicate, TypedToMiddleRvalue,
-            TypedToMiddleStatementLowerer,
+            TypedToMiddleStatementLowerer, TypedToMiddleType,
         },
     },
     typed as vir_typed,
@@ -110,4 +110,121 @@ impl<'v, 'tcx> TypedToMiddleStatementLowerer for crate::encoder::Encoder<'v, 'tc
     ) -> Result<vir_mid::statement::Statement, Self::Error> {
         unreachable!("ObtainMutRef statement cannot be lowered");
     }
+
+    fn typed_to_middle_statement_statement_unpack(
+        &self,
+        _statement: vir_typed::Unpack,
+    ) -> Result<vir_mid::Statement, Self::Error> {
+        unreachable!("Unpack statement cannot be lowered");
+    }
+
+    fn typed_to_middle_statement_statement_pack(
+        &self,
+        _statement: vir_typed::Pack,
+    ) -> Result<vir_mid::Statement, Self::Error> {
+        unreachable!("Pack statement cannot be lowered");
+    }
+
+    fn typed_to_middle_statement_statement_obtain(
+        &self,
+        _: vir_typed::Obtain,
+    ) -> Result<vir_mid::Statement, Self::Error> {
+        unreachable!("Obtain statement cannot be lowered");
+    }
+
+    fn typed_to_middle_statement_statement_forget_initialization(
+        &self,
+        _statement: vir_typed::ForgetInitialization,
+    ) -> Result<vir_mid::Statement, Self::Error> {
+        unreachable!("ForgetInitialization statement cannot be lowered");
+    }
+
+    fn typed_to_middle_statement_statement_forget_initialization_range(
+        &self,
+        _statement: vir_typed::ForgetInitializationRange,
+    ) -> Result<vir_mid::Statement, Self::Error> {
+        unreachable!("ForgetInitializationRange statement cannot be lowered");
+    }
+
+    fn typed_to_middle_statement_statement_split(
+        &self,
+        _statement: vir_typed::Split,
+    ) -> Result<vir_mid::Statement, Self::Error> {
+        unreachable!("Split statement cannot be lowered");
+    }
+
+    fn typed_to_middle_statement_statement_join(
+        &self,
+        _statement: vir_typed::Join,
+    ) -> Result<vir_mid::Statement, Self::Error> {
+        unreachable!("Join statement cannot be lowered");
+    }
+
+    fn typed_to_middle_statement_dead_reference(
+        &self,
+        statement: vir_typed::DeadReference,
+    ) -> Result<vir_mid::statement::DeadReference, Self::Error> {
+        let is_blocked_by_reborrow = match statement.is_blocked_by_reborrow {
+            Some(lifetime) => Some(lifetime.typed_to_middle_type(self)?),
+            None => None,
+        };
+        Ok(vir_mid::statement::DeadReference {
+            target: statement.target.typed_to_middle_expression(self)?,
+            is_blocked_by_reborrow,
+            condition: None,
+            position: statement.position,
+        })
+    }
+
+    fn typed_to_middle_statement_copy_place(
+        &self,
+        _statement: vir_typed::CopyPlace,
+    ) -> Result<vir_mid::statement::CopyPlace, Self::Error> {
+        unreachable!("CopyPlace statement cannot be automatically lowered");
+    }
+
+    fn typed_to_middle_statement_close_frac_ref(
+        &self,
+        _statement: vir_typed::CloseFracRef,
+    ) -> Result<vir_mid::statement::CloseFracRef, Self::Error> {
+        unreachable!("CloseFracRef statement cannot be automatically lowered");
+    }
+
+    fn typed_to_middle_statement_close_mut_ref(
+        &self,
+        _statement: vir_typed::CloseMutRef,
+    ) -> Result<vir_mid::statement::CloseMutRef, Self::Error> {
+        unreachable!("CloseMutRef statement cannot be automatically lowered");
+    }
+
+    fn typed_to_middle_statement_open_frac_ref(
+        &self,
+        _statement: vir_typed::OpenFracRef,
+    ) -> Result<vir_mid::statement::OpenFracRef, Self::Error> {
+        unreachable!("OpenFracRef statement cannot be automatically lowered");
+    }
+
+    fn typed_to_middle_statement_open_mut_ref(
+        &self,
+        _statement: vir_typed::OpenMutRef,
+    ) -> Result<vir_mid::statement::OpenMutRef, Self::Error> {
+        unreachable!("OpenMutRef statement cannot be automatically lowered");
+    }
+
+    fn typed_to_middle_statement_uniqueness(
+        &self,
+        uniqueness: vir_typed::ty::Uniqueness,
+    ) -> Result<vir_mid::ty::Uniqueness, Self::Error> {
+        Ok(match uniqueness {
+            vir_typed::ty::Uniqueness::Shared => vir_mid::ty::Uniqueness::Shared,
+            vir_typed::ty::Uniqueness::Unique => vir_mid::ty::Uniqueness::Unique,
+        })
+    }
+
+    // fn typed_to_middle_statement_statement_restore(
+    //             &self,
+    //             _statement: vir_typed::Restore,
+    //         ) -> Result<vir_mid::Statement, Self::Error> {
+    //     unreachable!("Restore statement cannot be lowered");
+    // }
 }

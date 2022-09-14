@@ -1,4 +1,5 @@
-use super::{Context, ToViper, ToViperDecl};
+use super::{calculate_hash_with_position, Context, ToViper, ToViperDecl};
+use std::collections::BTreeMap;
 use viper::{self, AstFactory};
 use vir::low::ast::{
     expression::{self, Expression},
@@ -11,17 +12,22 @@ use vir::low::ast::{
 };
 
 impl<'a, 'v> ToViper<'v, viper::Predicate<'v>> for &'a PredicateDecl {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Predicate<'v> {
-        ast.predicate(
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Predicate<'v> {
+        let mut annotations = BTreeMap::new();
+        if &self.name != "LifetimeToken" {
+            annotations.insert("qpresource".to_string(), Vec::new());
+        }
+        ast.predicate_with_annotations(
             &self.name,
             &self.parameters.to_viper_decl(context, ast),
             self.body.as_ref().map(|body| body.to_viper(context, ast)),
+            &annotations,
         )
     }
 }
 
 impl<'a, 'v> ToViper<'v, viper::Function<'v>> for &'a FunctionDecl {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Function<'v> {
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Function<'v> {
         ast.function(
             &self.name,
             &self.parameters.to_viper_decl(context, ast),
@@ -35,7 +41,7 @@ impl<'a, 'v> ToViper<'v, viper::Function<'v>> for &'a FunctionDecl {
 }
 
 impl<'v> ToViper<'v, Vec<viper::Stmt<'v>>> for Vec<Statement> {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> Vec<viper::Stmt<'v>> {
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> Vec<viper::Stmt<'v>> {
         self.iter()
             .map(|statement| statement.to_viper(context, ast))
             .collect()
@@ -43,9 +49,14 @@ impl<'v> ToViper<'v, Vec<viper::Stmt<'v>>> for Vec<Statement> {
 }
 
 impl<'v> ToViper<'v, viper::Stmt<'v>> for Statement {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
-        match self {
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
+        let statement_hash = calculate_hash_with_position(self);
+        if let Some(viper_statement) = context.get_cached_statement(statement_hash, self) {
+            return viper_statement;
+        }
+        let viper_statement = match self {
             Statement::Comment(statement) => statement.to_viper(context, ast),
+            Statement::Label(statement) => statement.to_viper(context, ast),
             Statement::LogEvent(statement) => statement.to_viper(context, ast),
             Statement::Assume(statement) => statement.to_viper(context, ast),
             Statement::Assert(statement) => statement.to_viper(context, ast),
@@ -57,18 +68,26 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Statement {
             Statement::Conditional(statement) => statement.to_viper(context, ast),
             Statement::MethodCall(statement) => statement.to_viper(context, ast),
             Statement::Assign(statement) => statement.to_viper(context, ast),
-        }
+        };
+        context.cache_statement(statement_hash, self, viper_statement);
+        viper_statement
     }
 }
 
 impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Comment {
-    fn to_viper(&self, _context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
+    fn to_viper(&self, _context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
         ast.comment(&self.comment)
     }
 }
 
+impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Label {
+    fn to_viper(&self, _context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
+        ast.label(&self.label, &[])
+    }
+}
+
 impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::LogEvent {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
         assert!(
             self.expression.is_domain_func_app(),
             "The log event has to be a domain function application: {self}"
@@ -78,7 +97,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::LogEvent {
 }
 
 impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Assume {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
         assert!(
             !self.position.is_default(),
             "Statement with default position: {self}"
@@ -91,7 +110,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Assume {
 }
 
 impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Assert {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
         assert!(
             !self.position.is_default(),
             "Statement with default position: {self}"
@@ -104,7 +123,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Assert {
 }
 
 impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Inhale {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
         assert!(
             !self.position.is_default(),
             "Statement with default position: {self}"
@@ -117,7 +136,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Inhale {
 }
 
 impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Exhale {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
         assert!(
             !self.position.is_default(),
             "Statement with default position: {self}"
@@ -130,10 +149,15 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Exhale {
 }
 
 impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Fold {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
         assert!(
             !self.position.is_default(),
             "Statement with default position: {self}"
+        );
+        assert!(
+            self.expression.is_predicate_access_predicate(),
+            "fold {}",
+            self.expression
         );
         ast.fold_with_pos(
             self.expression.to_viper(context, ast),
@@ -143,10 +167,15 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Fold {
 }
 
 impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Unfold {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
         assert!(
             !self.position.is_default(),
             "Statement with default position: {self}"
+        );
+        assert!(
+            self.expression.is_predicate_access_predicate(),
+            "unfold {}",
+            self.expression
         );
         ast.unfold_with_pos(
             self.expression.to_viper(context, ast),
@@ -156,7 +185,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Unfold {
 }
 
 impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::ApplyMagicWand {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
         assert!(
             !self.position.is_default(),
             "Statement with default position: {self}"
@@ -169,7 +198,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::ApplyMagicWand {
 }
 
 impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Conditional {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
         assert!(
             !self.position.is_default(),
             "Statement with default position: {self}"
@@ -183,7 +212,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Conditional {
 }
 
 impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::MethodCall {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
         assert!(
             !self.position.is_default(),
             "Statement with default position: {self}"
@@ -198,7 +227,11 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::MethodCall {
 }
 
 impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Assign {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
+        assert!(
+            !self.position.is_default(),
+            "Statement with default position: {self}"
+        );
         let target_expression = Expression::local(self.target.clone(), self.position);
         ast.abstract_assign(
             target_expression.to_viper(context, ast),
@@ -208,7 +241,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Assign {
 }
 
 impl<'v> ToViper<'v, Vec<viper::Expr<'v>>> for Vec<Expression> {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> Vec<viper::Expr<'v>> {
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> Vec<viper::Expr<'v>> {
         self.iter()
             .map(|expression| expression.to_viper(context, ast))
             .collect()
@@ -216,7 +249,11 @@ impl<'v> ToViper<'v, Vec<viper::Expr<'v>>> for Vec<Expression> {
 }
 
 impl<'v> ToViper<'v, viper::Expr<'v>> for Expression {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+        let expression_hash = calculate_hash_with_position(self);
+        if let Some(viper_expression) = context.get_cached_expression(expression_hash, self) {
+            return viper_expression;
+        }
         let expression = match self {
             Expression::Local(expression) => expression.to_viper(context, ast),
             // Expression::Field(expression) => expression.to_viper(context, ast),
@@ -225,7 +262,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expression {
             Expression::MagicWand(expression) => expression.to_viper(context, ast),
             Expression::PredicateAccessPredicate(expression) => expression.to_viper(context, ast),
             // Expression::FieldAccessPredicate(expression) => expression.to_viper(context, ast),
-            // Expression::Unfolding(expression) => expression.to_viper(context, ast),
+            Expression::Unfolding(expression) => expression.to_viper(context, ast),
             Expression::UnaryOp(expression) => expression.to_viper(context, ast),
             Expression::BinaryOp(expression) => expression.to_viper(context, ast),
             Expression::PermBinaryOp(expression) => expression.to_viper(context, ast),
@@ -238,17 +275,19 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expression {
             // Expression::InhaleExhale(expression) => expression.to_viper(context, ast),
             x => unimplemented!("{:?}", x),
         };
-        if crate::config::simplify_encoding() {
+        let viper_expression = if crate::config::simplify_encoding() {
             ast.simplified_expression(expression)
         } else {
             expression
-        }
+        };
+        context.cache_expression(expression_hash, self, viper_expression);
+        viper_expression
     }
 }
 
 impl<'v> ToViper<'v, viper::Expr<'v>> for expression::Local {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Expr<'v> {
-        if self.variable.name == "__result" {
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+        if self.variable.is_result_variable() {
             ast.result_with_pos(
                 self.variable.ty.to_viper(context, ast),
                 self.position.to_viper(context, ast),
@@ -264,7 +303,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::Local {
 }
 
 impl<'v> ToViper<'v, viper::Expr<'v>> for expression::LabelledOld {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Expr<'v> {
         if let Some(label) = &self.label {
             ast.labelled_old_with_pos(
                 self.base.to_viper(context, ast),
@@ -278,7 +317,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::LabelledOld {
 }
 
 impl<'v> ToViper<'v, viper::Expr<'v>> for expression::Constant {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Expr<'v> {
         match &self.ty {
             Type::Int => match &self.value {
                 expression::ConstantValue::Bool(_) => {
@@ -327,7 +366,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::Constant {
 }
 
 impl<'v> ToViper<'v, viper::Expr<'v>> for expression::MagicWand {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Expr<'v> {
         ast.magic_wand_with_pos(
             self.left.to_viper(context, ast),
             self.right.to_viper(context, ast),
@@ -337,7 +376,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::MagicWand {
 }
 
 impl<'v> ToViper<'v, viper::Expr<'v>> for expression::PredicateAccessPredicate {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Expr<'v> {
         let location = ast.predicate_access(&self.arguments.to_viper(context, ast), &self.name);
         if context.inside_trigger {
             location
@@ -351,8 +390,18 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::PredicateAccessPredicate {
     }
 }
 
+impl<'v> ToViper<'v, viper::Expr<'v>> for expression::Unfolding {
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+        ast.unfolding_with_pos(
+            self.predicate.to_viper(context, ast),
+            self.base.to_viper(context, ast),
+            self.position.to_viper(context, ast),
+        )
+    }
+}
+
 impl<'v> ToViper<'v, viper::Expr<'v>> for expression::UnaryOp {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Expr<'v> {
         match self.op_kind {
             expression::UnaryOpKind::Minus => ast.minus_with_pos(
                 self.argument.to_viper(context, ast),
@@ -367,7 +416,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::UnaryOp {
 }
 
 impl<'v> ToViper<'v, viper::Expr<'v>> for expression::BinaryOp {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Expr<'v> {
         match self.op_kind {
             expression::BinaryOpKind::EqCmp => ast.eq_cmp_with_pos(
                 self.left.to_viper(context, ast),
@@ -444,7 +493,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::BinaryOp {
 }
 
 impl<'v> ToViper<'v, viper::Expr<'v>> for expression::PermBinaryOp {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Expr<'v> {
         match self.op_kind {
             expression::PermBinaryOpKind::Add => ast.perm_add(
                 self.left.to_viper(context, ast),
@@ -467,7 +516,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::PermBinaryOp {
 }
 
 impl<'v> ToViper<'v, viper::Expr<'v>> for expression::Conditional {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Expr<'v> {
         ast.cond_exp_with_pos(
             self.guard.to_viper(context, ast),
             self.then_expr.to_viper(context, ast),
@@ -478,7 +527,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::Conditional {
 }
 
 impl<'v> ToViper<'v, viper::Expr<'v>> for expression::Quantifier {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Expr<'v> {
         let variables = self.variables.to_viper_decl(context, ast);
         let triggers = self
             .triggers
@@ -499,17 +548,19 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::Quantifier {
 }
 
 impl<'v, 'a> ToViper<'v, viper::Trigger<'v>> for (&'a expression::Trigger, Position) {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Trigger<'v> {
-        let trigger_context = context.set_inside_trigger();
-        ast.trigger_with_pos(
-            &self.0.terms.to_viper(trigger_context, ast)[..],
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Trigger<'v> {
+        let old_value = context.set_inside_trigger();
+        let trigger = ast.trigger_with_pos(
+            &self.0.terms.to_viper(context, ast)[..],
             self.1.to_viper(context, ast),
-        )
+        );
+        context.reset_inside_trigger(old_value);
+        trigger
     }
 }
 
 impl<'v> ToViper<'v, viper::Expr<'v>> for expression::FuncApp {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Expr<'v> {
         ast.func_app(
             &self.function_name,
             &self.arguments.to_viper(context, ast),
@@ -520,7 +571,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::FuncApp {
 }
 
 impl<'v> ToViper<'v, viper::Expr<'v>> for expression::DomainFuncApp {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Expr<'v> {
         ast.domain_func_app2(
             &self.function_name,
             &self.arguments.to_viper(context, ast),
@@ -533,81 +584,142 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::DomainFuncApp {
 }
 
 impl<'v> ToViper<'v, viper::Expr<'v>> for expression::ContainerOp {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Expr<'v> {
-        let element_type = || match &self.container_type {
-            Type::Seq(ty::Seq { element_type, .. })
-            | Type::Set(ty::Set { element_type, .. })
-            | Type::MultiSet(ty::MultiSet { element_type, .. }) => {
-                element_type.to_viper(context, ast)
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+        fn element_type<'v>(
+            container_type: &Type,
+            context: &mut Context<'v>,
+            ast: &AstFactory<'v>,
+        ) -> viper::Type<'v> {
+            match container_type {
+                Type::Seq(ty::Seq { element_type, .. })
+                | Type::Set(ty::Set { element_type, .. })
+                | Type::MultiSet(ty::MultiSet { element_type, .. }) => {
+                    element_type.to_viper(context, ast)
+                }
+                _ => unreachable!(),
             }
-            _ => unreachable!("{}", self.container_type),
-        };
-        let key_value_types = || match &self.container_type {
-            Type::Map(ty::Map { key_type, val_type }) => {
-                let key_type = key_type.to_viper(context, ast);
-                let val_type = val_type.to_viper(context, ast);
-                (key_type, val_type)
-            }
-            _ => unreachable!(),
-        };
-        let arg = |idx| (&self.operands[idx] as &Expression).to_viper(context, ast);
-        let args = || {
-            self.operands
+        }
+        // let element_type = || match &self.container_type {
+        //     Type::Seq(ty::Seq { element_type, .. })
+        //     | Type::Set(ty::Set { element_type, .. })
+        //     | Type::MultiSet(ty::MultiSet { element_type, .. }) => {
+        //         element_type.to_viper(context, ast)
+        //     }
+        //     _ => unreachable!("{}", self.container_type),
+        // };
+        // let key_value_types = || match &self.container_type {
+        //     Type::Map(ty::Map { key_type, val_type }) => {
+        //         let key_type = key_type.to_viper(context, ast);
+        //         let val_type = val_type.to_viper(context, ast);
+        //         (key_type, val_type)
+        //     }
+        //     _ => unreachable!(),
+        // };
+        fn arg<'v>(
+            this: &expression::ContainerOp,
+            idx: usize,
+            context: &mut Context<'v>,
+            ast: &AstFactory<'v>,
+        ) -> viper::Expr<'v> {
+            (&this.operands[idx] as &Expression).to_viper(context, ast)
+        }
+        fn args<'v>(
+            this: &expression::ContainerOp,
+            context: &mut Context<'v>,
+            ast: &AstFactory<'v>,
+        ) -> Vec<viper::Expr<'v>> {
+            this.operands
                 .iter()
                 .map(|operand| operand.to_viper(context, ast))
                 .collect::<Vec<_>>()
-        };
+        }
+        // let arg = |idx| (&self.operands[idx] as &Expression).to_viper(context, ast);
+        // let args = || {
+        //     self.operands
+        //         .iter()
+        //         .map(|operand| operand.to_viper(context, ast))
+        //         .collect::<Vec<_>>()
+        // };
         match self.kind {
-            expression::ContainerOpKind::SeqEmpty => ast.empty_seq(element_type()),
+            expression::ContainerOpKind::SeqEmpty => {
+                ast.empty_seq(element_type(&self.container_type, context, ast))
+            }
             expression::ContainerOpKind::SeqConstructor => {
-                let elements = args();
+                let elements = args(self, context, ast);
                 if elements.is_empty() {
-                    ast.empty_seq(element_type())
+                    ast.empty_seq(element_type(&self.container_type, context, ast))
                 } else {
                     ast.explicit_seq(&elements)
                 }
             }
-            expression::ContainerOpKind::SeqIndex => ast.seq_index(arg(0), arg(1)),
-            expression::ContainerOpKind::SeqConcat => ast.seq_append(arg(0), arg(1)),
-            expression::ContainerOpKind::SeqLen => ast.seq_length(arg(0)),
-            expression::ContainerOpKind::MapEmpty => {
-                let (key_ty, val_ty) = key_value_types();
-                ast.empty_map(key_ty, val_ty)
+            expression::ContainerOpKind::SeqIndex => {
+                ast.seq_index(arg(self, 0, context, ast), arg(self, 1, context, ast))
             }
-            expression::ContainerOpKind::MapUpdate => ast.update_map(arg(0), arg(1), arg(2)),
-            expression::ContainerOpKind::MapContains => ast.map_contains(arg(0), arg(1)),
-            expression::ContainerOpKind::MapLookup => ast.lookup_map(arg(0), arg(1)),
-            expression::ContainerOpKind::MapLen => ast.map_len(arg(0)),
-            expression::ContainerOpKind::SetEmpty => ast.empty_set(element_type()),
+            expression::ContainerOpKind::SeqConcat => {
+                ast.seq_append(arg(self, 0, context, ast), arg(self, 1, context, ast))
+            }
+            expression::ContainerOpKind::SeqLen => ast.seq_length(arg(self, 0, context, ast)),
+            expression::ContainerOpKind::MapEmpty => {
+                // let (key_ty, val_ty) = key_value_types();
+                let Type::Map(ty::Map { key_type, val_type }) = &self.container_type else {
+                    unreachable!()
+                };
+                let key_type = key_type.to_viper(context, ast);
+                let val_type = val_type.to_viper(context, ast);
+                ast.empty_map(key_type, val_type)
+            }
+            expression::ContainerOpKind::MapUpdate => ast.update_map(
+                arg(self, 0, context, ast),
+                arg(self, 1, context, ast),
+                arg(self, 2, context, ast),
+            ),
+            expression::ContainerOpKind::MapContains => {
+                ast.map_contains(arg(self, 0, context, ast), arg(self, 1, context, ast))
+            }
+            expression::ContainerOpKind::MapLookup => {
+                ast.lookup_map(arg(self, 0, context, ast), arg(self, 1, context, ast))
+            }
+            expression::ContainerOpKind::MapLen => ast.map_len(arg(self, 0, context, ast)),
+            expression::ContainerOpKind::SetEmpty => {
+                ast.empty_set(element_type(&self.container_type, context, ast))
+            }
             expression::ContainerOpKind::SetConstructor => {
-                let elements = args();
+                let elements = args(self, context, ast);
                 if elements.is_empty() {
-                    ast.empty_set(element_type())
+                    ast.empty_set(element_type(&self.container_type, context, ast))
                 } else {
                     ast.explicit_set(&elements)
                 }
             }
             expression::ContainerOpKind::SetUnion | expression::ContainerOpKind::MultiSetUnion => {
-                ast.any_set_union(arg(0), arg(1))
+                ast.any_set_union(arg(self, 0, context, ast), arg(self, 1, context, ast))
             }
             expression::ContainerOpKind::SetIntersection
             | expression::ContainerOpKind::MultiSetIntersection => {
-                ast.any_set_intersection(arg(0), arg(1))
+                ast.any_set_intersection(arg(self, 0, context, ast), arg(self, 1, context, ast))
             }
             expression::ContainerOpKind::SetSubset
-            | expression::ContainerOpKind::MultiSetSubset => ast.any_set_subset(arg(0), arg(1)),
+            | expression::ContainerOpKind::MultiSetSubset => {
+                ast.any_set_subset(arg(self, 0, context, ast), arg(self, 1, context, ast))
+            }
             expression::ContainerOpKind::SetMinus | expression::ContainerOpKind::MultiSetMinus => {
-                ast.any_set_minus(arg(0), arg(1))
+                ast.any_set_minus(arg(self, 0, context, ast), arg(self, 1, context, ast))
             }
             expression::ContainerOpKind::SetContains
-            | expression::ContainerOpKind::MultiSetContains => ast.any_set_contains(arg(0), arg(1)),
+            | expression::ContainerOpKind::MultiSetContains => {
+                ast.any_set_contains(arg(self, 0, context, ast), arg(self, 1, context, ast))
+            }
             expression::ContainerOpKind::SetCardinality
-            | expression::ContainerOpKind::MultiSetCardinality => ast.any_set_cardinality(arg(0)),
-            expression::ContainerOpKind::MultiSetEmpty => ast.empty_multiset(element_type()),
+            | expression::ContainerOpKind::MultiSetCardinality => {
+                ast.any_set_cardinality(arg(self, 0, context, ast))
+            }
+            expression::ContainerOpKind::MultiSetEmpty => {
+                ast.empty_multiset(element_type(&self.container_type, context, ast))
+            }
             expression::ContainerOpKind::MultiSetConstructor => {
-                let elements = args();
+                let elements = args(self, context, ast);
                 if elements.is_empty() {
-                    ast.empty_multiset(element_type())
+                    ast.empty_multiset(element_type(&self.container_type, context, ast))
                 } else {
                     ast.explicit_multiset(&elements)
                 }
@@ -617,13 +729,13 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::ContainerOp {
 }
 
 impl<'v> ToViper<'v, viper::Position<'v>> for Position {
-    fn to_viper(&self, _context: Context, ast: &AstFactory<'v>) -> viper::Position<'v> {
+    fn to_viper(&self, _context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Position<'v> {
         ast.identifier_position(self.line, self.column, self.id.to_string())
     }
 }
 
 impl<'v> ToViper<'v, viper::Type<'v>> for Type {
-    fn to_viper(&self, _context: Context, ast: &AstFactory<'v>) -> viper::Type<'v> {
+    fn to_viper(&self, _context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Type<'v> {
         match self {
             Type::Int => ast.int_type(),
             Type::Bool => ast.bool_type(),
@@ -659,7 +771,7 @@ impl<'v> ToViper<'v, viper::Type<'v>> for Type {
 impl<'v> ToViperDecl<'v, Vec<viper::LocalVarDecl<'v>>> for Vec<VariableDecl> {
     fn to_viper_decl(
         &self,
-        context: Context,
+        context: &mut Context<'v>,
         ast: &AstFactory<'v>,
     ) -> Vec<viper::LocalVarDecl<'v>> {
         self.iter()
@@ -669,7 +781,11 @@ impl<'v> ToViperDecl<'v, Vec<viper::LocalVarDecl<'v>>> for Vec<VariableDecl> {
 }
 
 impl<'v> ToViperDecl<'v, viper::LocalVarDecl<'v>> for VariableDecl {
-    fn to_viper_decl(&self, context: Context, ast: &AstFactory<'v>) -> viper::LocalVarDecl<'v> {
+    fn to_viper_decl(
+        &self,
+        context: &mut Context<'v>,
+        ast: &AstFactory<'v>,
+    ) -> viper::LocalVarDecl<'v> {
         ast.local_var_decl(&self.name, self.ty.to_viper(context, ast))
     }
 }

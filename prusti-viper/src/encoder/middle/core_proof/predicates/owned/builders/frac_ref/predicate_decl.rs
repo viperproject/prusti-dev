@@ -6,11 +6,15 @@ use crate::encoder::{
         lifetimes::LifetimesInterface,
         lowerer::Lowerer,
         places::PlacesInterface,
-        predicates::owned::builders::{
-            common::predicate_decl::PredicateDeclBuilder, PredicateDeclBuilderMethods,
+        predicates::{
+            owned::builders::{
+                common::predicate_decl::{ContainingPredicateKind, PredicateDeclBuilder},
+                PredicateDeclBuilderMethods,
+            },
+            PredicatesOwnedInterface,
         },
         snapshots::{
-            IntoPureSnapshot, IntoSnapshot, SnapshotValidityInterface, SnapshotValuesInterface,
+            IntoPureSnapshot, PredicateKind, SnapshotValidityInterface, SnapshotValuesInterface,
         },
         type_layouts::TypeLayoutsInterface,
     },
@@ -21,13 +25,11 @@ use vir_crate::{
     middle as vir_mid,
 };
 
-use super::predicate_use::FracRefUseBuilder;
-
 pub(in super::super::super) struct FracRefBuilder<'l, 'p, 'v, 'tcx> {
     inner: PredicateDeclBuilder<'l, 'p, 'v, 'tcx>,
-    place: vir_low::VariableDecl,
-    root_address: vir_low::VariableDecl,
-    current_snapshot: vir_low::VariableDecl,
+    // place: vir_low::VariableDecl,
+    // address: vir_low::VariableDecl,
+    // current_snapshot: vir_low::VariableDecl,
     reference_lifetime: vir_low::VariableDecl,
     slice_len: Option<vir_mid::VariableDecl>,
 }
@@ -55,12 +57,12 @@ impl<'l, 'p, 'v, 'tcx> FracRefBuilder<'l, 'p, 'v, 'tcx> {
             None
         };
         Ok(Self {
-            place: vir_low::VariableDecl::new("place", lowerer.place_type()?),
-            root_address: vir_low::VariableDecl::new("root_address", lowerer.address_type()?),
-            current_snapshot: vir_low::VariableDecl::new(
-                "current_snapshot",
-                ty.to_snapshot(lowerer)?,
-            ),
+            // place: vir_low::VariableDecl::new("place", lowerer.place_type()?),
+            // address: vir_low::VariableDecl::new("address", lowerer.address_type()?),
+            // current_snapshot: vir_low::VariableDecl::new(
+            //     "current_snapshot",
+            //     ty.to_snapshot(lowerer)?,
+            // ),
             reference_lifetime: vir_low::VariableDecl::new(
                 "reference_lifetime",
                 lowerer.lifetime_type()?,
@@ -68,7 +70,7 @@ impl<'l, 'p, 'v, 'tcx> FracRefBuilder<'l, 'p, 'v, 'tcx> {
             slice_len,
             inner: PredicateDeclBuilder::new(
                 lowerer,
-                "FracRef2",
+                "FracRef",
                 ty,
                 type_decl,
                 Default::default(),
@@ -81,9 +83,9 @@ impl<'l, 'p, 'v, 'tcx> FracRefBuilder<'l, 'p, 'v, 'tcx> {
     }
 
     pub(in super::super::super) fn create_parameters(&mut self) -> SpannedEncodingResult<()> {
-        self.inner.parameters.push(self.place.clone());
-        self.inner.parameters.push(self.root_address.clone());
-        self.inner.parameters.push(self.current_snapshot.clone());
+        self.inner.parameters.push(self.inner.place.clone());
+        self.inner.parameters.push(self.inner.address.clone());
+        // self.inner.parameters.push(self.current_snapshot.clone());
         self.inner.parameters.push(self.reference_lifetime.clone());
         self.inner.create_lifetime_parameters()?;
         if let Some(slice_len_mid) = &self.slice_len {
@@ -94,9 +96,9 @@ impl<'l, 'p, 'v, 'tcx> FracRefBuilder<'l, 'p, 'v, 'tcx> {
         Ok(())
     }
 
-    pub(in super::super::super) fn add_validity(&mut self) -> SpannedEncodingResult<()> {
-        self.inner.add_validity(&self.current_snapshot)
-    }
+    // pub(in super::super::super) fn add_validity(&mut self) -> SpannedEncodingResult<()> {
+    //     self.inner.add_validity(&self.current_snapshot)
+    // }
 
     pub(in super::super::super) fn add_field_predicate(
         &mut self,
@@ -105,28 +107,46 @@ impl<'l, 'p, 'v, 'tcx> FracRefBuilder<'l, 'p, 'v, 'tcx> {
         let field_place = self.inner.lowerer.encode_field_place(
             self.inner.ty,
             field,
-            self.place.clone().into(),
+            self.inner.place.clone().into(),
             self.inner.position,
         )?;
-        let current_field_snapshot = self.inner.lowerer.obtain_struct_field_snapshot(
+        let field_address = self.inner.lowerer.encode_field_address(
             self.inner.ty,
             field,
-            self.current_snapshot.clone().into(),
-            Default::default(),
+            self.inner.address.clone().into(),
+            self.inner.position,
         )?;
-        let mut builder = FracRefUseBuilder::new(
-            self.inner.lowerer,
+        // let current_field_snapshot = self.inner.lowerer.obtain_struct_field_snapshot(
+        //     self.inner.ty,
+        //     field,
+        //     self.current_snapshot.clone().into(),
+        //     Default::default(),
+        // )?;
+        // let mut builder = FracRefUseBuilder::new(
+        //     self.inner.lowerer,
+        //     CallContext::BuiltinMethod,
+        //     &field.ty,
+        //     &field.ty,
+        //     field_place,
+        //     self.inner.address.clone().into(),
+        //     // current_field_snapshot,
+        //     self.reference_lifetime.clone().into(),
+        // )?;
+        // builder.add_lifetime_arguments()?;
+        // builder.add_const_arguments()?;
+        // let expression = builder.build();
+        let TODO_target_slice_len = None;
+        let expression = self.inner.lowerer.frac_ref(
             CallContext::BuiltinMethod,
             &field.ty,
             &field.ty,
             field_place,
-            self.root_address.clone().into(),
-            current_field_snapshot,
+            field_address,
             self.reference_lifetime.clone().into(),
+            TODO_target_slice_len,
+            None,
+            self.inner.position,
         )?;
-        builder.add_lifetime_arguments()?;
-        builder.add_const_arguments()?;
-        let expression = builder.build();
         self.inner.add_conjunct(expression)
     }
 
@@ -138,31 +158,58 @@ impl<'l, 'p, 'v, 'tcx> FracRefBuilder<'l, 'p, 'v, 'tcx> {
         let discriminant_place = self.inner.lowerer.encode_field_place(
             self.inner.ty,
             &discriminant_field,
-            self.place.clone().into(),
+            self.inner.place.clone().into(),
             self.inner.position,
         )?;
-        let current_discriminant_call = self.inner.lowerer.obtain_enum_discriminant(
-            self.current_snapshot.clone().into(),
+        let discriminant_address = self.inner.lowerer.encode_field_address(
             self.inner.ty,
+            &discriminant_field,
+            self.inner.address.clone().into(),
             self.inner.position,
         )?;
-        let current_discriminant_snapshot = self.inner.lowerer.construct_constant_snapshot(
-            &decl.discriminant_type,
-            current_discriminant_call,
-            self.inner.position,
-        )?;
-        let builder = FracRefUseBuilder::new(
-            self.inner.lowerer,
+        // let current_discriminant_call = self.inner.lowerer.obtain_enum_discriminant(
+        //     self.current_snapshot.clone().into(),
+        //     self.inner.ty,
+        //     self.inner.position,
+        // )?;
+        // let current_discriminant_snapshot = self.inner.lowerer.construct_constant_snapshot(
+        //     &decl.discriminant_type,
+        //     current_discriminant_call,
+        //     self.inner.position,
+        // )?;
+        // let builder = FracRefUseBuilder::new(
+        //     self.inner.lowerer,
+        //     CallContext::BuiltinMethod,
+        //     &decl.discriminant_type,
+        //     &decl.discriminant_type,
+        //     discriminant_place,
+        //     self.inner.address.clone().into(),
+        //     // current_discriminant_snapshot,
+        //     self.reference_lifetime.clone().into(),
+        // )?;
+        // let expression = builder.build();
+        let expression = self.inner.lowerer.frac_ref(
             CallContext::BuiltinMethod,
             &decl.discriminant_type,
             &decl.discriminant_type,
             discriminant_place,
-            self.root_address.clone().into(),
-            current_discriminant_snapshot,
+            discriminant_address,
             self.reference_lifetime.clone().into(),
+            None,
+            None,
+            self.inner.position,
         )?;
-        let expression = builder.build();
         self.inner.add_conjunct(expression)
+    }
+
+    pub(in super::super::super) fn add_frac_ref_pointer_predicate(
+        &mut self,
+        lifetime: &vir_mid::ty::LifetimeConst,
+    ) -> SpannedEncodingResult<vir_mid::Type> {
+        let place = self.inner.place.clone();
+        let address = self.inner.address.clone();
+        self.inner
+            .add_frac_ref_pointer_predicate(lifetime, place, address)
     }
 
     pub(in super::super::super) fn add_frac_ref_target_predicate(
@@ -170,11 +217,14 @@ impl<'l, 'p, 'v, 'tcx> FracRefBuilder<'l, 'p, 'v, 'tcx> {
         target_type: &vir_mid::Type,
         lifetime: &vir_mid::ty::LifetimeConst,
     ) -> SpannedEncodingResult<()> {
+        let place = self.inner.place.clone();
+        let address = self.inner.address.clone();
         self.inner.add_frac_ref_target_predicate(
             target_type,
             lifetime,
-            &self.place,
-            &self.current_snapshot,
+            place.into(),
+            address,
+            ContainingPredicateKind::FracRef,
         )
     }
 
@@ -184,14 +234,14 @@ impl<'l, 'p, 'v, 'tcx> FracRefBuilder<'l, 'p, 'v, 'tcx> {
         Ok(self.slice_len.as_ref().unwrap().clone())
     }
 
-    pub(in super::super::super) fn add_snapshot_len_equal_to(
-        &mut self,
-        array_length_mid: &vir_mid::VariableDecl,
-    ) -> SpannedEncodingResult<()> {
-        self.inner
-            .add_snapshot_len_equal_to(&self.current_snapshot, array_length_mid)?;
-        Ok(())
-    }
+    // pub(in super::super::super) fn add_snapshot_len_equal_to(
+    //     &mut self,
+    //     array_length_mid: &vir_mid::VariableDecl,
+    // ) -> SpannedEncodingResult<()> {
+    //     self.inner
+    //         .add_snapshot_len_equal_to(&self.current_snapshot, array_length_mid)?;
+    //     Ok(())
+    // }
 
     pub(in super::super::super) fn add_quantified_permission(
         &mut self,
@@ -216,28 +266,46 @@ impl<'l, 'p, 'v, 'tcx> FracRefBuilder<'l, 'p, 'v, 'tcx> {
         let array_length_int = self.inner.array_length_int(array_length_mid)?;
         let element_place = self.inner.lowerer.encode_index_place(
             self.inner.ty,
-            self.place.clone().into(),
+            self.inner.place.clone().into(),
             index.clone().into(),
             self.inner.position,
         )?;
-        let current_element_snapshot = self.inner.lowerer.obtain_array_element_snapshot(
-            self.current_snapshot.clone().into(),
-            index_int.clone(),
+        let element_address = self.inner.lowerer.encode_index_address(
+            self.inner.ty,
+            self.inner.address.clone().into(),
+            index.clone().into(),
             self.inner.position,
         )?;
-        let mut builder = FracRefUseBuilder::new(
-            self.inner.lowerer,
+        // let current_element_snapshot = self.inner.lowerer.obtain_array_element_snapshot(
+        //     self.current_snapshot.clone().into(),
+        //     index_int.clone(),
+        //     self.inner.position,
+        // )?;
+        // let mut builder = FracRefUseBuilder::new(
+        //     self.inner.lowerer,
+        //     CallContext::BuiltinMethod,
+        //     element_type,
+        //     element_type,
+        //     element_place,
+        //     self.inner.address.clone().into(),
+        //     // current_element_snapshot,
+        //     self.reference_lifetime.clone().into(),
+        // )?;
+        // builder.add_lifetime_arguments()?;
+        // builder.add_const_arguments()?;
+        // let element_predicate_acc = builder.build();
+        let TODO_target_slice_len = None;
+        let element_predicate_acc = self.inner.lowerer.frac_ref(
             CallContext::BuiltinMethod,
             element_type,
             element_type,
             element_place,
-            self.root_address.clone().into(),
-            current_element_snapshot,
+            element_address,
             self.reference_lifetime.clone().into(),
+            TODO_target_slice_len,
+            None,
+            self.inner.position,
         )?;
-        builder.add_lifetime_arguments()?;
-        builder.add_const_arguments()?;
-        let element_predicate_acc = builder.build();
         let elements = vir_low::Expression::forall(
             vec![index],
             vec![vir_low::Trigger::new(vec![element_predicate_acc.clone()])],
@@ -251,16 +319,44 @@ impl<'l, 'p, 'v, 'tcx> FracRefBuilder<'l, 'p, 'v, 'tcx> {
 
     pub(in super::super::super) fn create_variant_predicate(
         &mut self,
+        decl: &vir_mid::type_decl::Enum,
         discriminant_value: vir_mid::DiscriminantValue,
         variant: &vir_mid::type_decl::Struct,
         variant_type: &vir_mid::Type,
     ) -> SpannedEncodingResult<(vir_low::Expression, vir_low::Expression)> {
         use vir_low::macros::*;
-        let discriminant_call = self.inner.lowerer.obtain_enum_discriminant(
-            self.current_snapshot.clone().into(),
-            self.inner.ty,
-            self.inner.position,
-        )?;
+        let discriminant_call = {
+            // FIXME: Code duplication with other create_variant_predicate methods.
+            let discriminant_field = decl.discriminant_field();
+            let discriminant_place = self.inner.lowerer.encode_field_place(
+                self.inner.ty,
+                &discriminant_field,
+                self.inner.place.clone().into(),
+                self.inner.position,
+            )?;
+            let discriminant_address = self.inner.lowerer.encode_field_address(
+                self.inner.ty,
+                &discriminant_field,
+                self.inner.address.clone().into(),
+                self.inner.position,
+            )?;
+            let TODO_target_slice_len = None;
+            let discriminant_snapshot = self.inner.lowerer.frac_ref_snap(
+                CallContext::BuiltinMethod,
+                &decl.discriminant_type,
+                &decl.discriminant_type,
+                discriminant_place,
+                discriminant_address,
+                self.reference_lifetime.clone().into(),
+                TODO_target_slice_len,
+                self.inner.position,
+            )?;
+            self.inner.lowerer.obtain_constant_value(
+                &decl.discriminant_type,
+                discriminant_snapshot,
+                self.inner.position,
+            )?
+        };
         let guard = expr! {
             [ discriminant_call ] == [ discriminant_value.into() ]
         };
@@ -268,28 +364,46 @@ impl<'l, 'p, 'v, 'tcx> FracRefBuilder<'l, 'p, 'v, 'tcx> {
         let variant_place = self.inner.lowerer.encode_enum_variant_place(
             self.inner.ty,
             &variant_index,
-            self.place.clone().into(),
+            self.inner.place.clone().into(),
             self.inner.position,
         )?;
-        let current_variant_snapshot = self.inner.lowerer.obtain_enum_variant_snapshot(
+        let variant_address = self.inner.lowerer.encode_enum_variant_address(
             self.inner.ty,
             &variant_index,
-            self.current_snapshot.clone().into(),
+            self.inner.address.clone().into(),
             self.inner.position,
         )?;
-        let mut builder = FracRefUseBuilder::new(
-            self.inner.lowerer,
+        // let current_variant_snapshot = self.inner.lowerer.obtain_enum_variant_snapshot(
+        //     self.inner.ty,
+        //     &variant_index,
+        //     self.current_snapshot.clone().into(),
+        //     self.inner.position,
+        // )?;
+        // let mut builder = FracRefUseBuilder::new(
+        //     self.inner.lowerer,
+        //     CallContext::BuiltinMethod,
+        //     variant_type,
+        //     variant_type,
+        //     variant_place,
+        //     self.inner.address.clone().into(),
+        //     // current_variant_snapshot,
+        //     self.reference_lifetime.clone().into(),
+        // )?;
+        // builder.add_lifetime_arguments()?;
+        // builder.add_const_arguments()?;
+        // let predicate = builder.build();
+        let TODO_target_slice_len = None;
+        let predicate = self.inner.lowerer.frac_ref(
             CallContext::BuiltinMethod,
             variant_type,
             variant_type,
             variant_place,
-            self.root_address.clone().into(),
-            current_variant_snapshot,
+            variant_address,
             self.reference_lifetime.clone().into(),
+            TODO_target_slice_len,
+            None,
+            self.inner.position,
         )?;
-        builder.add_lifetime_arguments()?;
-        builder.add_const_arguments()?;
-        let predicate = builder.build();
         Ok((guard, predicate))
     }
 
@@ -300,4 +414,39 @@ impl<'l, 'p, 'v, 'tcx> FracRefBuilder<'l, 'p, 'v, 'tcx> {
         self.inner
             .add_conjunct(variant_predicates.into_iter().create_match())
     }
+
+    pub(in super::super::super) fn add_structural_invariant(
+        &mut self,
+        decl: &vir_mid::type_decl::Struct,
+    ) -> SpannedEncodingResult<Vec<vir_mid::Type>> {
+        self.inner.add_structural_invariant(
+            decl,
+            PredicateKind::FracRef {
+                lifetime: self.reference_lifetime.clone().into(),
+            },
+        )
+    }
+
+    // pub(in super::super::super) fn add_structural_invariant(
+    //     &mut self,
+    //     decl: &vir_mid::type_decl::Struct,
+    // ) -> SpannedEncodingResult<Vec<vir_mid::Type>> {
+    //     if let Some(invariant) = &decl.structural_invariant {
+    //         let mut encoder = SelfFramingAssertionToSnapshot::for_predicate_body(
+    //             self.inner.place.clone(),
+    //             self.inner.address.clone(),
+    //             PredicateKind::FracRef {
+    //                 lifetime: self.reference_lifetime.clone().into(),
+    //             },
+    //         );
+    //         for assertion in invariant {
+    //             let low_assertion =
+    //                 encoder.expression_to_snapshot(self.inner.lowerer, assertion, true)?;
+    //             self.inner.add_conjunct(low_assertion)?;
+    //         }
+    //         Ok(encoder.into_created_predicate_types())
+    //     } else {
+    //         Ok(Vec::new())
+    //     }
+    // }
 }

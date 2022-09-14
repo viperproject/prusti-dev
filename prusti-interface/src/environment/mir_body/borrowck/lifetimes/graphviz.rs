@@ -28,6 +28,8 @@ pub trait LifetimesGraphviz {
     fn get_original_lifetimes(&self) -> Vec<Region>;
     fn location_to_point(&self, location: RichLocation) -> Point;
     fn get_loan_live_at(&self, location: RichLocation) -> Vec<Loan>;
+    fn get_loan_killed_at(&self, location: RichLocation) -> Vec<Loan>;
+    fn get_loan_successfully_killed_at(&self, location: RichLocation) -> Vec<Loan>;
     fn get_origin_contains_loan_at(
         &self,
         location: RichLocation,
@@ -105,6 +107,14 @@ impl LifetimesGraphviz for Lifetimes {
 
     fn get_loan_live_at(&self, location: RichLocation) -> Vec<Loan> {
         Lifetimes::get_loan_live_at(self, location)
+    }
+
+    fn get_loan_killed_at(&self, location: RichLocation) -> Vec<Loan> {
+        Lifetimes::get_loan_killed_at(self, location)
+    }
+
+    fn get_loan_successfully_killed_at(&self, location: RichLocation) -> Vec<Loan> {
+        Lifetimes::get_loan_successfully_killed_at(self, location)
     }
 
     fn get_origin_contains_loan_at(

@@ -6,15 +6,20 @@ use super::{
 use crate::encoder::{
     errors::{BuiltinMethodKind, SpannedEncodingResult},
     middle::core_proof::{
+        addresses::AddressesInterface,
         builtin_methods::{
             calls::interface::CallContext, BuiltinMethodCallsInterface, BuiltinMethodsInterface,
         },
+        lifetimes::LifetimesInterface,
         lowerer::Lowerer,
         places::PlacesInterface,
+        predicates::PredicatesOwnedInterface,
+        references::ReferencesInterface,
         snapshots::SnapshotValuesInterface,
     },
 };
 use vir_crate::{
+    common::expression::UnaryOperationHelpers,
     low::{self as vir_low},
     middle as vir_mid,
 };
@@ -59,7 +64,7 @@ impl<'l, 'p, 'v, 'tcx> MovePlaceMethodBuilder<'l, 'p, 'v, 'tcx> {
         self.inner
             .inner
             .parameters
-            .push(self.inner.target_root_address.clone());
+            .push(self.inner.target_address.clone());
         self.inner
             .inner
             .parameters
@@ -67,7 +72,7 @@ impl<'l, 'p, 'v, 'tcx> MovePlaceMethodBuilder<'l, 'p, 'v, 'tcx> {
         self.inner
             .inner
             .parameters
-            .push(self.inner.source_root_address.clone());
+            .push(self.inner.source_address.clone());
         self.inner
             .inner
             .parameters
@@ -91,20 +96,23 @@ impl<'l, 'p, 'v, 'tcx> MovePlaceMethodBuilder<'l, 'p, 'v, 'tcx> {
         &mut self,
     ) -> SpannedEncodingResult<vir_low::Expression> {
         self.create_memory_block(
-            self.compute_address(&self.inner.source_place, &self.inner.source_root_address),
+            self.inner.source_address.clone().into(), // self.compute_address(&self.inner.source_place, &self.inner.source_address),
         )
     }
 
     pub(in super::super::super::super) fn create_source_owned(
         &mut self,
+        exclude_snapshot_equality: bool,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        self.inner.create_source_owned()
+        self.inner
+            .create_source_owned(exclude_snapshot_equality, None)
     }
 
     pub(in super::super::super::super) fn create_target_owned(
         &mut self,
+        exclude_snapshot_equality: bool,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        self.inner.create_target_owned()
+        self.inner.create_target_owned(exclude_snapshot_equality)
     }
 
     pub(in super::super::super::super) fn add_target_validity_postcondition(
@@ -130,7 +138,7 @@ impl<'l, 'p, 'v, 'tcx> MovePlaceMethodBuilder<'l, 'p, 'v, 'tcx> {
     //         .lowerer
     //         .encode_type_size_expression2(self.inner.inner.ty, self.inner.inner.type_decl)?;
     //     let source_address =
-    //         self.compute_address(&self.inner.source_place, &self.inner.source_root_address);
+    //         self.compute_address(&self.inner.source_place, &self.inner.source_address);
     //     let bytes = self
     //         .inner
     //         .inner
@@ -173,10 +181,22 @@ impl<'l, 'p, 'v, 'tcx> MovePlaceMethodBuilder<'l, 'p, 'v, 'tcx> {
             self.inner.source_place.clone().into(),
             self.inner.inner.position,
         )?;
+        let source_field_address = self.inner.inner.lowerer.encode_field_address(
+            self.inner.inner.ty,
+            field,
+            self.inner.source_address.clone().into(),
+            self.inner.inner.position,
+        )?;
         let target_field_place = self.inner.inner.lowerer.encode_field_place(
             self.inner.inner.ty,
             field,
             self.inner.target_place.clone().into(),
+            self.inner.inner.position,
+        )?;
+        let target_field_address = self.inner.inner.lowerer.encode_field_address(
+            self.inner.inner.ty,
+            field,
+            self.inner.target_address.clone().into(),
             self.inner.inner.position,
         )?;
         let source_field_snapshot = self.inner.inner.lowerer.obtain_struct_field_snapshot(
@@ -191,9 +211,9 @@ impl<'l, 'p, 'v, 'tcx> MovePlaceMethodBuilder<'l, 'p, 'v, 'tcx> {
             &field.ty,
             self.inner.inner.position,
             target_field_place,
-            self.inner.target_root_address.clone().into(),
+            target_field_address,
             source_field_place,
-            self.inner.source_root_address.clone().into(),
+            source_field_address,
             source_field_snapshot,
         )?;
         self.add_statement(statement);
@@ -221,10 +241,22 @@ impl<'l, 'p, 'v, 'tcx> MovePlaceMethodBuilder<'l, 'p, 'v, 'tcx> {
             self.inner.target_place.clone().into(),
             self.inner.inner.position,
         )?;
+        let target_variant_address = self.inner.inner.lowerer.encode_enum_variant_address(
+            self.inner.inner.ty,
+            &variant_index,
+            self.inner.target_address.clone().into(),
+            self.inner.inner.position,
+        )?;
         let source_variant_place = self.inner.inner.lowerer.encode_enum_variant_place(
             self.inner.inner.ty,
             &variant_index,
             self.inner.source_place.clone().into(),
+            self.inner.inner.position,
+        )?;
+        let source_variant_address = self.inner.inner.lowerer.encode_enum_variant_address(
+            self.inner.inner.ty,
+            &variant_index,
+            self.inner.source_address.clone().into(),
             self.inner.inner.position,
         )?;
         let source_variant_snapshot = self.inner.inner.lowerer.obtain_enum_variant_snapshot(
@@ -248,9 +280,9 @@ impl<'l, 'p, 'v, 'tcx> MovePlaceMethodBuilder<'l, 'p, 'v, 'tcx> {
         )?;
         builder.set_guard(condition);
         builder.add_argument(target_variant_place);
-        builder.add_argument(self.inner.target_root_address.clone().into());
+        builder.add_argument(target_variant_address);
         builder.add_argument(source_variant_place);
-        builder.add_argument(self.inner.source_root_address.clone().into());
+        builder.add_argument(source_variant_address);
         builder.add_argument(source_variant_snapshot);
         builder.add_lifetime_arguments()?;
         builder.add_const_arguments()?;
@@ -273,17 +305,28 @@ impl<'l, 'p, 'v, 'tcx> MovePlaceMethodBuilder<'l, 'p, 'v, 'tcx> {
             self.inner.inner.ty,
             self.inner.inner.position,
         )?;
-
         let target_discriminant_place = self.inner.inner.lowerer.encode_field_place(
             self.inner.inner.ty,
             &discriminant_field,
             self.inner.target_place.clone().into(),
             self.inner.inner.position,
         )?;
+        let target_discriminant_address = self.inner.inner.lowerer.encode_field_address(
+            self.inner.inner.ty,
+            &discriminant_field,
+            self.inner.target_address.clone().into(),
+            self.inner.inner.position,
+        )?;
         let source_discriminant_place = self.inner.inner.lowerer.encode_field_place(
             self.inner.inner.ty,
             &discriminant_field,
             self.inner.source_place.clone().into(),
+            self.inner.inner.position,
+        )?;
+        let source_discriminant_address = self.inner.inner.lowerer.encode_field_address(
+            self.inner.inner.ty,
+            &discriminant_field,
+            self.inner.source_address.clone().into(),
             self.inner.inner.position,
         )?;
         let source_discriminant_snashot = self.inner.inner.lowerer.construct_constant_snapshot(
@@ -300,9 +343,9 @@ impl<'l, 'p, 'v, 'tcx> MovePlaceMethodBuilder<'l, 'p, 'v, 'tcx> {
             self.inner.inner.position,
         )?;
         builder.add_argument(target_discriminant_place);
-        builder.add_argument(self.inner.target_root_address.clone().into());
+        builder.add_argument(target_discriminant_address);
         builder.add_argument(source_discriminant_place);
-        builder.add_argument(self.inner.source_root_address.clone().into());
+        builder.add_argument(source_discriminant_address);
         builder.add_argument(source_discriminant_snashot);
         builder.add_lifetime_arguments()?;
         builder.add_const_arguments()?;
@@ -342,28 +385,95 @@ impl<'l, 'p, 'v, 'tcx> MovePlaceMethodBuilder<'l, 'p, 'v, 'tcx> {
         Ok(())
     }
 
-    pub(in super::super::super::super) fn duplicate_frac_ref(
+    pub(in super::super::super::super) fn add_dead_lifetime_hack(
         &mut self,
+        lifetime: &vir_mid::ty::LifetimeConst,
     ) -> SpannedEncodingResult<()> {
-        self.inner
+        use vir_low::macros::*;
+        let lifetime_alive = self
+            .inner
             .inner
             .lowerer
-            .encode_duplicate_frac_ref_method(self.inner.inner.ty)?;
-        let mut builder = BuiltinMethodCallBuilder::new(
-            self.inner.inner.lowerer,
-            CallContext::BuiltinMethod,
-            "duplicate_frac_ref",
+            .encode_lifetime_const_into_pure_is_alive_variable(lifetime)?;
+        let guard = vir_low::Expression::not(lifetime_alive.into());
+        let source_current_snapshot = self.inner.inner.lowerer.reference_target_current_snapshot(
             self.inner.inner.ty,
-            self.inner.inner.type_decl,
+            self.inner.source_snapshot.clone().into(),
             self.inner.inner.position,
         )?;
-        builder.add_argument(self.inner.target_place.clone().into());
-        builder.add_argument(self.inner.source_place.clone().into());
-        builder.add_argument(self.inner.source_snapshot.clone().into());
-        builder.add_lifetime_arguments()?;
-        builder.add_const_arguments()?;
-        let statement = builder.build();
+        let source_final_snapshot = self.inner.inner.lowerer.reference_target_final_snapshot(
+            self.inner.inner.ty,
+            self.inner.source_snapshot.clone().into(),
+            self.inner.inner.position,
+        )?;
+        let target_snapshot = self.inner.inner.lowerer.owned_non_aliased_snap(
+            CallContext::BuiltinMethod,
+            self.inner.inner.ty,
+            self.inner.inner.type_decl,
+            self.inner.target_place.clone().into(),
+            self.inner.target_address.clone().into(),
+            self.inner.inner.position,
+        )?;
+        let target_current_snapshot = self.inner.inner.lowerer.reference_target_current_snapshot(
+            self.inner.inner.ty,
+            target_snapshot.clone(),
+            self.inner.inner.position,
+        )?;
+        let target_final_snapshot = self.inner.inner.lowerer.reference_target_final_snapshot(
+            self.inner.inner.ty,
+            target_snapshot,
+            self.inner.inner.position,
+        )?;
+        let body = vec![
+            vir_low::Statement::comment(
+                "FIXME: This is a hack. Because the lifetime is dead, the reference \
+                is dangling and there is no predicate that would witness that \
+                the value of the dereference is the source of the dereference. \
+                This is also the reason why it is sound just to assume that the \
+                two are equal. A proper solution should use a custom equality function \
+                that equates the targets only if lifetimes are alive."
+                    .to_string(),
+            ),
+            stmtp! { self.inner.inner.position =>
+                assume ([source_current_snapshot] == [target_current_snapshot])
+            },
+            stmtp! { self.inner.inner.position =>
+                assume ([source_final_snapshot] == [target_final_snapshot])
+            },
+            //             assume destructor$Snap$ref$Unique$slice$struct$m_T1$$$target_current(source_snapshot) == destructor$Snap$ref$Unique$slice$struct$m_T1$$$target_current(snap_owned_non_aliased$ref$Unique$slice$struct$m_T1$(target_place, target_address, lft_early_bound_0$alive, lft_early_bound_0))
+
+            // assume destructor$Snap$ref$Unique$slice$struct$m_T1$$$target_final(source_snapshot) == destructor$Snap$ref$Unique$slice$struct$m_T1$$$target_final(snap_owned_non_aliased$ref$Unique$slice$struct$m_T1$(target_place, target_address, lft_early_bound_0$alive, lft_early_bound_0))
+        ];
+        let statement =
+            vir_low::Statement::conditional(guard, body, Vec::new(), self.inner.inner.position);
         self.add_statement(statement);
         Ok(())
+    }
+
+    pub(in super::super::super::super) fn duplicate_frac_ref(
+        &mut self,
+        lifetime: &vir_mid::ty::LifetimeConst,
+    ) -> SpannedEncodingResult<()> {
+        self.inner.duplicate_frac_ref(lifetime, None)
+        // self.inner
+        //     .inner
+        //     .lowerer
+        //     .encode_duplicate_frac_ref_method(self.inner.inner.ty)?;
+        // let mut builder = BuiltinMethodCallBuilder::new(
+        //     self.inner.inner.lowerer,
+        //     CallContext::BuiltinMethod,
+        //     "duplicate_frac_ref",
+        //     self.inner.inner.ty,
+        //     self.inner.inner.type_decl,
+        //     self.inner.inner.position,
+        // )?;
+        // builder.add_argument(self.inner.target_place.clone().into());
+        // builder.add_argument(self.inner.source_place.clone().into());
+        // builder.add_argument(self.inner.source_snapshot.clone().into());
+        // builder.add_lifetime_arguments()?;
+        // builder.add_const_arguments()?;
+        // let statement = builder.build();
+        // self.add_statement(statement);
+        // Ok(())
     }
 }

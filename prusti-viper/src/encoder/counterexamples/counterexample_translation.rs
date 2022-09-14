@@ -18,6 +18,7 @@ use prusti_rustc_interface::{
 use rustc_hash::FxHashMap;
 use std::iter;
 use viper::silicon_counterexample::*;
+use vir_crate::common::builtin_constants::DISCRIMINANT_FIELD_NAME;
 use DiscriminantsStateInterface;
 
 pub fn backtranslate(
@@ -358,7 +359,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                 let mut field_entries = vec![];
 
                 let mut variant = None;
-                let mut opt_discriminant = self.translate_int(map.get("discriminant"));
+                let mut opt_discriminant = self.translate_int(map.get(DISCRIMINANT_FIELD_NAME));
                 //need to find a discriminant to do something
                 if opt_discriminant.is_none() {
                     //try to find disc in the associated local variable

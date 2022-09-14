@@ -40,6 +40,14 @@ impl ViperBackendConfig {
                 if config::use_more_complete_exhale() {
                     verifier_args.push("--enableMoreCompleteExhale".to_string());
                 }
+                if config::use_carbon_qps() {
+                    verifier_args.push("--maskHeapMode".to_string());
+                    // verifier_args.push("--carbonQPs".to_string());
+                    // verifier_args.push("--carbonFunctions".to_string());
+                }
+                if config::use_z3_api() {
+                    verifier_args.push("--prover=Z3-API".to_string());
+                }
                 if config::counterexample() {
                     verifier_args.push("--counterexample".to_string());
                     verifier_args.push("mapped".to_string());
@@ -48,7 +56,6 @@ impl ViperBackendConfig {
                     verifier_args.push("--numberOfParallelVerifiers".to_string());
                     verifier_args.push(number.to_string());
                 }
-
                 verifier_args.extend(vec![
                     "--assertTimeout".to_string(),
                     config::assert_timeout().to_string(),
@@ -56,9 +63,12 @@ impl ViperBackendConfig {
                     // model.partial changes the default case of functions in counterexamples
                     // to #unspecified
                     format!(
-                        "smt.qi.eager_threshold={} model.partial={}",
+                        "smt.qi.eager_threshold={} model.partial={} \
+                         smt.arith.nl={} smt.arith.nl.gb={}",
                         config::smt_qi_eager_threshold(),
-                        config::counterexample()
+                        config::counterexample(),
+                        config::smt_use_nonlinear_arithmetic_solver(),
+                        config::smt_use_nonlinear_arithmetic_solver(),
                     ),
                     "--logLevel".to_string(),
                     "ERROR".to_string(),
@@ -70,7 +80,13 @@ impl ViperBackendConfig {
                 }
             }
             VerificationBackend::Carbon => {
-                verifier_args.extend(vec!["--disableAllocEncoding".to_string()]);
+                verifier_args.extend(vec![
+                    "--disableAllocEncoding".to_string(),
+                    format!(
+                        "--boogieOpt=/proverOpt:O:smt.qi.eager_threshold={}",
+                        config::smt_qi_eager_threshold()
+                    ),
+                ]);
             }
         }
         Self {

@@ -26,7 +26,10 @@ use prusti_rustc_interface::{
 use rustc_hash::FxHashMap;
 use std::rc::Rc;
 use vir_crate::{
-    common::identifier::WithIdentifier,
+    common::{
+        builtin_constants::{DISCRIMINANT_FIELD_NAME, DISCRIMINANT_VARIABLE_NAME},
+        identifier::WithIdentifier,
+    },
     polymorphic as vir,
     polymorphic::{
         ContainerOpKind, Expr, ExprIterator, FallibleExprFolder, FallibleStmtFolder,
@@ -313,7 +316,7 @@ impl SnapshotEncoder {
         let snapshot = self.decode_snapshot(encoder, expr.get_type())?;
         match (field.name.as_str(), snapshot) {
             (
-                "discriminant",
+                DISCRIMINANT_FIELD_NAME,
                 Snapshot::Complex {
                     discriminant_func, ..
                 },
@@ -1648,7 +1651,7 @@ impl SnapshotEncoder {
 
         // encode discriminant function
         let discriminant_func = vir::DomainFunc {
-            name: "discriminant$".to_string(),
+            name: DISCRIMINANT_VARIABLE_NAME.to_string(),
             type_arguments: vec![snapshot_type.clone()],
             formal_args: vec![arg_dom_local.clone()],
             return_type: Type::Int,

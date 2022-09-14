@@ -7,15 +7,16 @@ use crate::encoder::{
     },
 };
 use vir_crate::{
+    common::builtin_constants::{PLACE_DOMAIN_NAME, PLACE_OPTION_DOMAIN_NAME},
     low as vir_low,
-    middle::{self as vir_mid},
+    middle::{self as vir_mid, operations::ty::Typed},
 };
 
 pub(super) struct PlaceEncoder {}
 
 impl PlaceExpressionDomainEncoder for PlaceEncoder {
     fn domain_name(&mut self, _lowerer: &mut Lowerer) -> &str {
-        "Place"
+        PLACE_OPTION_DOMAIN_NAME
     }
 
     fn encode_local(
@@ -26,14 +27,15 @@ impl PlaceExpressionDomainEncoder for PlaceEncoder {
         let function_name = format!("{}$place", local.variable.name);
         let return_type = lowerer.place_type()?;
         let place_root = lowerer.create_unique_domain_func_app(
-            "Place",
+            PLACE_DOMAIN_NAME,
             function_name,
             vec![],
             return_type,
             local.position,
         )?;
         lowerer.encode_compute_address_for_place_root(&place_root)?;
-        Ok(place_root)
+        let place_option_root = lowerer.place_option_some_constructor(place_root.clone())?;
+        Ok(place_option_root)
     }
 
     fn encode_deref(
@@ -42,7 +44,13 @@ impl PlaceExpressionDomainEncoder for PlaceEncoder {
         lowerer: &mut Lowerer,
         arg: vir_low::Expression,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        lowerer.encode_deref_place(arg, deref.position)
+        if deref.base.get_type().is_reference() {
+            lowerer.encode_deref_place(arg, deref.position)
+        } else {
+            assert!(deref.base.get_type().is_pointer());
+            lowerer.place_option_none_constructor(deref.position)
+            // lowerer.encode_aliased_place_root(deref.position)
+        }
     }
 
     fn encode_array_index_axioms(
@@ -51,5 +59,13 @@ impl PlaceExpressionDomainEncoder for PlaceEncoder {
         lowerer: &mut Lowerer,
     ) -> SpannedEncodingResult<()> {
         lowerer.encode_place_array_index_axioms(ty)
+    }
+
+    fn encode_labelled_old(
+        &mut self,
+        expression: &vir_mid::expression::LabelledOld,
+        lowerer: &mut Lowerer,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        self.encode_expression(&expression.base, lowerer)
     }
 }
