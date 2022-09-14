@@ -34,15 +34,22 @@ jobs:
           java-version: '15'
       - name: Set up the environment
         run: python x.py setup
+      - name: Add target ${{ matrix.target }}
+        run: rustup target add ${{ matrix.target }}
+        if: ${{ matrix.target != 'default' }}
       - name: Build with cargo --release
         run: python x.py build --release --all --verbose --target ${{ matrix.target }}
+        if: ${{ matrix.target != 'default' }}
+      - name: Build with cargo --release
+        run: python x.py build --release --all --verbose
+        if: ${{ matrix.target == 'default' }}
       - name: Run cargo tests --release
         run: python x.py test --release --all --verbose
-        if: ${{ matrix.target != 'aarch64-apple-darwin' }}
+        if: ${{ matrix.target == 'default' }}
       - name: Set artifact name
         run: |
           echo "artifact_name=prusti-release-${{ matrix.os }}" >> $GITHUB_ENV
-        if: ${{ matrix.target != 'aarch64-apple-darwin' }}
+        if: ${{ matrix.target == 'default' }}
       - name: Set artifact name
         run: |
           echo "artifact_name=prusti-release-macos-aarch64" >> $GITHUB_ENV
