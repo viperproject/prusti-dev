@@ -4,6 +4,7 @@ use crate::common::display;
 pub enum FunctionKind {
     MemoryBlockBytes,
     CallerFor,
+    Snap,
 }
 
 #[display(

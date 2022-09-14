@@ -22,7 +22,7 @@ use crate::encoder::{
             SpecificationEncoderInterface,
         },
         specifications::SpecificationsInterface,
-        types::MirTypeEncoderInterface,
+        types::MirTypeEncoderInterface, procedures::encoder::specification_blocks::SpecificationBlocks,
     },
     mir_encoder::{MirEncoder, PRECONDITION_LABEL},
     Encoder,
@@ -50,6 +50,8 @@ pub(in super::super) struct ExpressionBackwardInterpreter<'p, 'v: 'p, 'tcx: 'v> 
     encoder: &'p Encoder<'v, 'tcx>,
     /// MIR of the pure function being encoded.
     mir: &'p mir::Body<'tcx>,
+    /// The specification blocks used in the pure function.
+    specification_blocks: SpecificationBlocks,
     /// MirEncoder of the pure function being encoded.
     mir_encoder: MirEncoder<'p, 'v, 'tcx>,
     /// How panics are handled depending on the encoding context.
@@ -73,9 +75,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         caller_def_id: DefId,
         substs: SubstsRef<'tcx>,
     ) -> Self {
+        let specification_blocks =
+            SpecificationBlocks::build(encoder.env().query, mir, None, false);
         Self {
             encoder,
             mir,
+            specification_blocks,
             mir_encoder: MirEncoder::new(encoder, mir, def_id),
             pure_encoding_context,
             caller_def_id,
@@ -323,8 +328,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 let expr = vir_high::Expression::constructor_no_pos(ty, arguments);
                 state.substitute_value(&encoded_lhs, expr);
             }
+            mir::Rvalue::AddressOf(_, place) => {
+                let encoded_place = self.encoder.encode_place_high(self.mir, *place, None)?;
+                let ty = self
+                    .encoder
+                    .encode_type_of_place_high(self.mir, *place)
+                    .with_span(span)?;
+                let expr = vir_high::Expression::addr_of_no_pos(
+                    encoded_place,
+                    vir_high::Type::pointer(ty),
+                );
+                state.substitute_value(&encoded_lhs, expr);
+            }
             mir::Rvalue::ThreadLocalRef(..)
-            | mir::Rvalue::AddressOf(..)
             | mir::Rvalue::ShallowInitBox(..)
             | mir::Rvalue::NullaryOp(..) => {
                 return Err(SpannedEncodingError::unsupported(
@@ -655,6 +671,77 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         }
 
         match proc_name {
+            "prusti_contracts::prusti_own" => {
+                assert_eq!(encoded_args.len(), 1);
+                let place = encoded_args[0].clone();
+                let position = place.position();
+                let encoded_rhs = vir_high::Expression::acc_predicate(
+                    vir_high::Predicate::owned_non_aliased(place, position),
+                    position,
+                );
+                subst_with(encoded_rhs)
+            }
+            "prusti_contracts::prusti_own_range" => {
+                assert_eq!(encoded_args.len(), 3);
+                let address = encoded_args[0].clone();
+                let start = encoded_args[1].clone();
+                let end = encoded_args[2].clone();
+                let position = address.position();
+                let encoded_rhs = vir_high::Expression::acc_predicate(
+                    vir_high::Predicate::owned_range(address, start, end, position),
+                    position,
+                );
+                subst_with(encoded_rhs)
+            }
+            "prusti_contracts::prusti_raw" => {
+                assert_eq!(encoded_args.len(), 2);
+                let address = encoded_args[0].clone();
+                let size = encoded_args[1].clone();
+                let position = address.position();
+                let encoded_rhs = vir_high::Expression::acc_predicate(
+                    vir_high::Predicate::memory_block_heap(address, size, position),
+                    position,
+                );
+                subst_with(encoded_rhs)
+            }
+            "prusti_contracts::prusti_raw_range" => {
+                assert_eq!(encoded_args.len(), 4);
+                let address = encoded_args[0].clone();
+                let size = encoded_args[1].clone();
+                let start = encoded_args[2].clone();
+                let end = encoded_args[3].clone();
+                let position = address.position();
+                let encoded_rhs = vir_high::Expression::acc_predicate(
+                    vir_high::Predicate::memory_block_heap_range(
+                        address, size, start, end, position,
+                    ),
+                    position,
+                );
+                subst_with(encoded_rhs)
+            }
+            "prusti_contracts::prusti_raw_dealloc" => {
+                assert_eq!(encoded_args.len(), 2);
+                let address = encoded_args[0].clone();
+                let size = encoded_args[1].clone();
+                let position = address.position();
+                let encoded_rhs = vir_high::Expression::acc_predicate(
+                    vir_high::Predicate::memory_block_heap_drop(address, size, position),
+                    position,
+                );
+                subst_with(encoded_rhs)
+            }
+            "prusti_contracts::prusti_unpacking" => {
+                assert_eq!(encoded_args.len(), 2);
+                let place = encoded_args[0].clone();
+                let body = encoded_args[1].clone();
+                let position = place.position();
+                let encoded_rhs = vir_high::Expression::unfolding(
+                    vir_high::Predicate::owned_non_aliased(place, position),
+                    body,
+                    position,
+                );
+                subst_with(encoded_rhs)
+            }
             "prusti_contracts::old" => {
                 let argument = encoded_args.last().cloned().unwrap();
                 let position = argument.position();
@@ -741,6 +828,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                         .map(Some),
                 }
             }
+            "std::ptr::mut_ptr::<impl *mut T>::is_null" => {
+                assert_eq!(encoded_args.len(), 1);
+                builtin((IsNull, vir_high::Type::Bool))
+            }
+            "std::mem::size_of" => {
+                assert_eq!(encoded_args.len(), 0);
+                builtin((Size, vir_high::Type::Int(vir_high::ty::Int::Usize)))
+            }
+            "std::mem::align_of" => {
+                assert_eq!(encoded_args.len(), 0);
+                builtin((Align, vir_high::Type::Int(vir_high::ty::Int::Usize)))
+            }
 
             // Prusti-specific syntax
             // TODO: check we are in a spec function
@@ -826,6 +925,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         Ok(state)
     }
 
+
     fn unreachable_expr(
         &self,
         position: vir_high::Position,
@@ -875,7 +975,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
     fn apply_terminator(
         &self,
-        _bb: mir::BasicBlock,
+        bb: mir::BasicBlock,
         terminator: &mir::Terminator<'tcx>,
         states: FxHashMap<mir::BasicBlock, &Self::State>,
     ) -> Result<Self::State, Self::Error> {
@@ -954,6 +1054,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 func: mir::Operand::Constant(box mir::Constant { literal, .. }),
                 ..
             } => {
+                if self.specification_blocks.is_specification_block(bb) {
+                    trace!("Skipping call terminator because inside a specification block");
+                    if let Some(target) = target {
+                        return Ok(states[target].clone());
+                    } else {
+                        unimplemented!();
+                    }
+                }
                 self.apply_call_terminator(args, *destination, target, literal.ty(), states, span)?
             }
 
@@ -1051,6 +1159,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
         state: &mut Self::State,
     ) -> Result<(), Self::Error> {
         trace!("apply_statement {:?}, state: {}", statement, state);
+        if self.specification_blocks.is_specification_block(bb) {
+            trace!("Skipping statement because inside a specification block");
+            return Ok(());
+        }
         let span = statement.source_info.span;
         let location = mir::Location {
             block: bb,

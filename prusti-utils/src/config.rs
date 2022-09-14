@@ -121,6 +121,7 @@ lazy_static::lazy_static! {
         settings.set_default("verify_specifications_backend", "Silicon").unwrap();
         settings.set_default("use_eval_axioms", true).unwrap();
         settings.set_default("inline_caller_for", false).unwrap();
+        settings.set_default("use_snapshot_parameters_in_predicates", false).unwrap();
         settings.set_default("check_no_drops", false).unwrap();
         settings.set_default("enable_type_invariants", false).unwrap();
         settings.set_default("use_new_encoder", true).unwrap();
@@ -917,6 +918,14 @@ pub fn use_eval_axioms() -> bool {
 /// When enabled, inlines `caller_for` heap dependent functions.
 pub fn inline_caller_for() -> bool {
     read_setting("inline_caller_for")
+}
+
+/// Whether to make the snapshot, an explicit parameter of the predicate.
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof` is
+/// true.
+pub fn use_snapshot_parameters_in_predicates() -> bool {
+    read_setting("use_snapshot_parameters_in_predicates")
 }
 
 /// When enabled, replaces calls to the drop function with `assert false`.

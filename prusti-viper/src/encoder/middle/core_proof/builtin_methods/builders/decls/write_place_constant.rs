@@ -9,7 +9,7 @@ use crate::encoder::{
         builtin_methods::{BuiltinMethodsInterface, CallContext},
         lowerer::Lowerer,
         places::PlacesInterface,
-        predicates::{OwnedNonAliasedUseBuilder, PredicatesOwnedInterface},
+        predicates::PredicatesOwnedInterface,
         snapshots::{IntoSnapshot, SnapshotValidityInterface, SnapshotValuesInterface},
     },
 };
@@ -91,22 +91,20 @@ impl<'l, 'p, 'v, 'tcx> WritePlaceConstantMethodBuilder<'l, 'p, 'v, 'tcx> {
     // FIXME: Remove duplicates with other builders.
     pub(in super::super::super::super) fn create_target_owned(
         &mut self,
+        must_be_predicate: bool,
     ) -> SpannedEncodingResult<vir_low::Expression> {
         self.inner
             .lowerer
             .mark_owned_non_aliased_as_unfolded(self.inner.ty)?;
-        let mut builder = OwnedNonAliasedUseBuilder::new(
-            self.inner.lowerer,
+        self.inner.lowerer.owned_non_aliased_full_vars(
             CallContext::BuiltinMethod,
             self.inner.ty,
             self.inner.type_decl,
-            self.target_place.clone().into(),
-            self.target_root_address.clone().into(),
-            self.source_snapshot.clone().into(),
-        )?;
-        builder.add_lifetime_arguments()?;
-        builder.add_const_arguments()?;
-        Ok(builder.build())
+            &self.target_place,
+            &self.target_root_address,
+            &self.source_snapshot,
+            must_be_predicate,
+        )
     }
 
     pub(in super::super::super::super) fn add_source_validity_precondition(

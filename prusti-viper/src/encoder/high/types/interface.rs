@@ -65,7 +65,7 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterfacePrivate for super::super::super::Enco
             let encoded_type = &self.high_type_encoder_state.lowered_types_inverse.borrow()
                 [predicate_name]
                 .clone();
-            let encoded_type_decl = self.encode_type_def_high(encoded_type)?;
+            let encoded_type_decl = self.encode_type_def_high(encoded_type, false)?;
             // FIXME: Change not to use `with_default_span` here.
             let predicates = encoded_type_decl
                 .lower(encoded_type, self)
@@ -288,7 +288,7 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encod
     ) -> SpannedEncodingResult<vir_mid::TypeDecl> {
         let high_type =
             self.decode_type_mid_into_high(ty.erase_lifetimes().erase_const_generics())?;
-        let high_type_decl = self.encode_type_def_high(&high_type)?;
+        let high_type_decl = self.encode_type_def_high(&high_type, true)?;
         high_type_decl.high_to_middle(self)
     }
 }

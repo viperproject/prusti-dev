@@ -161,6 +161,22 @@ impl Typed for BinaryOp {
         }
     }
     fn set_type(&mut self, new_type: Type) {
+        assert!(
+            !matches!(
+                self.op_kind,
+                BinaryOpKind::EqCmp
+                    | BinaryOpKind::NeCmp
+                    | BinaryOpKind::GtCmp
+                    | BinaryOpKind::GeCmp
+                    | BinaryOpKind::LtCmp
+                    | BinaryOpKind::LeCmp
+                    | BinaryOpKind::And
+                    | BinaryOpKind::Or
+                    | BinaryOpKind::Implies
+            ),
+            "cannot change the type of {:?}",
+            self.op_kind
+        );
         self.left.set_type(new_type.clone());
         self.right.set_type(new_type);
     }

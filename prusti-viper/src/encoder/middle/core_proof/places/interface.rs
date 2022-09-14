@@ -4,6 +4,7 @@ use super::{
 use crate::encoder::{
     errors::SpannedEncodingResult,
     middle::core_proof::{
+        compute_address::ComputeAddressInterface,
         lowerer::{DomainsLowererInterface, Lowerer},
         type_layouts::TypeLayoutsInterface,
     },
@@ -54,6 +55,10 @@ pub(in super::super) trait PlacesInterface {
         position: vir_mid::Position,
     ) -> SpannedEncodingResult<vir_low::ast::expression::Expression>;
     fn encode_place_array_index_axioms(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()>;
+    fn encode_aliased_place_root(
+        &mut self,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> PlacesInterface for Lowerer<'p, 'v, 'tcx> {
@@ -158,5 +163,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> PlacesInterface for Lowerer<'p, 'v, 'tcx> {
             self.declare_axiom("Place", axiom)?;
         }
         Ok(())
+    }
+    fn encode_aliased_place_root(
+        &mut self,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let return_type = self.place_type()?;
+        let place_root = self.create_domain_func_app(
+            "Place",
+            "aliased_place_root",
+            vec![],
+            return_type,
+            position,
+        )?;
+        self.encode_compute_address_for_place_root(&place_root)?;
+        Ok(place_root)
     }
 }

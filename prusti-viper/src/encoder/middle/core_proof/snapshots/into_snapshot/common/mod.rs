@@ -3,20 +3,32 @@ use crate::encoder::{
     errors::SpannedEncodingResult,
     high::types::HighTypeEncoderInterface,
     middle::core_proof::{
+        addresses::AddressesInterface,
+        builtin_methods::CallContext,
         lifetimes::*,
         lowerer::DomainsLowererInterface,
+        places::PlacesInterface,
+        pointers::PointersInterface,
+        predicates::PredicatesOwnedInterface,
         references::ReferencesInterface,
-        snapshots::{IntoSnapshot, SnapshotDomainsInterface, SnapshotValuesInterface},
+        snapshots::{
+            IntoSnapshot, SnapshotDomainsInterface, SnapshotValidityInterface,
+            SnapshotValuesInterface,
+        },
         types::TypesInterface,
     },
 };
 use vir_crate::{
-    common::{identifier::WithIdentifier, position::Positioned},
+    common::{
+        expression::BinaryOperationHelpers, identifier::WithIdentifier, position::Positioned,
+    },
     low::{self as vir_low},
     middle::{self as vir_mid, operations::ty::Typed},
 };
 
-pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
+pub(in super::super::super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v>:
+    Sized
+{
     fn expression_vec_to_snapshot(
         &mut self,
         lowerer: &mut Lowerer<'p, 'v, 'tcx>,
@@ -34,6 +46,15 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
     /// `expect_math_bool` argument indicates whether we expect the expression
     /// to be of type mathematical `Bool` or it should be a snapshot bool.
     fn expression_to_snapshot(
+        &mut self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        expression: &vir_mid::Expression,
+        expect_math_bool: bool,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        self.expression_to_snapshot_impl(lowerer, expression, expect_math_bool)
+    }
+
+    fn expression_to_snapshot_impl(
         &mut self,
         lowerer: &mut Lowerer<'p, 'v, 'tcx>,
         expression: &vir_mid::Expression,
@@ -84,6 +105,12 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
                 self.builtin_func_app_to_snapshot(lowerer, expression, expect_math_bool)
             }
             // vir_mid::Expression::Downcast(expression) => self.downcast_to_snapshot(lowerer, expression, expect_math_bool),
+            vir_mid::Expression::AccPredicate(expression) => {
+                self.acc_predicate_to_snapshot(lowerer, expression, expect_math_bool)
+            }
+            vir_mid::Expression::Unfolding(expression) => {
+                self.unfolding_to_snapshot(lowerer, expression, expect_math_bool)
+            }
             x => unimplemented!("{:?}", x),
         }
     }
@@ -106,7 +133,7 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
     fn variable_to_snapshot(
         &mut self,
         lowerer: &mut Lowerer<'p, 'v, 'tcx>,
-        local: &vir_mid::VariableDecl,
+        variable: &vir_mid::VariableDecl,
     ) -> SpannedEncodingResult<vir_low::VariableDecl>;
 
     fn local_to_snapshot(
@@ -131,7 +158,21 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
         for argument in &constructor.arguments {
             arguments.push(self.expression_to_snapshot(lowerer, argument, false)?);
         }
-        lowerer.construct_struct_snapshot(&constructor.ty, arguments, constructor.position)
+        let struct_snapshot =
+            lowerer.construct_struct_snapshot(&constructor.ty, arguments, constructor.position)?;
+        if let vir_mid::Type::Enum(vir_mid::ty::Enum {
+            variant: Some(_), ..
+        }) = &constructor.ty
+        {
+            let enum_snapshot = lowerer.construct_enum_snapshot(
+                &constructor.ty,
+                struct_snapshot,
+                constructor.position,
+            )?;
+            Ok(enum_snapshot)
+        } else {
+            Ok(struct_snapshot)
+        }
     }
 
     fn variant_to_snapshot(
@@ -151,6 +192,15 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
     }
 
     fn field_to_snapshot(
+        &mut self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        field: &vir_mid::Field,
+        expect_math_bool: bool,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        self.field_to_snapshot_impl(lowerer, field, expect_math_bool)
+    }
+
+    fn field_to_snapshot_impl(
         &mut self,
         lowerer: &mut Lowerer<'p, 'v, 'tcx>,
         field: &vir_mid::Field,
@@ -187,12 +237,23 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
         expect_math_bool: bool,
     ) -> SpannedEncodingResult<vir_low::Expression> {
         let base_snapshot = self.expression_to_snapshot(lowerer, &deref.base, expect_math_bool)?;
-        let result = lowerer.reference_target_current_snapshot(
-            deref.base.get_type(),
-            base_snapshot,
-            Default::default(),
-        )?;
+        let ty = deref.base.get_type();
+        let result = if ty.is_reference() {
+            lowerer.reference_target_current_snapshot(ty, base_snapshot, deref.position)?
+        } else {
+            self.pointer_deref_to_snapshot(lowerer, deref, base_snapshot, expect_math_bool)?
+        };
         self.ensure_bool_expression(lowerer, deref.get_type(), result, expect_math_bool)
+    }
+
+    fn pointer_deref_to_snapshot(
+        &mut self,
+        _lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        _deref: &vir_mid::Deref,
+        _base_snapshot: vir_low::Expression,
+        _expect_math_bool: bool,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        unreachable!("Should be overriden.");
     }
 
     fn addr_of_to_snapshot(
@@ -317,6 +378,15 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
         op: &vir_mid::BinaryOp,
         expect_math_bool: bool,
     ) -> SpannedEncodingResult<vir_low::Expression> {
+        self.binary_op_to_snapshot_impl(lowerer, op, expect_math_bool)
+    }
+
+    fn binary_op_to_snapshot_impl(
+        &mut self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        op: &vir_mid::BinaryOp,
+        expect_math_bool: bool,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
         // FIXME: Binary Operations with MPerm should not be handled manually as special cases
         //   They are difficult because binary operations with MPerm and Integer values are allowed.
         //   Also some of them translate tot PermBinaryOp.
@@ -376,15 +446,26 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
             self.expression_to_snapshot(lowerer, &op.right, expect_math_bool_args)?;
         let arg_type = op.left.get_type().clone().erase_lifetimes();
         assert_eq!(arg_type, op.right.get_type().clone().erase_lifetimes());
-        let result = lowerer.construct_binary_op_snapshot(
-            op.op_kind,
-            ty,
-            &arg_type,
-            left_snapshot,
-            right_snapshot,
-            op.position,
-        )?;
-        self.ensure_bool_expression(lowerer, ty, result, expect_math_bool)
+        if expect_math_bool && op.op_kind == vir_mid::BinaryOpKind::EqCmp {
+            // FIXME: Instead of this ad-hoc optimization, have a proper
+            // optimization pass.
+            Ok(vir_low::Expression::binary_op(
+                vir_low::BinaryOpKind::EqCmp,
+                left_snapshot,
+                right_snapshot,
+                op.position,
+            ))
+        } else {
+            let result = lowerer.construct_binary_op_snapshot(
+                op.op_kind,
+                ty,
+                &arg_type,
+                left_snapshot,
+                right_snapshot,
+                op.position,
+            )?;
+            self.ensure_bool_expression(lowerer, ty, result, expect_math_bool)
+        }
     }
 
     fn binary_op_kind_to_snapshot(
@@ -422,8 +503,11 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
             self.expression_to_snapshot(lowerer, &conditional.then_expr, expect_math_bool)?;
         let else_expr_snapshot =
             self.expression_to_snapshot(lowerer, &conditional.else_expr, expect_math_bool)?;
-        let arg_type = conditional.then_expr.get_type();
-        assert_eq!(arg_type, conditional.else_expr.get_type());
+        let arg_type = vir_low::operations::ty::Typed::get_type(&then_expr_snapshot);
+        assert_eq!(
+            arg_type,
+            vir_low::operations::ty::Typed::get_type(&else_expr_snapshot)
+        );
         // We do not need to ensure expect_math_bool because we pushed this
         // responsibility to the arguments.
         Ok(vir_low::Expression::conditional(
@@ -444,7 +528,7 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
     fn builtin_func_app_to_snapshot(
         &mut self,
         lowerer: &mut Lowerer<'p, 'v, 'tcx>,
-        app: &vir_crate::middle::expression::BuiltinFuncApp,
+        app: &vir_mid::BuiltinFuncApp,
         expect_math_bool: bool,
     ) -> SpannedEncodingResult<vir_low::Expression> {
         use vir_low::expression::ContainerOpKind;
@@ -508,6 +592,17 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
                 let return_type = self.type_to_snapshot(lowerer, &app.return_type)?;
                 lowerer.create_domain_func_app(
                     "Size",
+                    app.get_identifier(),
+                    args,
+                    return_type,
+                    app.position,
+                )
+            }
+            BuiltinFunc::Align => {
+                assert_eq!(args.len(), 0);
+                let return_type = self.type_to_snapshot(lowerer, &app.return_type)?;
+                lowerer.create_domain_func_app(
+                    "Align",
                     app.get_identifier(),
                     args,
                     return_type,
@@ -667,8 +762,166 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
                     lowerer.construct_constant_snapshot(&vir_mid::Type::Bool, value, app.position)
                 }
             }
+            BuiltinFunc::IsNull => {
+                assert_eq!(args.len(), 1);
+                let ty = app.arguments[0].get_type();
+                let address = lowerer.pointer_address(ty, args[0].clone(), app.position)?;
+                let null_address = lowerer.address_null(app.position)?;
+                let equals = vir_low::Expression::equals(address, null_address);
+                let equals =
+                    lowerer.construct_constant_snapshot(app.get_type(), equals, app.position)?;
+                self.ensure_bool_expression(lowerer, app.get_type(), equals, expect_math_bool)
+            }
+            BuiltinFunc::IsValid => {
+                assert_eq!(app.arguments.len(), 1);
+                let argument = args.pop().unwrap();
+                let ty = app.arguments[0].get_type();
+                lowerer.encode_snapshot_valid_call_for_type(argument, ty)
+            }
+            BuiltinFunc::EnsureOwnedPredicate => {
+                assert_eq!(app.arguments.len(), 1);
+                fn peel_unfolding<'p, 'v: 'p, 'tcx: 'v>(
+                    lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+                    into_snap_lowerer: &mut impl IntoSnapshotLowerer<'p, 'v, 'tcx>,
+                    place: &vir_mid::Expression,
+                ) -> SpannedEncodingResult<vir_low::Expression> {
+                    match place {
+                        vir_mid::Expression::Unfolding(unfolding) => {
+                            let body = peel_unfolding(lowerer, into_snap_lowerer, &unfolding.body)?;
+                            into_snap_lowerer.unfolding_to_snapshot_with_body(
+                                lowerer,
+                                &unfolding.predicate,
+                                body,
+                                unfolding.position,
+                                true,
+                            )
+                        }
+                        _ => {
+                            let ty = place.get_type();
+                            let snap_call =
+                                into_snap_lowerer.owned_non_aliased_snap(lowerer, ty, place)?;
+                            let snapshot =
+                                into_snap_lowerer.expression_to_snapshot(lowerer, place, true)?;
+                            let position = place.position();
+                            Ok(vir_low::Expression::binary_op(
+                                vir_low::BinaryOpKind::EqCmp,
+                                snap_call,
+                                snapshot,
+                                position,
+                            ))
+                        }
+                    }
+                }
+                peel_unfolding(lowerer, self, &app.arguments[0])
+                // let argument = &app.arguments[0];
+                // let ty = argument.get_type();
+                // let snap_call = self.owned_non_aliased_snap(lowerer, ty, argument)?;
+                // lowerer.wrap_snap_into_bool(ty, snap_call.set_default_position(app.position))
+            }
+            BuiltinFunc::TakeLifetime => {
+                unimplemented!("TODO: Delete");
+            }
         }
     }
+
+    fn acc_predicate_to_snapshot(
+        &mut self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        acc_predicate: &vir_mid::AccPredicate,
+        expect_math_bool: bool,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
+
+    // fn unfolding_to_snapshot(
+    //     &mut self,
+    //     lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+    //     unfolding: &vir_mid::Unfolding,
+    //     expect_math_bool: bool,
+    // ) -> SpannedEncodingResult<vir_low::Expression>;
+
+    fn call_context(&self) -> CallContext;
+
+    fn unfolding_to_snapshot_with_body(
+        &mut self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        predicate: &vir_mid::Predicate,
+        body: vir_low::Expression,
+        position: vir_low::Position,
+        expect_math_bool: bool,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let predicate = match predicate {
+            vir_mid::Predicate::OwnedNonAliased(predicate) => {
+                let ty = predicate.place.get_type();
+                lowerer.mark_owned_non_aliased_as_unfolded(ty)?;
+                let place = lowerer.encode_expression_as_place(&predicate.place)?;
+                let root_address = lowerer.extract_root_address(&predicate.place)?;
+                let snapshot =
+                    self.expression_to_snapshot(lowerer, &predicate.place, expect_math_bool)?;
+                // predicate.place.to_procedure_snapshot(lowerer)?; // FIXME: This is probably wrong. It should take into account the current old.
+                lowerer
+                    .owned_non_aliased_predicate(
+                        self.call_context(),
+                        ty,
+                        ty,
+                        place,
+                        root_address,
+                        snapshot,
+                        None,
+                    )?
+                    .unwrap_predicate_access_predicate()
+            }
+            _ => unimplemented!("{predicate}"),
+        };
+        let expression = vir_low::Expression::unfolding(predicate, body, position);
+        Ok(expression)
+    }
+
+    fn unfolding_to_snapshot(
+        &mut self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        unfolding: &vir_mid::Unfolding,
+        expect_math_bool: bool,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let body = self.expression_to_snapshot(lowerer, &unfolding.body, expect_math_bool)?;
+        self.unfolding_to_snapshot_with_body(
+            lowerer,
+            &unfolding.predicate,
+            body,
+            unfolding.position,
+            expect_math_bool,
+        )
+        // let predicate = match &*unfolding.predicate {
+        //     vir_mid::Predicate::OwnedNonAliased(predicate) => {
+        //         let ty = predicate.place.get_type();
+        //         lowerer.mark_owned_non_aliased_as_unfolded(ty)?;
+        //         let place = lowerer.encode_expression_as_place(&predicate.place)?;
+        //         let root_address = lowerer.extract_root_address(&predicate.place)?;
+        //         let snapshot = self.expression_to_snapshot(lowerer, &predicate.place, expect_math_bool)?;
+        //         // predicate.place.to_procedure_snapshot(lowerer)?; // FIXME: This is probably wrong. It should take into account the current old.
+        //         lowerer
+        //             .owned_non_aliased_predicate(
+        //                 self.call_context(),
+        //                 ty,
+        //                 ty,
+        //                 place,
+        //                 root_address,
+        //                 snapshot,
+        //                 None,
+        //             )?
+        //             .unwrap_predicate_access_predicate()
+        //     }
+        //     _ => unimplemented!("{unfolding}"),
+        // };
+        // let body = self.expression_to_snapshot(lowerer, &unfolding.body, expect_math_bool)?;
+        // let expression = vir_low::Expression::unfolding(predicate, body, unfolding.position);
+        // Ok(expression)
+    }
+
+    fn owned_non_aliased_snap(
+        &mut self,
+        lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        ty: &vir_mid::Type,
+        pointer_place: &vir_mid::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
 
     fn type_to_snapshot(
         &mut self,

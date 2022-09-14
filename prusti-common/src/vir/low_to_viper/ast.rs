@@ -46,6 +46,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Statement {
     fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
         match self {
             Statement::Comment(statement) => statement.to_viper(context, ast),
+            Statement::Label(statement) => statement.to_viper(context, ast),
             Statement::LogEvent(statement) => statement.to_viper(context, ast),
             Statement::Assume(statement) => statement.to_viper(context, ast),
             Statement::Assert(statement) => statement.to_viper(context, ast),
@@ -64,6 +65,12 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Statement {
 impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Comment {
     fn to_viper(&self, _context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
         ast.comment(&self.comment)
+    }
+}
+
+impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Label {
+    fn to_viper(&self, _context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
+        ast.label(&self.label, &[])
     }
 }
 
@@ -141,6 +148,11 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Fold {
             "Statement with default position: {}",
             self
         );
+        assert!(
+            self.expression.is_predicate_access_predicate(),
+            "fold {}",
+            self.expression
+        );
         ast.fold_with_pos(
             self.expression.to_viper(context, ast),
             self.position.to_viper(context, ast),
@@ -154,6 +166,11 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Unfold {
             !self.position.is_default(),
             "Statement with default position: {}",
             self
+        );
+        assert!(
+            self.expression.is_predicate_access_predicate(),
+            "unfold {}",
+            self.expression
         );
         ast.unfold_with_pos(
             self.expression.to_viper(context, ast),
@@ -235,7 +252,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expression {
             Expression::MagicWand(expression) => expression.to_viper(context, ast),
             Expression::PredicateAccessPredicate(expression) => expression.to_viper(context, ast),
             // Expression::FieldAccessPredicate(expression) => expression.to_viper(context, ast),
-            // Expression::Unfolding(expression) => expression.to_viper(context, ast),
+            Expression::Unfolding(expression) => expression.to_viper(context, ast),
             Expression::UnaryOp(expression) => expression.to_viper(context, ast),
             Expression::BinaryOp(expression) => expression.to_viper(context, ast),
             Expression::PermBinaryOp(expression) => expression.to_viper(context, ast),
@@ -358,6 +375,16 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::PredicateAccessPredicate {
                 self.position.to_viper(context, ast),
             )
         }
+    }
+}
+
+impl<'v> ToViper<'v, viper::Expr<'v>> for expression::Unfolding {
+    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+        ast.unfolding_with_pos(
+            self.predicate.to_viper(context, ast),
+            self.base.to_viper(context, ast),
+            self.position.to_viper(context, ast),
+        )
     }
 }
 

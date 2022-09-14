@@ -8,6 +8,7 @@
 
 #![deny(unused_must_use)]
 #![deny(unsafe_op_in_unsafe_fn)]
+#![allow(clippy::nonminimal_bool)]
 #![feature(rustc_private)]
 #![feature(box_syntax)]
 #![feature(box_patterns)]

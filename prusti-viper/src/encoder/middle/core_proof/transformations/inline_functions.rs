@@ -49,6 +49,7 @@ fn inline_in_statements(
                     .push(vir_low::Statement::Assert(statement));
             }
             vir_low::Statement::Comment(_)
+            | vir_low::Statement::Label(_)
             | vir_low::Statement::LogEvent(_)
             | vir_low::Statement::Inhale(_)
             | vir_low::Statement::Exhale(_)

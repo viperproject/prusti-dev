@@ -6,7 +6,7 @@ copy_module!(crate::high::operations_internal::helpers);
 pub mod const_generics;
 pub mod identifier;
 pub mod lifetimes;
-copy_module!(crate::high::operations_internal::position);
+pub mod position;
 copy_module!(crate::high::operations_internal::predicate);
 copy_module!(crate::high::operations_internal::procedure);
 copy_module!(crate::high::operations_internal::rvalue);

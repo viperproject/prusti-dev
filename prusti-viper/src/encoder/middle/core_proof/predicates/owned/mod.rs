@@ -6,6 +6,9 @@ mod interface;
 
 pub(super) use self::interface::PredicatesOwnedState;
 pub(in super::super) use self::{
-    builders::{FracRefUseBuilder, OwnedNonAliasedUseBuilder, UniqueRefUseBuilder},
+    builders::{
+        FracRefUseBuilder, OwnedAliasedSnapCallBuilder, OwnedNonAliasedSnapCallBuilder,
+        OwnedNonAliasedUseBuilder, UniqueRefUseBuilder,
+    },
     interface::PredicatesOwnedInterface,
 };

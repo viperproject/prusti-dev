@@ -44,3 +44,13 @@ pub(in super::super) enum PermissionKind {
     MemoryBlock,
     Owned,
 }
+
+impl Permission {
+    pub(in super::super) fn place(&self) -> &vir_typed::Expression {
+        match self {
+            Permission::MemoryBlock(place) => place,
+            Permission::Owned(place) => place,
+            Permission::MutBorrowed(MutBorrowed { place, .. }) => place,
+        }
+    }
+}

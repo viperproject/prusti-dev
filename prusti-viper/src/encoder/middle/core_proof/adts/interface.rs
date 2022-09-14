@@ -2,6 +2,7 @@ use crate::encoder::{
     errors::SpannedEncodingResult,
     middle::core_proof::lowerer::{DomainsLowererInterface, Lowerer},
 };
+use prusti_common::config;
 use rustc_hash::FxHashSet;
 use std::borrow::Cow;
 use vir_crate::{
@@ -266,18 +267,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> AdtsInterface for Lowerer<'p, 'v, 'tcx> {
         }
 
         // Injectivity axioms.
-        if parameters.is_empty() {
-            // No need to generate injectivity axioms if the constructor has no parameters.
-            return Ok(());
-        }
-
         if generate_injectivity_axioms {
             // We do not generate injectivity axioms for alternative
             // constructors (that would be unsound).
 
             use vir_low::macros::*;
             // Bottom-up injectivity axiom.
-            {
+            if !parameters.is_empty() {
+                // We need something to quantify over, so parameters cannot be empty.
                 let mut triggers = Vec::new();
                 let mut conjuncts = Vec::new();
                 let constructor_call = self.adt_constructor_variant_call(
@@ -345,12 +342,27 @@ impl<'p, 'v: 'p, 'tcx: 'v> AdtsInterface for Lowerer<'p, 'v, 'tcx> {
             }
             let constructor_call =
                 self.adt_constructor_variant_call(domain_name, variant_name, arguments)?;
+            if parameters.is_empty() {
+                if let Some(guard) = &trigger_guard {
+                    triggers.push(vir_low::Trigger::new(vec![guard.clone()]));
+                } else {
+                    unimplemented!("figure out what triggers to choose!");
+                }
+            }
+            if !config::use_snapshot_parameters_in_predicates() && !parameters.is_empty() {
+                triggers.push(vir_low::Trigger::new(vec![constructor_call.clone()]));
+            }
             let equality = expr! { value == [constructor_call] };
             let forall_body = if let Some(guard) = guard {
                 expr! { [guard] ==> [equality] }
             } else {
                 equality
             };
+            assert!(
+                !triggers.is_empty(),
+                "empty triggers for {}",
+                constructor_name
+            );
             let axiom = vir_low::DomainAxiomDecl {
                 comment: None,
                 name: format!("{}$top_down_injectivity_axiom", constructor_name),

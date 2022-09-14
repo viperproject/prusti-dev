@@ -41,6 +41,7 @@ impl WithConstArguments for Rvalue {
             Self::Repeat(value) => value.get_const_arguments(),
             Self::AddressOf(value) => value.get_const_arguments(),
             Self::Len(value) => value.get_const_arguments(),
+            Self::Cast(value) => value.get_const_arguments(),
             Self::BinaryOp(value) => value.get_const_arguments(),
             Self::CheckedBinaryOp(value) => value.get_const_arguments(),
             Self::UnaryOp(value) => value.get_const_arguments(),
@@ -79,6 +80,14 @@ impl WithConstArguments for AddressOf {
 impl WithConstArguments for Len {
     fn get_const_arguments(&self) -> Vec<Expression> {
         self.place.get_const_arguments()
+    }
+}
+
+impl WithConstArguments for Cast {
+    fn get_const_arguments(&self) -> Vec<Expression> {
+        let mut arguments = self.operand.get_const_arguments();
+        arguments.extend(self.ty.get_const_arguments());
+        arguments
     }
 }
 

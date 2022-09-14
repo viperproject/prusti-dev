@@ -3,10 +3,13 @@ use self::{
     predicates::PredicatesLowererState, variables::VariablesLowererState,
 };
 use super::{
+    addresses::AddressState,
     adts::AdtsState,
     builtin_methods::BuiltinMethodsState,
     compute_address::ComputeAddressState,
+    heap::HeapState,
     into_low::IntoLow,
+    labels::LabelsState,
     lifetimes::LifetimesState,
     places::PlacesState,
     predicates::{PredicatesMemoryBlockInterface, PredicatesOwnedInterface, PredicatesState},
@@ -19,7 +22,7 @@ use crate::encoder::{
 };
 use prusti_rustc_interface::hir::def_id::DefId;
 use rustc_hash::{FxHashMap, FxHashSet};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use vir_crate::{
     common::{cfg::Cfg, check_mode::CheckMode, graphviz::ToGraphviz},
     low::{self as vir_low, operations::ty::Typed},
@@ -102,6 +105,9 @@ pub(super) struct Lowerer<'p, 'v: 'p, 'tcx: 'v> {
     pub(super) adts_state: AdtsState,
     pub(super) lifetimes_state: LifetimesState,
     pub(super) places_state: PlacesState,
+    pub(super) heap_state: HeapState,
+    pub(super) address_state: AddressState,
+    pub(super) labels_state: LabelsState,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
@@ -123,6 +129,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
             adts_state: Default::default(),
             lifetimes_state: Default::default(),
             places_state: Default::default(),
+            heap_state: Default::default(),
+            address_state: Default::default(),
+            labels_state: Default::default(),
         }
     }
 
@@ -197,7 +206,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
             });
         }
         let mut removed_functions = FxHashSet::default();
-        if procedure.check_mode == CheckMode::Specifications {
+        if procedure.check_mode == CheckMode::PurificationFunctional {
             removed_functions.insert(self.encode_memory_block_bytes_function_name()?);
         }
         let mut predicates = self.collect_owned_predicate_decls()?;
@@ -211,11 +220,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
         let mut lowered_procedure = vir_low::ProcedureDecl {
             name: procedure.name,
             locals: self.variables_state.destruct(),
+            custom_labels: self.labels_state.destruct(),
             basic_blocks,
         };
         let mut methods = self.methods_state.destruct();
         let mut functions = self.functions_state.destruct();
-        if procedure.check_mode == CheckMode::Specifications {
+        if procedure.check_mode == CheckMode::PurificationFunctional {
+            removed_functions.extend(
+                functions
+                    .iter()
+                    .filter(|function| function.kind == vir_low::FunctionKind::Snap)
+                    .map(|function| function.name.clone()),
+            );
             super::transformations::remove_predicates::remove_predicates(
                 &mut lowered_procedure,
                 &mut methods,

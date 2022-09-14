@@ -11,8 +11,11 @@ pub enum Predicate {
     MemoryBlockStack(MemoryBlockStack),
     MemoryBlockStackDrop(MemoryBlockStackDrop),
     MemoryBlockHeap(MemoryBlockHeap),
+    MemoryBlockHeapRange(MemoryBlockHeapRange),
     MemoryBlockHeapDrop(MemoryBlockHeapDrop),
     OwnedNonAliased(OwnedNonAliased),
+    OwnedRange(OwnedRange),
+    OwnedSet(OwnedSet),
 }
 
 #[display(fmt = "acc(LifetimeToken({}), {})", lifetime, permission)]
@@ -60,6 +63,21 @@ pub struct MemoryBlockHeap {
     pub position: Position,
 }
 
+#[display(
+    fmt = "MemoryBlockHeapRange({}, {}, {}, {})",
+    address,
+    size,
+    start_index,
+    end_index
+)]
+pub struct MemoryBlockHeapRange {
+    pub address: Expression,
+    pub size: Expression,
+    pub start_index: Expression,
+    pub end_index: Expression,
+    pub position: Position,
+}
+
 /// A permission to deallocate a (precisely) matching `MemoryBlockHeap`.
 #[display(fmt = "MemoryBlockHeapDrop({}, {})", address, size)]
 pub struct MemoryBlockHeapDrop {
@@ -72,5 +90,22 @@ pub struct MemoryBlockHeapDrop {
 #[display(fmt = "OwnedNonAliased({})", place)]
 pub struct OwnedNonAliased {
     pub place: Expression,
+    pub position: Position,
+}
+
+/// A range of owned predicates of a specific type. `start_index` is inclusive
+/// and `end_index` is exclusive.
+#[display(fmt = "OwnedRange({}, {}, {})", address, start_index, end_index)]
+pub struct OwnedRange {
+    pub address: Expression,
+    pub start_index: Expression,
+    pub end_index: Expression,
+    pub position: Position,
+}
+
+/// A set of owned predicates of a specific type.
+#[display(fmt = "OwnedSet({})", set)]
+pub struct OwnedSet {
+    pub set: Expression,
     pub position: Position,
 }

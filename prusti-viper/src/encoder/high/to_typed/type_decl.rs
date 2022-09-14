@@ -54,11 +54,13 @@ impl<'v, 'tcx> HighToTypedTypeDeclLowerer for crate::encoder::Encoder<'v, 'tcx> 
             self.generate_tuple_name(&arguments)?,
             decl.lifetimes.high_to_typed_type(self)?,
             decl.const_parameters.high_to_typed_expression(self)?,
+            None,
             arguments
                 .into_iter()
                 .enumerate()
                 .map(|(index, ty)| vir_typed::FieldDecl::new(format!("tuple_{}", index), index, ty))
                 .collect(),
+            Default::default(),
         ))
     }
 
@@ -130,5 +132,12 @@ impl<'v, 'tcx> HighToTypedTypeDeclLowerer for crate::encoder::Encoder<'v, 'tcx> 
             discriminant_values: decl.discriminant_values,
             variants: decl.variants.high_to_typed_type_decl(self)?,
         })
+    }
+
+    fn high_to_typed_type_decl_position(
+        &mut self,
+        position: vir_high::Position,
+    ) -> Result<vir_typed::Position, Self::Error> {
+        Ok(position)
     }
 }

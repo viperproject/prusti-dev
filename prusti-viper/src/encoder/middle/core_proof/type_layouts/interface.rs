@@ -3,7 +3,9 @@ use crate::encoder::{
     high::{type_layouts::HighTypeLayoutsEncoderInterface, types::HighTypeEncoderInterface},
     middle::core_proof::{
         lowerer::Lowerer,
-        snapshots::{IntoBuiltinMethodSnapshot, IntoProcedureSnapshot, IntoSnapshot},
+        snapshots::{
+            IntoBuiltinMethodSnapshot, IntoProcedureSnapshot, IntoSnapshot, SnapshotValuesInterface,
+        },
     },
 };
 use vir_crate::{
@@ -22,6 +24,14 @@ pub(in super::super) trait TypeLayoutsInterface {
         &mut self,
         ty: &vir_mid::Type,
         generics: &impl WithConstArguments,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
+    /// The size multiplied by `repetitions`.
+    fn encode_type_size_expression_repetitions(
+        &mut self,
+        ty: &vir_mid::Type,
+        generics: &impl WithConstArguments,
+        repetitions: vir_low::Expression,
+        position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression>;
     fn encode_type_padding_size_expression(
         &mut self,
@@ -56,6 +66,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypeLayoutsInterface for Lowerer<'p, 'v, 'tcx> {
             size_type,
         );
         size.to_builtin_method_snapshot(self)
+    }
+    fn encode_type_size_expression_repetitions(
+        &mut self,
+        ty: &vir_mid::Type,
+        generics: &impl WithConstArguments,
+        repetitions: vir_low::Expression,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let size = self.encode_type_size_expression2(ty, generics)?;
+        let size_type = self.size_type_mid()?;
+        self.construct_binary_op_snapshot(
+            vir_mid::BinaryOpKind::Mul,
+            &size_type,
+            &size_type,
+            repetitions,
+            size,
+            position,
+        )
     }
     fn encode_type_padding_size_expression(
         &mut self,

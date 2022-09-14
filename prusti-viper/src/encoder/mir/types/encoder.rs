@@ -6,9 +6,10 @@
 
 use super::{helpers::compute_discriminant_values, interface::MirTypeEncoderInterface};
 use crate::encoder::{
-    errors::{EncodingResult, SpannedEncodingError, SpannedEncodingResult, WithSpan},
+    errors::{EncodingResult, ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     mir::{
-        constants::ConstantsEncoderInterface, generics::MirGenericsEncoderInterface,
+        constants::ConstantsEncoderInterface, errors::ErrorInterface,
+        generics::MirGenericsEncoderInterface, pure::SpecificationEncoderInterface,
         specifications::SpecificationsInterface, types::helpers::compute_discriminant_ranges,
     },
     Encoder,
@@ -62,10 +63,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         self.encoder.compute_array_len(size)
     }
 
-    pub fn encode_type(
-        self,
-        const_arguments: &[vir::Expression],
-    ) -> SpannedEncodingResult<vir::Type> {
+    pub fn encode_type(self) -> SpannedEncodingResult<vir::Type> {
         debug!("Encode type '{:?}'", self.ty);
         // self.encode_polymorphic_predicate_use()
         let lifetimes = self.encoder.get_lifetimes_from_type_high(self.ty)?;
@@ -190,22 +188,26 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             ty::TyKind::Str => vir::Type::Str,
 
             ty::TyKind::Array(elem_ty, size) => {
-                let (array_len, tail): (_, &[vir::Expression]) =
-                    if let Some((array_len, tail)) = const_arguments.split_first() {
-                        (array_len.clone(), tail)
-                    } else {
-                        let array_len: usize = self
-                            .compute_array_len(*size)
-                            .with_span(self.get_definition_span())?
-                            .try_into()
-                            .unwrap();
-                        (array_len.into(), &[])
-                    };
+                // let (array_len, tail): (_, &[vir::Expression]) =
+                //     if let Some((array_len, tail)) = const_arguments.split_first() {
+                //         (array_len.clone(), tail)
+                //     } else {
+                //         let array_len: usize = self
+                //             .compute_array_len(*size)
+                //             .with_span(self.get_definition_span())?
+                //             .try_into()
+                //             .unwrap();
+                //         (array_len.into(), &[])
+                //     };
+                let array_len: usize = self
+                    .compute_array_len(*size)
+                    .with_span(self.get_definition_span())?
+                    .try_into()
+                    .unwrap();
                 let lifetimes = self.encoder.get_lifetimes_from_type_high(*elem_ty)?;
                 vir::Type::array(
-                    vir::ty::ConstGenericArgument::new(Some(Box::new(array_len))),
-                    self.encoder
-                        .encode_type_high_with_const_arguments(*elem_ty, tail)?,
+                    vir::ty::ConstGenericArgument::new(Some(Box::new(array_len.into()))),
+                    self.encoder.encode_type_high(*elem_ty)?,
                     lifetimes,
                 )
             }
@@ -337,7 +339,11 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    pub fn encode_type_def_high(self) -> SpannedEncodingResult<vir::TypeDecl> {
+    pub fn encode_type_def_high(
+        self,
+        ty: &vir::Type,
+        with_invariant: bool,
+    ) -> SpannedEncodingResult<vir::TypeDecl> {
         debug!("Encode type predicate '{:?}'", self.ty);
         let type_decl = match self.ty.kind() {
             ty::TyKind::Bool => vir::TypeDecl::bool(),
@@ -441,7 +447,9 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     }),
                     "prusti_contracts::Ghost" => {
                         if let ty::subst::GenericArgKind::Type(ty) = substs[0].unpack() {
-                            Self::new(self.encoder, ty).encode_type_def_high()?
+                            let encoded_type = Self::new(self.encoder, ty).encode_type()?;
+                            Self::new(self.encoder, ty)
+                                .encode_type_def_high(&encoded_type, with_invariant)?
                         } else {
                             unreachable!("no type parameter given for Ghost<T>")
                         }
@@ -461,7 +469,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 )
             }
             ty::TyKind::Adt(adt_def, substs) => {
-                encode_adt_def(self.encoder, *adt_def, substs, None)?
+                encode_adt_def(self.encoder, ty, *adt_def, substs, None, with_invariant)?
             }
             ty::TyKind::Never => vir::TypeDecl::never(),
             ty::TyKind::Param(param_ty) => {
@@ -695,6 +703,8 @@ fn encode_variant<'v, 'tcx: 'v>(
     name: String,
     substs: ty::subst::SubstsRef<'tcx>,
     variant: &ty::VariantDef,
+    mut structural_invariant: Option<Vec<vir::Expression>>,
+    def_id: Option<DefId>,
 ) -> SpannedEncodingResult<vir::type_decl::Struct> {
     let tcx = encoder.env().tcx();
     let mut fields = Vec::new();
@@ -707,18 +717,87 @@ fn encode_variant<'v, 'tcx: 'v>(
     }
     let lifetimes = encoder.get_lifetimes_from_substs(substs)?;
     let const_parameters = encoder.get_const_parameters_from_substs(substs)?;
-    let variant = vir::type_decl::Struct::new(name, lifetimes, const_parameters, fields);
+    let position = if let Some(def_id) = def_id {
+        let span = encoder.env().query.get_def_span(def_id);
+        let position = encoder
+            .error_manager()
+            .register_error(span, ErrorCtxt::TypeInvariantDefinition, def_id)
+            .into();
+        if let Some(structural_invariant) = &mut structural_invariant {
+            for expression in std::mem::take(structural_invariant) {
+                structural_invariant.push(encoder.set_surrounding_error_context_for_expression(
+                    expression,
+                    position,
+                    ErrorCtxt::TypeInvariantDefinition,
+                ));
+            }
+        }
+        position
+    } else {
+        Default::default()
+    };
+    let variant = vir::type_decl::Struct::new_with_pos(
+        name,
+        lifetimes,
+        const_parameters,
+        structural_invariant,
+        fields,
+        position,
+    );
     Ok(variant)
 }
 
+fn encode_structural_invariant<'v, 'tcx: 'v>(
+    encoder: &Encoder<'v, 'tcx>,
+    ty: &vir::Type,
+    substs: ty::subst::SubstsRef<'tcx>,
+    did: DefId,
+) -> SpannedEncodingResult<Option<Vec<vir::Expression>>> {
+    let invariant = if let Some(specs) = encoder.get_type_specs(did) {
+        match &specs.structural_invariant {
+            prusti_interface::specs::typed::SpecificationItem::Empty => None,
+            prusti_interface::specs::typed::SpecificationItem::Inherent(invs) => {
+                Some(
+                    invs.iter()
+                        .map(|inherent_def_id| {
+                            encoder.encode_assertion_high(
+                                *inherent_def_id,
+                                None,
+                                &[vir::Expression::self_variable(ty.clone())],
+                                None,
+                                // true,
+                                *inherent_def_id,
+                                substs,
+                            )
+                        })
+                        .collect::<Result<Vec<_>, _>>()?,
+                )
+            }
+            _ => todo!(),
+            // TODO(inv): handle invariant inheritance
+        }
+    } else {
+        None
+    };
+    Ok(invariant)
+}
+
+/// `with_invariant` is used to break infinite recursion.
 pub(super) fn encode_adt_def<'v, 'tcx>(
     encoder: &Encoder<'v, 'tcx>,
+    ty: &vir::Type,
     adt_def: ty::AdtDef<'tcx>,
     substs: ty::subst::SubstsRef<'tcx>,
     variant_index: Option<prusti_rustc_interface::target::abi::VariantIdx>,
+    with_invariant: bool,
 ) -> SpannedEncodingResult<vir::TypeDecl> {
     let lifetimes = encoder.get_lifetimes_from_substs(substs)?;
     let const_parameters = encoder.get_const_parameters_from_substs(substs)?;
+    let structural_invariant = if with_invariant {
+        encode_structural_invariant(encoder, ty, substs, adt_def.did())?
+    } else {
+        None
+    };
     let tcx = encoder.env().tcx();
     if adt_def.is_box() {
         debug!("ADT {:?} is a box", adt_def);
@@ -729,7 +808,9 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
             encode_box_name(),
             lifetimes,
             const_parameters,
+            structural_invariant,
             vec![field],
+            Default::default(),
         ))
     } else if adt_def.is_struct() {
         debug!("ADT {:?} is a struct", adt_def);
@@ -737,10 +818,21 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
         let name = encode_struct_name(encoder, adt_def.did());
         let variant = adt_def.non_enum_variant();
         Ok(vir::TypeDecl::Struct(encode_variant(
-            encoder, name, substs, variant,
+            encoder,
+            name,
+            substs,
+            variant,
+            structural_invariant,
+            Some(adt_def.did()),
         )?))
     } else if adt_def.is_union() {
         debug!("ADT {:?} is a union", adt_def);
+        if structural_invariant.is_some() {
+            return Err(SpannedEncodingError::unsupported(
+                "Structural invariants are not supported on unions",
+                encoder.env().query.get_def_span(adt_def.did()),
+            ));
+        }
         if !config::unsafe_core_proof() {
             return Err(SpannedEncodingError::unsupported(
                 "unions are not supported",
@@ -764,6 +856,7 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
                 field_name,
                 lifetimes.clone(),
                 const_parameters.clone(),
+                None,
                 vec![encoded_field],
             );
             variants.push(variant);
@@ -780,6 +873,12 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
         ))
     } else if adt_def.is_enum() {
         debug!("ADT {:?} is an enum", adt_def);
+        if structural_invariant.is_some() {
+            return Err(SpannedEncodingError::unsupported(
+                "Structural invariants are not supported on enums",
+                encoder.env().query.get_def_span(adt_def.did()),
+            ));
+        }
         let name = encode_enum_name(encoder, adt_def.did());
         let num_variants = adt_def.variants().len();
         debug!("ADT {:?} is enum with {} variants", adt_def, num_variants);
@@ -787,7 +886,14 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
             // FIXME: Currently fold-unfold assumes that everything that
             // has only a single variant is a struct.
             let variant = &adt_def.variants()[0usize.into()];
-            vir::TypeDecl::Struct(encode_variant(encoder, name, substs, variant)?)
+            vir::TypeDecl::Struct(encode_variant(
+                encoder,
+                name,
+                substs,
+                variant,
+                None,
+                Default::default(),
+            )?)
         } else if let Some(_variant_index) = variant_index {
             // let variant = &adt_def.variants()[variant_index];
             // vir::TypeDecl::Struct(encode_variant(encoder, name, substs, variant)?)
@@ -800,7 +906,8 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
             let mut variants = Vec::new();
             for variant in adt_def.variants() {
                 let name = variant.ident(tcx).to_string();
-                let encoded_variant = encode_variant(encoder, name, substs, variant)?;
+                let encoded_variant =
+                    encode_variant(encoder, name, substs, variant, None, Default::default())?;
                 variants.push(encoded_variant);
             }
             let mir_discriminant_type = match adt_def.repr().discr_type() {
