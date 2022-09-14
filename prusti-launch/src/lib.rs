@@ -298,13 +298,15 @@ pub fn set_java_home_setting(cmd: &mut Command, java_home: &Path) {
     cmd.env("PRUSTI_JAVA_HOME", java_home);
 }
 
-/// Checks if the current crate has a dependency on `prusti-contracts`
+/// Checks if the current crate has a (transitive) dependency on `prusti-contracts`
+/// and if that should lead to enabling the `prusti` feature when running cargo.
+/// Will panic if there is a transitive dependency but not a direct one; in such a
+/// case it wouldn't be possible to enable the feature.
 pub fn enable_prusti_feature(cargo_path: &str) -> bool {
     let out = Command::new(cargo_path)
         .args(["tree", "--prefix", "depth", "-f", " [{f}] {p}"])
         .output()
         .unwrap_or_else(|_| panic!("Failed to run '{cargo_path} tree'"));
-    println!("Got:\n{}", String::from_utf8_lossy(&out.stdout));
     // Expected stdout:
     // (error if line "2+ [] prusti-contracts " appears but no "0/1 [] prusti-contracts " line does):
     // 0 [] current-crate v0.1.0 (...)
@@ -336,6 +338,8 @@ fn classify_line(line: &str) -> Option<u32> {
     let cname = line.next()?;
     // We want to allow having crates which enable the `prusti` feature, thus anything that
     // depends on them need not add `prusti-contracts` as a direct dependency.
-    if cname != "prusti-contracts" || feats != "[]" { return None; }
+    if cname != "prusti-contracts" || feats != "[]" {
+        return None;
+    }
     depth.parse().ok()
 }
