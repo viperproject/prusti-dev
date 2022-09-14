@@ -120,7 +120,10 @@ fn main() {
     let prusti_be_rustc = config::be_rustc();
     // This environment variable will not be set when building dependencies.
     let is_primary_package = env::var("CARGO_PRIMARY_PACKAGE").is_ok();
-    let is_no_verify_crate = !is_primary_package && config::no_verify_deps();
+    // Prusti lib crates have `#[extern_spec]` annotations which require "register_tool(prusti)"
+    // TODO: if `is_no_verify_crate` somehow run `driver::main()` with "-Zcrate-attr=register_tool(prusti)"
+    let is_no_verify_crate =
+        !is_primary_package && config::no_verify_deps() && !config::is_prusti_lib_crate();
     let are_lints_disabled =
         arg_value(&original_rustc_args, "--cap-lints", |val| val == "allow").is_some();
     let is_prusti_package = config::is_prusti_helper_crate();

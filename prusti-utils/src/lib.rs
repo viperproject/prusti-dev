@@ -6,8 +6,13 @@
 
 #![feature(box_patterns)]
 #![feature(box_syntax)]
-
 #![deny(unused_must_use)]
 
-pub mod vir;
-pub use prusti_utils::*;
+pub mod config;
+pub mod launch;
+pub mod report;
+mod stopwatch;
+pub mod utils;
+
+pub use prusti_utils_small::*;
+pub use stopwatch::Stopwatch;

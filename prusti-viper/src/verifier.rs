@@ -406,7 +406,7 @@ fn verify_programs(env: &Environment, programs: Vec<Program>)
             config::verify_specifications_backend()
         } else {
             config::viper_backend()
-        };
+        }.parse().unwrap();
         let request = VerificationRequest {
             program,
             backend_config: ViperBackendConfig::new(backend),

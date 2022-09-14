@@ -129,7 +129,7 @@ pub fn get_rust_toolchain_channel() -> String {
         components: Option<Vec<String>>,
     }
 
-    let content = include_str!("../../rust-toolchain");
+    let content = include_str!("../../../rust-toolchain");
     // Be ready to accept TOML format
     // See: https://github.com/rust-lang/rustup/pull/2438
     if content.starts_with("[toolchain]") {

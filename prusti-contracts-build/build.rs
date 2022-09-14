@@ -99,7 +99,8 @@ fn check_exes_modified(target: &std::path::Path, modified: &str) -> std::io::Res
     let contents = std::fs::read_to_string(target.join("build_info.txt"))?;
     if contents != modified {
         let files = std::fs::read_dir(target.join("release").join("deps"))?;
-        let libs = prusti_launch::PRUSTI_LIBS.map(|lib| format!("lib{}-", lib.replace('-', "_")));
+        let libs =
+            prusti_utils::launch::PRUSTI_LIBS.map(|lib| format!("lib{}-", lib.replace('-', "_")));
         for file in files {
             let file = file.unwrap();
             let filename = file.file_name();

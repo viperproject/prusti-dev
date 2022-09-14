@@ -8,9 +8,9 @@
 pub mod commandline;
 
 use self::commandline::CommandLine;
+use crate::launch::{find_viper_home, get_current_executable_dir, PRUSTI_HELPERS, PRUSTI_LIBS};
 use ::config::{Config, Environment, File};
 use log::warn;
-use prusti_launch::{get_current_executable_dir, find_viper_home, PRUSTI_HELPERS, PRUSTI_LIBS};
 use serde::Deserialize;
 use std::{collections::HashSet, env, path::PathBuf, sync::RwLock};
 
@@ -240,7 +240,10 @@ pub fn get_filtered_args() -> Vec<String> {
 pub fn dump() -> String {
     let settings = SETTINGS.read().unwrap();
     let map = config::Source::collect(&*settings).unwrap();
-    let mut pairs: Vec<_> = map.iter().map(|(key, value)| format!("{}={:#?}", key, value)).collect();
+    let mut pairs: Vec<_> = map
+        .iter()
+        .map(|(key, value)| format!("{}={:#?}", key, value))
+        .collect();
     pairs.sort();
     pairs.join("\n\n")
 }
@@ -256,7 +259,11 @@ fn read_setting<T>(name: &'static str) -> T
 where
     T: Deserialize<'static>,
 {
-    SETTINGS.read().unwrap().get(name).unwrap_or_else(|e| panic!("Failed to read setting {} due to {}", name, e))
+    SETTINGS
+        .read()
+        .unwrap()
+        .get(name)
+        .unwrap_or_else(|e| panic!("Failed to read setting {} due to {}", name, e))
 }
 
 // The following methods are all convenience wrappers for the actual call to
@@ -281,12 +288,11 @@ pub fn check_foldunfold_state() -> bool {
 ///   [Carbon](https://github.com/viperproject/carbon).
 /// - `Silicon` - symbolic-execution-based backend
 ///   [Silicon](https://github.com/viperproject/silicon/).
-pub fn viper_backend() -> viper::VerificationBackend {
-    let verification_backend_name = read_setting::<String>("viper_backend")
+pub fn viper_backend() -> String {
+    read_setting::<String>("viper_backend")
         .to_lowercase()
         .trim()
-        .to_string();
-    <viper::VerificationBackend as std::str::FromStr>::from_str(&verification_backend_name).unwrap()
+        .to_string()
 }
 
 /// The path to the SMT solver to use. `prusti-rustc` is expected to set this
@@ -666,7 +672,9 @@ pub fn enable_purification_optimization() -> bool {
 /// be used for tests that aim to catch performance regressions.
 pub fn verification_deadline() -> Option<u64> {
     read_setting::<Option<i64>>("verification_deadline").map(|value| {
-        value.try_into().expect("verification_deadline must be a valid u64")
+        value
+            .try_into()
+            .expect("verification_deadline must be a valid u64")
     })
 }
 
@@ -677,20 +685,26 @@ pub fn use_smt_wrapper() -> bool {
     read_setting("use_smt_wrapper")
 }
 
-fn read_smt_wrapper_dependent_bool(name: &'static str) -> bool
-{
+fn read_smt_wrapper_dependent_bool(name: &'static str) -> bool {
     let value = read_setting(name);
     if value {
-        assert!(use_smt_wrapper(), "use_smt_wrapper must be true to use {}", name);
+        assert!(
+            use_smt_wrapper(),
+            "use_smt_wrapper must be true to use {}",
+            name
+        );
     }
     value
 }
 
-fn read_smt_wrapper_dependent_option(name: &'static str) -> Option<u64>
-{
+fn read_smt_wrapper_dependent_option(name: &'static str) -> Option<u64> {
     let value: Option<u64> = read_setting(name);
     if value.is_some() {
-        assert!(use_smt_wrapper(), "use_smt_wrapper must be true to use {}", name);
+        assert!(
+            use_smt_wrapper(),
+            "use_smt_wrapper must be true to use {}",
+            name
+        );
     }
     value
 }
@@ -816,12 +830,11 @@ pub fn verify_specifications_with_core_proof() -> bool {
 }
 
 /// Verification backend to use for functional specification only.
-pub fn verify_specifications_backend() -> viper::VerificationBackend {
-    let verification_backend_name = read_setting::<String>("verify_specifications_backend")
+pub fn verify_specifications_backend() -> String {
+    read_setting::<String>("verify_specifications_backend")
         .to_lowercase()
         .trim()
-        .to_string();
-    <viper::VerificationBackend as std::str::FromStr>::from_str(&verification_backend_name).unwrap()
+        .to_string()
 }
 
 /// Whether to generate `eval_axiom`.

@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_launch::{enable_prusti_feature, get_rust_toolchain_channel};
+use prusti_utils::{config, launch};
 use std::{env, fs, io, path::PathBuf, process::Command};
 
 fn main() {
@@ -34,7 +34,7 @@ where
         PathBuf::from(env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string()));
     cargo_target.push("verify");
     let command = env::var("CARGO_PRUSTI_COMMAND").unwrap_or_else(|_| "check".to_string());
-    let features = if enable_prusti_feature(&cargo_path) {
+    let features = if launch::enable_prusti_feature(&cargo_path) && !config::be_rustc() {
         ["--features", "prusti-contracts/prusti"].iter()
     } else {
         [].iter()
@@ -43,8 +43,9 @@ where
         .arg(&command)
         .args(args)
         .args(features)
-        .env("RUST_TOOLCHAIN", get_rust_toolchain_channel())
+        .env("RUST_TOOLCHAIN", launch::get_rust_toolchain_channel())
         .env("RUSTC_WRAPPER", prusti_rustc_path)
+        .env("DEFAULT_PRUSTI_BE_RUSTC", config::be_rustc().to_string())
         .env("DEFAULT_PRUSTI_QUIET", "true")
         .env("DEFAULT_PRUSTI_FULL_COMPILATION", "true")
         .env("DEFAULT_PRUSTI_LOG_DIR", cargo_target.join("log"))

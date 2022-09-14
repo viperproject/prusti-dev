@@ -37,7 +37,7 @@ use crate::{
 };
 pub use extern_spec_rewriter::ExternSpecKind;
 use parse_closure_macro::ClosureWithSpec;
-use prusti_utils::force_matches;
+use prusti_utils_small::force_matches;
 pub use spec_attribute_kind::SpecAttributeKind;
 use specifications::{common::SpecificationId, untyped};
 

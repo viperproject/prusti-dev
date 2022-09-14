@@ -61,7 +61,7 @@ where
 
     let request = VerificationRequest {
         program: prusti_common::vir::program::Program::Legacy(program),
-        backend_config: ViperBackendConfig::new(prusti_common::config::viper_backend()),
+        backend_config: ViperBackendConfig::new(prusti_common::config::viper_backend().parse().unwrap()),
     };
 
     Builder::new_current_thread()
