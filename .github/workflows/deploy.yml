@@ -15,6 +15,10 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest, windows-latest, macos-latest]
+        target: [ default ]
+        include:
+          - target: aarch64-apple-darwin
+          - os: macos-latest
       fail-fast: false
     runs-on: ${{ matrix.os }}
     steps:
@@ -30,13 +34,22 @@ jobs:
       - name: Set up the environment
         run: python x.py setup
       - name: Build with cargo --release
-        run: python x.py build --release --all --verbose
+        run: python x.py build --release --all --verbose --target ${{ matrix.target }}
       - name: Run cargo tests --release
         run: python x.py test --release --all --verbose
+        if: ${{ matrix.target != 'aarch64-apple-darwin' }}
+      - name: Set artifact name
+        run: |
+          echo "artifact_name=prusti-release-${{ matrix.os }}" >> $GITHUB_ENV
+        if: ${{ matrix.target != 'aarch64-apple-darwin' }}
+      - name: Set artifact name
+        run: |
+          echo "artifact_name=prusti-release-macos-aarch64" >> $GITHUB_ENV
+        if: ${{ matrix.target == 'aarch64-apple-darwin' }}
       - name: Upload Prusti artifact
         uses: actions/upload-artifact@v3
         with:
-          name: prusti-release-${{ matrix.os }}
+          name: prusti-release-${{ env.artifact_name }}
           if-no-files-found: error
           path: |
             rust-toolchain
