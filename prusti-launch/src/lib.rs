@@ -14,10 +14,8 @@ use nix::{
 use serde::Deserialize;
 use std::{
     env,
-    io::{Read, Write},
     path::{Path, PathBuf},
-    process::{Command, Output, Stdio},
-    thread,
+    process::Command,
 };
 
 pub const PRUSTI_HELPERS: [&str; 4] = [
@@ -300,57 +298,44 @@ pub fn set_java_home_setting(cmd: &mut Command, java_home: &Path) {
     cmd.env("PRUSTI_JAVA_HOME", java_home);
 }
 
-/// Required for when running with our tee, otherwise cargo would detect
-/// that the pipe doesn't lead to a terminal and stop printing colors
-pub fn set_cargo_terminal_options(cmd: &mut Command) {
-    // Checks if stdout is a terminal and gets the width
-    // Not ideal since this gets the stdout and not stderr size
-    if let Some((w, _)) = terminal_size::terminal_size() {
-        // The `--color` flag will overpower the env variable so no need to check for it
-        if std::env::var_os("CARGO_TERM_COLOR").is_none() {
-            cmd.env("CARGO_TERM_COLOR", "always");
+/// Checks if the current crate has a dependency on `prusti-contracts`
+pub fn enable_prusti_feature(cargo_path: &str) -> bool {
+    let out = Command::new(cargo_path)
+        .args(["tree", "--prefix", "depth", "-f", " [{f}] {p}"])
+        .output()
+        .unwrap_or_else(|_| panic!("Failed to run '{cargo_path} tree'"));
+    println!("Got:\n{}", String::from_utf8_lossy(&out.stdout));
+    // Expected stdout:
+    // (error if line "2+ [] prusti-contracts " appears but no "0/1 [] prusti-contracts " line does):
+    // 0 [] current-crate v0.1.0 (...)
+    // 1 [] dependency-crate v0.1.0 (...)
+    // 2 [] prusti-contracts v0.1.0 (...)
+    // 1 [] prusti-contracts v0.1.0 (...) (*)
+    if out.status.success() {
+        let (mut has_direct_dep, mut has_indirect_dep) = (false, false);
+        for line in String::from_utf8_lossy(&out.stdout).lines() {
+            if let Some(depth) = classify_line(line) {
+                has_direct_dep |= depth <= 1;
+                has_indirect_dep |= depth > 1;
+            }
         }
-        if std::env::var_os("CARGO_TERM_PROGRESS_WHEN").is_none() {
-            cmd.env("CARGO_TERM_PROGRESS_WHEN", "always");
-        }
-        if std::env::var_os("CARGO_TERM_PROGRESS_WIDTH").is_none() {
-            cmd.env("CARGO_TERM_PROGRESS_WIDTH", w.0.to_string());
-        }
+        assert!(has_direct_dep || !has_indirect_dep, "\n\nPrusti requires that the crate `prusti-contracts` is \
+        included as a direct dependency of the current crate, so that it can enable the required features.\n\
+        Please change the `[dependencies]` section of your `Cargo.toml` to include `prusti-contracts = ...`\n\n");
+        has_direct_dep
+    } else {
+        // There is no dependency on `prusti-contracts`
+        false
     }
 }
 
-/// Runs a command with stdout and stderr forwarded (i.e. as if with `Stdio::inherit()`)
-/// But also captures and returns the data (i.e. as if with `Stdio::piped()`).
-/// Taken from: https://stackoverflow.com/a/72862682
-pub fn run_command_tee(cmd: &mut Command) -> std::io::Result<Output> {
-    let mut child = cmd.stdout(Stdio::piped()).stderr(Stdio::piped()).spawn()?;
-
-    fn communicate(mut stream: impl Read, mut output: impl Write) -> std::io::Result<Vec<u8>> {
-        let mut data = Vec::new();
-        let mut buf = [0u8; 1024];
-        loop {
-            let num_read = stream.read(&mut buf)?;
-            if num_read == 0 {
-                break;
-            }
-            let buf = &buf[..num_read];
-            output.write_all(buf)?;
-            data.extend(buf);
-        }
-        Ok(data)
-    }
-
-    let child_out = child.stdout.take().expect("cannot attach to child stdout");
-    let child_err = child.stderr.take().expect("cannot attach to child stderr");
-
-    let thread_out = thread::spawn(move || communicate(child_out, std::io::stdout()));
-    let thread_err = thread::spawn(move || communicate(child_err, std::io::stderr()));
-    let status = child.wait()?;
-    let stdout = thread_out.join().unwrap()?;
-    let stderr = thread_err.join().unwrap()?;
-    Ok(Output {
-        status,
-        stdout,
-        stderr,
-    })
+fn classify_line(line: &str) -> Option<u32> {
+    let mut line = line.split(' ');
+    let depth = line.next()?;
+    let feats = line.next()?;
+    let cname = line.next()?;
+    // We want to allow having crates which enable the `prusti` feature, thus anything that
+    // depends on them need not add `prusti-contracts` as a direct dependency.
+    if cname != "prusti-contracts" || feats != "[]" { return None; }
+    depth.parse().ok()
 }
