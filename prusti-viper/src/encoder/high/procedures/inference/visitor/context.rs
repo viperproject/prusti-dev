@@ -17,17 +17,22 @@ impl<'p, 'v, 'tcx> super::super::ensurer::Context for Visitor<'p, 'v, 'tcx> {
         guiding_place: &vir_typed::Expression,
     ) -> SpannedEncodingResult<Vec<(ExpandedPermissionKind, vir_typed::Expression)>> {
         let ty = place.get_type();
-        let type_decl = self.encoder.encode_type_def_typed(ty)?;
+        // FIXME: For expansion we should use not the TypeDef const generic and
+        // lifetime variables, but concrete values from `ty`. However, for this
+        // it seams we need to use Rust compiler's `SubstsRef` design, which
+        // means one more refactoring…
+        let normalized_type = ty.normalize_type();
+        let type_decl = self.encoder.encode_type_def_typed(&normalized_type)?;
         fn expand_fields<'a>(
             place: &vir_typed::Expression,
-            fields: impl Iterator<Item = std::borrow::Cow<'a, vir_typed::FieldDecl>>,
+            fields: impl Iterator<Item = &'a vir_typed::FieldDecl>,
         ) -> Vec<(ExpandedPermissionKind, vir_typed::Expression)> {
             let places = fields
                 .map(|field| {
                     let position = place.position();
                     (
                         ExpandedPermissionKind::Same,
-                        vir_typed::Expression::field(place.clone(), field.into_owned(), position),
+                        vir_typed::Expression::field(place.clone(), field.clone(), position),
                     )
                 })
                 .collect::<Vec<_>>();
@@ -49,40 +54,60 @@ impl<'p, 'v, 'tcx> super::super::ensurer::Context for Visitor<'p, 'v, 'tcx> {
             }
             vir_typed::TypeDecl::Trusted(_) => unimplemented!("ty: {}", ty),
             vir_typed::TypeDecl::TypeVar(_) => unimplemented!("ty: {}", ty),
-            vir_typed::TypeDecl::Struct(decl) => expand_fields(place, decl.iter_fields()),
-            vir_typed::TypeDecl::Union(_) => {
-                let variant_name = place.get_variant_name(guiding_place);
-                let variant_place = place.clone().into_variant(variant_name.clone());
-                vec![(ExpandedPermissionKind::Same, variant_place)]
-            }
+            vir_typed::TypeDecl::Struct(decl) => expand_fields(place, decl.fields.iter()),
             vir_typed::TypeDecl::Enum(decl) => {
-                let discriminant_field = decl.discriminant_field();
                 let position = place.position();
-                let discriminant_place =
-                    vir_typed::Expression::field(place.clone(), discriminant_field, position);
                 let variant_name = place.get_variant_name(guiding_place);
                 let variant_place = place.clone().into_variant(variant_name.clone());
-                vec![
-                    (ExpandedPermissionKind::Same, discriminant_place),
-                    (ExpandedPermissionKind::Same, variant_place),
-                ]
+                let mut expansion = vec![(ExpandedPermissionKind::Same, variant_place)];
+                if decl.safety.is_enum() {
+                    let discriminant_field = decl.discriminant_field();
+                    let discriminant_place =
+                        vir_typed::Expression::field(place.clone(), discriminant_field, position);
+                    expansion.push((ExpandedPermissionKind::Same, discriminant_place));
+                }
+                expansion
             }
-            vir_typed::TypeDecl::Array(decl) => {
+            vir_typed::TypeDecl::Array(_decl) => {
                 // TODO: Instead of a concrete index use a wildcard that would match any index.
                 let index = place.get_index(guiding_place);
+                let element_type = match ty {
+                    vir_typed::Type::Array(vir_typed::ty::Array {
+                        box element_type, ..
+                    }) => element_type,
+                    vir_typed::Type::Slice(vir_typed::ty::Slice {
+                        box element_type, ..
+                    }) => element_type,
+                    _ => {
+                        unreachable!()
+                    }
+                };
                 let index_place = vir_typed::Expression::builtin_func_app(
                     vir_typed::BuiltinFunc::Index,
-                    vec![decl.element_type.clone()],
+                    vec![element_type.clone()],
                     vec![place.clone(), index.clone()],
-                    decl.element_type,
+                    element_type.clone(),
                     place.position(),
                 );
                 vec![(ExpandedPermissionKind::Same, index_place)]
             }
-            vir_typed::TypeDecl::Reference(decl) => {
+            vir_typed::TypeDecl::Reference(_decl) => {
+                let target_type = ty.clone().unwrap_reference().target_type;
                 let deref_place =
-                    vir_typed::Expression::deref(place.clone(), decl.target_type, place.position());
-                vec![(ExpandedPermissionKind::Same, deref_place)]
+                    vir_typed::Expression::deref(place.clone(), *target_type, place.position());
+                let address_place = vir_typed::Expression::field(
+                    place.clone(),
+                    vir_typed::FieldDecl::new(
+                        "address$",
+                        0usize,
+                        vir_typed::Type::Int(vir_typed::ty::Int::Usize),
+                    ),
+                    place.position(),
+                );
+                vec![
+                    (ExpandedPermissionKind::Same, deref_place),
+                    (ExpandedPermissionKind::Same, address_place),
+                ]
             }
             vir_typed::TypeDecl::Sequence(_) => unimplemented!("ty: {}", ty),
             vir_typed::TypeDecl::Map(_) => unimplemented!("ty: {}", ty),

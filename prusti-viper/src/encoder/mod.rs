@@ -31,6 +31,5 @@ mod high;
 mod typed;
 mod middle;
 mod purifier;
-pub mod counterexample;
-pub mod counterexample_translation;
+pub mod counterexamples;
 mod definition_collector;

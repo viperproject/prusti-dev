@@ -115,6 +115,7 @@ lazy_static::lazy_static! {
         settings.set_default("unsafe_core_proof", false).unwrap();
         settings.set_default("verify_core_proof", true).unwrap();
         settings.set_default("verify_specifications", true).unwrap();
+        settings.set_default("verify_types", false).unwrap();
         settings.set_default("verify_specifications_with_core_proof", false).unwrap();
         settings.set_default("verify_specifications_backend", "Silicon").unwrap();
         settings.set_default("use_eval_axioms", true).unwrap();
@@ -130,6 +131,7 @@ lazy_static::lazy_static! {
         settings.set_default("print_collected_verification_items", false).unwrap();
         settings.set_default("hide_uuids", false).unwrap();
         settings.set_default("counterexample", false).unwrap();
+        settings.set_default("print_counterexample_if_model_is_present", false).unwrap();
         settings.set_default("print_hash", false).unwrap();
         settings.set_default("enable_cache", true).unwrap();
         settings.set_default("enable_ghost_constraints", false).unwrap();
@@ -516,6 +518,12 @@ pub fn counterexample() -> bool {
     read_setting("counterexample")
 }
 
+/// When enabled, Prusti will print a counterexample for a model and its original
+/// type
+pub fn print_counterexample_if_model_is_present() -> bool {
+    read_setting("print_counterexample_if_model_is_present")
+}
+
 /// When enabled, prints the hash of a verification request (the hash is used
 /// for caching). This is a debugging option which does not perform
 /// verification -- it is similar to `NO_VERIFY`, except that this flag stops
@@ -788,6 +796,14 @@ pub fn verify_core_proof() -> bool {
 /// true.
 pub fn verify_specifications() -> bool {
     read_setting("verify_specifications")
+}
+
+/// Whether the types should be verified.
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof` is
+/// true.
+pub fn verify_types() -> bool {
+    read_setting("verify_types")
 }
 
 /// Whether when verifying functional specifications, the core proof should be

@@ -193,12 +193,15 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
         let (consumed_permissions, produced_permissions) =
             collect_permission_changes(self.encoder, &statement)?;
         debug!(
-            "lower_statement {}: {}",
+            "lower_statement {}: {} → {}",
             statement,
-            cjoin(&consumed_permissions)
+            cjoin(&consumed_permissions),
+            cjoin(&produced_permissions)
         );
+        state.check_consistency();
         let actions = ensure_required_permissions(self, state, consumed_permissions.clone())?;
         for action in actions {
+            debug!("  action: {}", action);
             let statement = match action {
                 Action::Unfold(FoldingActionState {
                     kind: PermissionKind::Owned,
@@ -314,6 +317,9 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
         state.remove_permissions(&consumed_permissions)?;
         state.insert_permissions(produced_permissions)?;
         match &statement {
+            vir_typed::Statement::ObtainMutRef(_) => {
+                // The requirements already performed the needed changes.
+            }
             vir_typed::Statement::LeakAll(vir_typed::LeakAll {}) => {
                 // FIXME: Instead of leaking, we should:
                 // 1. Unfold all Owned into MemoryBlock.
@@ -379,18 +385,12 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                     statement.position,
                 ));
         }
-        for PlaceWithDeadLifetimes {
-            place,
-            lifetimes_dead_before,
-            lifetimes_dead_after,
-        } in places_with_dead_lifetimes
-        {
+        for PlaceWithDeadLifetimes { place, lifetime } in places_with_dead_lifetimes {
             let place = place.typed_to_middle_expression(self.encoder)?;
             self.current_statements
                 .push(vir_mid::Statement::dead_lifetime(
                     place,
-                    lifetimes_dead_before,
-                    lifetimes_dead_after,
+                    lifetime.typed_to_middle_type(self.encoder)?,
                     condition.clone(),
                     statement.position,
                 ));

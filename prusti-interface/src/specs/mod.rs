@@ -1,23 +1,22 @@
+use crate::{
+    environment::Environment,
+    utils::{
+        has_abstract_predicate_attr, has_extern_spec_attr, has_prusti_attr, has_to_model_fn_attr,
+        read_prusti_attr, read_prusti_attrs,
+    },
+    PrustiError,
+};
+use log::debug;
 use prusti_rustc_interface::{
     ast::ast,
     errors::MultiSpan,
     hir::{
         def_id::{DefId, LocalDefId},
-        intravisit,
+        intravisit, FnRetTy,
     },
     middle::hir::map::Map,
     span::Span,
 };
-
-use crate::{
-    environment::Environment,
-    utils::{
-        has_abstract_predicate_attr, has_extern_spec_attr, has_prusti_attr, read_prusti_attr,
-        read_prusti_attrs,
-    },
-    PrustiError,
-};
-use log::debug;
 use std::{collections::HashMap, convert::TryInto, fmt::Debug};
 
 pub mod checker;
@@ -47,6 +46,8 @@ struct ProcedureSpecRefs {
 struct TypeSpecRefs {
     invariants: Vec<LocalDefId>,
     trusted: bool,
+    model: Option<(String, LocalDefId)>,
+    countexample_print: Vec<(Option<String>, LocalDefId)>,
 }
 
 /// Specification collector, intended to be applied as a visitor over the crate
@@ -96,7 +97,6 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         self.determine_prusti_assumptions(&mut def_spec);
         self.determine_ghost_begin_ends(&mut def_spec);
         // TODO: remove spec functions (make sure none are duplicated or left over)
-
         // Load all local spec MIR bodies, for export and later use
         self.ensure_local_mirs_fetched(&def_spec);
         def_spec
@@ -228,6 +228,8 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                             .collect(),
                     ),
                     trusted: SpecificationItem::Inherent(refs.trusted),
+                    model: refs.model.clone(),
+                    counterexample_print: refs.countexample_print.clone(),
                 },
             );
         }
@@ -423,6 +425,20 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
                     .trusted = true;
             }
 
+            //collect counterexamples type flag
+            if has_prusti_attr(attrs, "counterexample_print") {
+                let self_id = fn_decl.inputs[0].hir_id;
+                let name = read_prusti_attr("counterexample_print", attrs);
+                let hir = self.env.query.hir();
+                let impl_id = hir.get_parent_node(hir.get_parent_node(self_id));
+                let type_id = get_type_id_from_impl_node(hir.get(impl_id)).unwrap();
+                self.type_specs
+                    .entry(type_id.as_local().unwrap())
+                    .or_default()
+                    .countexample_print
+                    .push((name, local_id));
+            }
+
             if has_prusti_attr(attrs, "prusti_assertion") {
                 self.prusti_assertions.push(local_id);
             }
@@ -452,6 +468,28 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             // Collect procedure specifications
             if let Some(procedure_spec_ref) = get_procedure_spec_ids(def_id, attrs) {
                 self.procedure_specs.insert(local_id, procedure_spec_ref);
+            }
+
+            // Collect model type flag
+            if has_to_model_fn_attr(attrs) {
+                if let FnRetTy::Return(ty) = fn_decl.output {
+                    if let Some(node) = self.env.query.hir().find(ty.hir_id) {
+                        if let Some(model_ty_id) =
+                            get_type_id_from_ty_node(node).and_then(|x| x.as_local())
+                        {
+                            if let Some(attr) = read_prusti_attr("type_models_to_model_fn", attrs) {
+                                let self_id = fn_decl.inputs[0].hir_id;
+                                let hir = self.env.query.hir();
+                                let impl_id = hir.get_parent_node(hir.get_parent_node(self_id));
+                                let type_id = get_type_id_from_impl_node(hir.get(impl_id)).unwrap();
+                                if let Some(local_id) = type_id.as_local() {
+                                    self.type_specs.entry(local_id).or_default().model =
+                                        Some((attr, model_ty_id));
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -485,6 +523,20 @@ fn get_type_id_from_impl_node(node: prusti_rustc_interface::hir::Node) -> Option
                 if let prusti_rustc_interface::hir::def::Res::Def(_, def_id) = path.res {
                     return Some(def_id);
                 }
+            }
+        }
+    }
+    None
+}
+
+fn get_type_id_from_ty_node(node: prusti_rustc_interface::hir::Node) -> Option<DefId> {
+    if let prusti_rustc_interface::hir::Node::Ty(ty) = node {
+        if let prusti_rustc_interface::hir::TyKind::Path(
+            prusti_rustc_interface::hir::QPath::Resolved(_, path),
+        ) = ty.kind
+        {
+            if let prusti_rustc_interface::hir::def::Res::Def(_, def_id) = path.res {
+                return Some(def_id);
             }
         }
     }

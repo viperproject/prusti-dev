@@ -30,4 +30,3 @@ fn test6() {
 }
 
 fn main() {}
-

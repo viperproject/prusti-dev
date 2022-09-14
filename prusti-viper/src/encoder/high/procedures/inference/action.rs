@@ -13,6 +13,26 @@ pub(in super::super) enum Action {
     Unreachable(UnreachableState),
 }
 
+impl std::fmt::Display for Action {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Action::Unfold(FoldingActionState { kind, place, .. }) => {
+                write!(f, "Unfold({kind:?}, {place})")
+            }
+            Action::Fold(FoldingActionState { kind, place, .. }) => {
+                write!(f, "Fold({kind:?}, {place})")
+            }
+            Action::OwnedIntoMemoryBlock(ConversionState { place, .. }) => {
+                write!(f, "OwnedIntoMemoryBlock({place})")
+            }
+            Action::RestoreMutBorrowed(RestorationState { place, .. }) => {
+                write!(f, "RestoreMutBorrowed({place})")
+            }
+            Action::Unreachable(_) => write!(f, "Unreachable"),
+        }
+    }
+}
+
 pub(in super::super) struct FoldingActionState {
     pub(in super::super) kind: PermissionKind,
     pub(in super::super) place: vir_typed::Expression,

@@ -80,3 +80,8 @@ pub fn ghost_constraint(_attr: TokenStream, tokens: TokenStream) -> TokenStream 
 pub fn ghost(_tokens: TokenStream) -> TokenStream {
     TokenStream::new()
 }
+
+#[proc_macro_attribute]
+pub fn print_counterexample(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    tokens
+}

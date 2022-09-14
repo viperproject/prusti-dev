@@ -10,7 +10,8 @@ use prusti_common::{
 };
 use vir_crate::common::check_mode::CheckMode;
 use crate::encoder::Encoder;
-use crate::encoder::counterexample_translation;
+use crate::encoder::counterexamples::counterexample_translation;
+use crate::encoder::counterexamples::counterexample_translation_refactored;
 // use prusti_filter::validators::Validator;
 use prusti_interface::data::VerificationResult;
 use prusti_interface::data::VerificationTask;
@@ -155,7 +156,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         }
     }
 
-    pub fn verify(&mut self, task: &VerificationTask) -> VerificationResult {
+    pub fn verify(&mut self, task: &VerificationTask<'tcx>) -> VerificationResult {
         info!(
             "Received {} functions to be verified:",
             task.procedures.len()
@@ -245,6 +246,10 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
             // FIXME: Use the loop above.
             self.encoder.queue_procedure_encoding(proc_id);
         }
+        for &type_id in task.types.iter().rev() {
+            // FIXME: Use the loop above.
+            self.encoder.queue_type_encoding(type_id);
+        }
         self.encoder.process_encoding_queue();
 
         let encoding_errors_count = self.encoder.count_encoding_errors();
@@ -318,7 +323,27 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
 
             // annotate with counterexample, if requested
             if config::counterexample() {
-                if let Some(silicon_counterexample) = &verification_error.counterexample {
+                if config::unsafe_core_proof(){
+                    if let Some(silicon_counterexample) = &verification_error.counterexample {
+                        if let Some(def_id) = error_manager.get_def_id(&verification_error) {
+                            let counterexample = counterexample_translation_refactored::backtranslate(
+                                &self.encoder,
+                                error_manager.position_manager(),
+                                def_id,
+                                silicon_counterexample,
+                            );
+                            prusti_error = counterexample.annotate_error(prusti_error);
+                        } else {
+                            prusti_error = prusti_error.add_note(
+                                format!(
+                                    "the verifier produced a counterexample for {}, but it could not be mapped to source code",
+                                    method
+                                ),
+                                None,
+                            );
+                        }
+                    }
+                } else if let Some(silicon_counterexample) = &verification_error.counterexample {
                     if let Some(def_id) = error_manager.get_def_id(&verification_error) {
                         let counterexample = counterexample_translation::backtranslate(
                             &self.encoder,

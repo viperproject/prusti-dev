@@ -6,6 +6,7 @@
 
 use ::log::{info, debug, trace};
 use prusti_common::utils::identifiers::encode_identifier;
+use rustc_hash::FxHashSet;
 use vir_crate::common::check_mode::CheckMode;
 use crate::encoder::builtin_encoder::BuiltinEncoder;
 use crate::encoder::builtin_encoder::BuiltinMethodKind;
@@ -60,6 +61,8 @@ use super::mir::{
     }
 };
 use super::high::types::{HighTypeEncoderState, HighTypeEncoderInterface};
+use super::counterexamples::{MirProcedureMappingInterface, MirProcedureMapping};
+use super::counterexamples::DiscriminantsState;
 use super::high::to_typed::types::HighToTypedTypeEncoderState;
 
 pub struct Encoder<'v, 'tcx: 'v> {
@@ -87,12 +90,14 @@ pub struct Encoder<'v, 'tcx: 'v> {
     pub(super) snapshot_encoder_state: SnapshotEncoderState,
     pub(super) mirror_encoder: RefCell<MirrorEncoder>,
     encoding_queue: RefCell<Vec<EncodingTask<'tcx>>>,
+    queued_types: RefCell<FxHashSet<ty::Ty<'tcx>>>,
     vir_program_before_foldunfold_writer: Option<RefCell<Box<dyn Write>>>,
     vir_program_before_viper_writer: Option<RefCell<Box<dyn Write>>>,
     encoding_errors_counter: RefCell<usize>,
     name_interner: RefCell<NameInterner>,
     /// Maps locals to the local of their discriminant.
-    discriminants_info: RefCell<FxHashMap<(ProcedureDefId, String), Vec<String>>>,
+    pub(super) discriminants_state: DiscriminantsState,
+    pub(super) mir_procedure_mapping: MirProcedureMapping,
     /// Whether the current pure expression that's being encoded sits inside a trigger closure.
     /// Viper limits the type of expressions that are allowed in quantifier triggers and
     /// this requires special care when encoding array/slice accesses which may come with
@@ -100,7 +105,15 @@ pub struct Encoder<'v, 'tcx: 'v> {
     pub(super) is_encoding_trigger: Cell<bool>,
 }
 
-pub type EncodingTask<'tcx> = (ProcedureDefId, Vec<(ty::Ty<'tcx>, ty::Ty<'tcx>)>);
+pub enum EncodingTask<'tcx> {
+    Procedure {
+        def_id: ProcedureDefId,
+        substs: Vec<(ty::Ty<'tcx>, ty::Ty<'tcx>)>,
+    },
+    Type {
+        ty: ty::Ty<'tcx>,
+    }
+}
 
 // If the field name is an identifier, removing the leading prefix r#
 pub fn encode_field_name(field_name: &str) -> String {
@@ -156,15 +169,17 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             type_discriminant_funcs: RefCell::new(FxHashMap::default()),
             type_cast_functions: RefCell::new(FxHashMap::default()),
             encoding_queue: RefCell::new(vec![]),
+            queued_types: Default::default(),
             vir_program_before_foldunfold_writer,
             vir_program_before_viper_writer,
             snapshot_encoder_state: Default::default(),
             mirror_encoder: RefCell::new(MirrorEncoder::new()),
             encoding_errors_counter: RefCell::new(0),
             name_interner: RefCell::new(NameInterner::new()),
-            discriminants_info: RefCell::new(FxHashMap::default()),
             is_encoding_trigger: Cell::new(false),
-            specifications_state: SpecificationsState::new(def_spec)
+            specifications_state: SpecificationsState::new(def_spec),
+            mir_procedure_mapping: Default::default(),
+            discriminants_state: Default::default(),
         }
     }
 
@@ -223,7 +238,15 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn get_core_proof_programs(&mut self) -> Vec<prusti_common::vir::program::Program> {
-        self.take_core_proof_programs().into_iter().map(prusti_common::vir::program::Program::Low).collect()
+        if config::counterexample() && config::unsafe_core_proof(){
+            self.take_core_proof_programs().into_iter().map(
+                | program | {
+                    self.add_mapping(&program);
+                    prusti_common::vir::program::Program::Low(program)
+            }).collect()
+        } else {
+            self.take_core_proof_programs().into_iter().map(prusti_common::vir::program::Program::Low).collect()
+        }
     }
 
     pub(in crate::encoder) fn register_encoding_error(&self, encoding_error: SpannedEncodingError) {
@@ -656,94 +679,117 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.env.name.get_item_name(proc_def_id)
     }
 
-    pub fn queue_procedure_encoding(&self, proc_def_id: ProcedureDefId) {
+    pub fn queue_procedure_encoding(&self, def_id: ProcedureDefId) {
         self.encoding_queue
             .borrow_mut()
-            .push((proc_def_id, Vec::new()));
+            .push(EncodingTask::Procedure { def_id, substs: Vec::new() });
+    }
+
+    pub fn queue_type_encoding(&self, ty: ty::Ty<'tcx>) {
+        let mut queued_types = self.queued_types.borrow_mut();
+        if !queued_types.contains(&ty) {
+            self.encoding_queue
+                .borrow_mut()
+                .push(EncodingTask::Type { ty });
+            queued_types.insert(ty);
+        }
     }
 
     pub fn process_encoding_queue(&mut self) {
         self.initialize();
-        while let Some((proc_def_id, substs)) = {
+        while let Some(task) = {
             let mut queue = self.encoding_queue.borrow_mut();
             queue.pop()
         } {
-            let proc_name = self.env.name.get_unique_item_name(proc_def_id);
-            let proc_def_path = self.env.name.get_item_def_path(proc_def_id);
-            info!("Encoding: {} ({})", proc_name, proc_def_path);
-            assert!(substs.is_empty());
+            match task {
+                EncodingTask::Procedure { def_id: proc_def_id, substs } => {
+                    let proc_name = self.env.name.get_unique_item_name(proc_def_id);
+                    let proc_def_path = self.env.name.get_item_def_path(proc_def_id);
+                    info!("Encoding: {} ({})", proc_name, proc_def_path);
+                    assert!(substs.is_empty());
 
-            if config::unsafe_core_proof() {
-                if self.env.query.is_unsafe_function(proc_def_id) {
-                    if let Err(error) = self.encode_lifetimes_core_proof(proc_def_id, CheckMode::Both) {
-                        self.register_encoding_error(error);
-                        debug!("Error encoding function: {:?} {}", proc_def_id, CheckMode::Both);
-                    }
-                } else {
-                    if config::verify_core_proof() {
-                        if let Err(error) = self.encode_lifetimes_core_proof(proc_def_id, CheckMode::CoreProof) {
-                            self.register_encoding_error(error);
-                            debug!("Error encoding function: {:?} {}", proc_def_id, CheckMode::CoreProof);
-                        }
-                    }
-                    if config::verify_specifications() {
-                        let check_mode = if config::verify_specifications_with_core_proof() {
-                            CheckMode::Both
-                        } else {
-                            CheckMode::Specifications
-                        };
-                        if let Err(error) = self.encode_lifetimes_core_proof(proc_def_id, check_mode) {
-                            self.register_encoding_error(error);
-                            debug!("Error encoding function: {:?} {}", proc_def_id, check_mode);
-                        }
-                    }
-                }
-                continue;
-            }
-
-            let proc_kind = self.get_proc_kind(proc_def_id, None);
-
-            if matches!(proc_kind, ProcedureSpecificationKind::Pure) {
-                // Check that the pure Rust function satisfies the basic
-                // requirements by trying to encode it as a Viper function,
-                // which will automatically run the validity checks.
-
-                // TODO: Make sure that this encoded function does not end up in
-                // the Viper file because that would be unsound.
-                let identity_substs = self.env.query.identity_substs(proc_def_id);
-                if let Err(error) = self.encode_pure_function_def(proc_def_id, identity_substs) {
-                    self.register_encoding_error(error);
-                    debug!("Error encoding function: {:?}", proc_def_id);
-                    // Skip encoding the function as a method.
-                    continue;
-                }
-            }
-
-            match proc_kind {
-                _ if self.is_trusted(proc_def_id, None) => {
-                    debug!(
-                        "Trusted procedure will not be encoded or verified: {:?}",
-                        proc_def_id
-                    );
-                },
-                ProcedureSpecificationKind::Predicate(_) => {
-                    debug!(
-                        "Predicates will not be encoded or verified: {:?}",
-                        proc_def_id
-                    );
-                },
-                ProcedureSpecificationKind::Pure |
-                ProcedureSpecificationKind::Impure => {
-                    if let Err(error) = self.encode_procedure(proc_def_id) {
-                        self.register_encoding_error(error);
-                        debug!("Error encoding function: {:?}", proc_def_id);
-                    } else {
-                        match self.finalize_viper_program(proc_name, proc_def_id) {
-                            Ok(program) => self.programs.push(program),
-                            Err(error) => {
+                    if config::unsafe_core_proof() {
+                        if self.env.query.is_unsafe_function(proc_def_id) {
+                            if let Err(error) = self.encode_lifetimes_core_proof(proc_def_id, CheckMode::Both) {
                                 self.register_encoding_error(error);
-                                debug!("Error finalizing program: {:?}", proc_def_id);
+                                debug!("Error encoding function: {:?} {}", proc_def_id, CheckMode::Both);
                             }
+                        } else {
+                            if config::verify_core_proof() {
+                                if let Err(error) = self.encode_lifetimes_core_proof(proc_def_id, CheckMode::CoreProof) {
+                                    self.register_encoding_error(error);
+                                    debug!("Error encoding function: {:?} {}", proc_def_id, CheckMode::CoreProof);
+                                }
+                            }
+                            if config::verify_specifications() {
+                                let check_mode = if config::verify_specifications_with_core_proof() {
+                                    CheckMode::Both
+                                } else {
+                                    CheckMode::Specifications
+                                };
+                                if let Err(error) = self.encode_lifetimes_core_proof(proc_def_id, check_mode) {
+                                    self.register_encoding_error(error);
+                                    debug!("Error encoding function: {:?} {}", proc_def_id, check_mode);
+                                }
+                            }
+                        }
+                        continue;
+                    }
+
+                    let proc_kind = self.get_proc_kind(proc_def_id, None);
+
+                    if matches!(proc_kind, ProcedureSpecificationKind::Pure) {
+                        // Check that the pure Rust function satisfies the basic
+                        // requirements by trying to encode it as a Viper function,
+                        // which will automatically run the validity checks.
+
+                        // TODO: Make sure that this encoded function does not end up in
+                        // the Viper file because that would be unsound.
+                        let identity_substs = self.env.query.identity_substs(proc_def_id);
+                        if let Err(error) = self.encode_pure_function_def(proc_def_id, proc_def_id, identity_substs) {
+                            self.register_encoding_error(error);
+                            debug!("Error encoding function: {:?}", proc_def_id);
+                            // Skip encoding the function as a method.
+                            continue;
+                        }
+                    }
+
+                    match proc_kind {
+                        _ if self.is_trusted(proc_def_id, None) => {
+                            debug!(
+                                "Trusted procedure will not be encoded or verified: {:?}",
+                                proc_def_id
+                            );
+                        },
+                        ProcedureSpecificationKind::Predicate(_) => {
+                            debug!(
+                                "Predicates will not be encoded or verified: {:?}",
+                                proc_def_id
+                            );
+                        },
+                        ProcedureSpecificationKind::Pure |
+                        ProcedureSpecificationKind::Impure => {
+                            if let Err(error) = self.encode_procedure(proc_def_id) {
+                                self.register_encoding_error(error);
+                                debug!("Error encoding function: {:?}", proc_def_id);
+                            } else {
+                                match self.finalize_viper_program(proc_name, proc_def_id) {
+                                    Ok(program) => self.programs.push(program),
+                                    Err(error) => {
+                                        self.register_encoding_error(error);
+                                        debug!("Error finalizing program: {:?}", proc_def_id);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                }
+                EncodingTask::Type { ty } => {
+                    if config::unsafe_core_proof() && config::verify_core_proof() && config::verify_types() {
+                        if let Err(error) = self.encode_core_proof_for_type(ty, CheckMode::CoreProof) {
+                            self.register_encoding_error(error);
+                            debug!("Error encoding type: {:?} {}", ty, CheckMode::CoreProof);
                         }
                     }
                 }
@@ -791,22 +837,5 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     ) -> EncodingResult<vir::Expr> {
         let field = strct.field(self.encode_struct_field(field_name, ty)?);
         self.encode_value_expr(field, ty)
-    }
-
-    pub fn add_discriminant_info(
-        &self,
-        enum_id: String,
-        discr_id: String,
-        proc_def_id: ProcedureDefId,
-    ) {
-        self.discriminants_info
-            .borrow_mut()
-            .entry((proc_def_id, enum_id))
-            .or_default()
-            .push(discr_id);
-    }
-
-    pub fn discriminants_info(&self) -> FxHashMap<(ProcedureDefId, String), Vec<String>> {
-        self.discriminants_info.borrow().clone()
     }
 }
