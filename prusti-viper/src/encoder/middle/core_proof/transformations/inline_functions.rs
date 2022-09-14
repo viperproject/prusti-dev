@@ -1,57 +1,100 @@
+use std::collections::BTreeSet;
+
 use rustc_hash::FxHashMap;
 use vir_crate::{
-    common::expression::{ExpressionIterator, UnaryOperationHelpers},
+    common::{
+        expression::{ExpressionIterator, UnaryOperationHelpers},
+        graphviz::ToGraphviz,
+    },
     low::{self as vir_low},
 };
 use vir_low::expression::visitors::ExpressionFolder;
 
-pub(crate) fn inline_caller_for(program: &mut vir_low::Program) {
-    let caller_for_functions = program
+use crate::encoder::middle::core_proof::utils::bound_variable_stack::{
+    BoundVariableStack, BoundVariableStackLow,
+};
+
+pub(crate) fn inline_caller_for(source_filename: &str, program: &mut vir_low::Program) {
+    let mut caller_for_functions = program
         .functions
         .drain_filter(|function| function.kind == vir_low::FunctionKind::CallerFor)
         .map(|function| (function.name.clone(), function))
         .collect();
+    let mut failed_to_inline_functions = Default::default();
     for procedure in &mut program.procedures {
-        for block in &mut procedure.basic_blocks {
-            inline_in_statements(&mut block.statements, &caller_for_functions);
+        let mut inliner = Inliner {
+            caller_for_functions: &caller_for_functions,
+            statements: Vec::new(),
+            path_condition: Vec::new(),
+            bound_variable_stack: Default::default(),
+            failed_to_inline_functions: &mut failed_to_inline_functions,
+        };
+        for block in procedure.basic_blocks.values_mut() {
+            inline_in_statements(&mut inliner, std::mem::take(&mut block.statements));
+            match &mut block.successor {
+                vir_low::Successor::Return => {}
+                vir_low::Successor::Goto(_) => {}
+                vir_low::Successor::GotoSwitch(targets) => {
+                    let mut new_targets = Vec::new();
+                    for (guard, target) in std::mem::take(targets) {
+                        let guard = inliner.fold_expression(guard);
+                        new_targets.push((guard, target));
+                    }
+                    block.successor = vir_low::Successor::GotoSwitch(new_targets);
+                }
+            }
+            block.statements = std::mem::take(&mut inliner.statements);
         }
+        if prusti_common::config::dump_debug_info() {
+            prusti_common::report::log::report_with_writer(
+                "graphviz_method_vir_low_after_inline_caller_for",
+                format!("{}.{}.dot", source_filename, procedure.name),
+                |writer| procedure.to_graphviz(writer).unwrap(),
+            );
+        }
+    }
+    for function_name in failed_to_inline_functions {
+        program
+            .functions
+            .push(caller_for_functions.remove(&function_name).unwrap());
     }
 }
 
-fn inline_in_statements(
-    statements: &mut Vec<vir_low::Statement>,
-    caller_for_functions: &FxHashMap<String, vir_low::FunctionDecl>,
-) {
-    let old_statements = std::mem::take(statements);
-    let mut inliner = Inliner {
-        caller_for_functions,
-        statements,
-        path_condition: Vec::new(),
-    };
-    let mut sentinel = true.into();
+fn inline_in_statements(inliner: &mut Inliner, old_statements: Vec<vir_low::Statement>) {
     for statement in old_statements {
         assert!(inliner.path_condition.is_empty());
         match statement {
-            vir_low::Statement::Assume(mut statement) => {
-                sentinel =
-                    inliner.fold_expression(std::mem::replace(&mut statement.expression, sentinel));
-                std::mem::swap(&mut statement.expression, &mut sentinel);
-                inliner
-                    .statements
-                    .push(vir_low::Statement::Assume(statement));
+            vir_low::Statement::Assume(statement) => {
+                inliner.inline_statement(
+                    statement.expression,
+                    statement.position,
+                    vir_low::Statement::assume,
+                );
             }
-            vir_low::Statement::Assert(mut statement) => {
-                sentinel =
-                    inliner.fold_expression(std::mem::replace(&mut statement.expression, sentinel));
-                std::mem::swap(&mut statement.expression, &mut sentinel);
-                inliner
-                    .statements
-                    .push(vir_low::Statement::Assert(statement));
+            vir_low::Statement::Assert(statement) => {
+                inliner.inline_statement(
+                    statement.expression,
+                    statement.position,
+                    vir_low::Statement::assert,
+                );
+            }
+            vir_low::Statement::Inhale(statement) => {
+                inliner.inline_statement(
+                    statement.expression,
+                    statement.position,
+                    vir_low::Statement::inhale,
+                );
+            }
+            vir_low::Statement::Exhale(statement) => {
+                inliner.inline_statement(
+                    statement.expression,
+                    statement.position,
+                    vir_low::Statement::exhale,
+                );
             }
             vir_low::Statement::Comment(_)
+            | vir_low::Statement::Label(_)
             | vir_low::Statement::LogEvent(_)
-            | vir_low::Statement::Inhale(_)
-            | vir_low::Statement::Exhale(_)
             | vir_low::Statement::Fold(_)
             | vir_low::Statement::Unfold(_)
             | vir_low::Statement::ApplyMagicWand(_)
@@ -66,11 +109,34 @@ fn inline_in_statements(
 
 struct Inliner<'a> {
     caller_for_functions: &'a FxHashMap<String, vir_low::FunctionDecl>,
-    statements: &'a mut Vec<vir_low::Statement>,
+    statements: Vec<vir_low::Statement>,
     path_condition: Vec<vir_low::Expression>,
+    bound_variable_stack: BoundVariableStack,
+    failed_to_inline_functions: &'a mut BTreeSet<String>,
+}
+
+impl<'a> Inliner<'a> {
+    fn inline_statement(
+        &mut self,
+        expression: vir_low::Expression,
+        position: vir_low::Position,
+        constructor: fn(vir_low::Expression, vir_low::Position) -> vir_low::Statement,
+    ) {
+        let expression = self.fold_expression(expression);
+        let statement = constructor(expression, position);
+        self.statements.push(statement);
+    }
 }
 
 impl<'a> ExpressionFolder for Inliner<'a> {
+    fn fold_quantifier_enum(&mut self, quantifier: vir_low::Quantifier) -> vir_low::Expression {
+        let mut quantifier = quantifier;
+        self.bound_variable_stack.push(&quantifier.variables);
+        quantifier = self.fold_quantifier(quantifier);
+        self.bound_variable_stack.pop();
+        quantifier.into()
+    }
+
     fn fold_binary_op(
         &mut self,
         mut binary_op: vir_low::expression::BinaryOp,
@@ -106,31 +172,42 @@ impl<'a> ExpressionFolder for Inliner<'a> {
         func_app: vir_low::expression::FuncApp,
     ) -> vir_low::Expression {
         if let Some(function) = self.caller_for_functions.get(&func_app.function_name) {
-            let path_condition = self.path_condition.iter().cloned().conjoin();
-            assert_eq!(function.parameters.len(), func_app.arguments.len());
-            let arguments: Vec<_> = func_app
-                .arguments
-                .into_iter()
-                .map(|argument| self.fold_expression(argument))
-                .collect();
-            let replacements = function.parameters.iter().zip(arguments.iter()).collect();
-            let pres = function
-                .pres
-                .iter()
-                .cloned()
-                .conjoin()
-                .substitute_variables(&replacements);
-            use vir_low::macros::*;
-            self.statements.push(stmtp! { func_app.position =>
-                assert ([path_condition] ==> [pres])
-            });
-            function
-                .body
-                .clone()
-                .unwrap()
-                .substitute_variables(&replacements)
-        } else {
-            vir_low::Expression::FuncApp(self.fold_func_app(func_app))
+            if !self
+                .bound_variable_stack
+                .expressions_contains_bound_variables(&func_app.arguments)
+                && !self
+                    .bound_variable_stack
+                    .expressions_contains_bound_variables(&self.path_condition)
+            {
+                let path_condition = self.path_condition.iter().cloned().conjoin();
+                assert_eq!(function.parameters.len(), func_app.arguments.len());
+                let arguments: Vec<_> = func_app
+                    .arguments
+                    .into_iter()
+                    .map(|argument| self.fold_expression(argument))
+                    .collect();
+                let replacements = function.parameters.iter().zip(arguments.iter()).collect();
+                let pres = function
+                    .pres
+                    .iter()
+                    .cloned()
+                    .conjoin()
+                    .substitute_variables(&replacements);
+                use vir_low::macros::*;
+                self.statements.push(stmtp! { func_app.position =>
+                    assert ([path_condition] ==> [pres])
+                });
+                let new_function = function
+                    .body
+                    .clone()
+                    .unwrap()
+                    .substitute_variables(&replacements);
+                return new_function;
+            } else {
+                self.failed_to_inline_functions
+                    .insert(func_app.function_name.clone());
+            }
         }
+        vir_low::Expression::FuncApp(self.fold_func_app(func_app))
     }
 }

@@ -21,18 +21,20 @@ impl Program {
         }
     }
     pub fn get_check_mode(&self) -> vir::common::check_mode::CheckMode {
+        // FIXME: Remove because this is not needed anymore.
         match self {
-            Program::Legacy(_) => vir::common::check_mode::CheckMode::Both,
+            Program::Legacy(_) => vir::common::check_mode::CheckMode::MemorySafetyWithFunctional,
             Program::Low(program) => program.check_mode,
         }
     }
     pub fn get_name_with_check_mode(&self) -> String {
+        // FIXME: Remove because this is not needed anymore.
         format!("{}-{}", self.get_name(), self.get_check_mode())
     }
 }
 
 impl<'v> ToViper<'v, viper::Program<'v>> for Program {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Program<'v> {
+    fn to_viper(&self, context: &mut Context<'v>, ast: &AstFactory<'v>) -> viper::Program<'v> {
         match self {
             Program::Legacy(program) => program.to_viper(context, ast),
             Program::Low(program) => program.to_viper(context, ast),

@@ -110,7 +110,7 @@ jobs:
   # Run a subset of the tests with the purification optimization enabled
   # to ensure that we do not introduce regressions.
   purification-tests:
-    needs: [fmt-check, clippy-check, check-deps, smir-check, quick-tests]
+    #needs: [fmt-check, clippy-check, check-deps, smir-check, quick-tests]
     runs-on: ubuntu-latest
     env:
       PRUSTI_ENABLE_PURIFICATION_OPTIMIZATION: true
@@ -162,6 +162,36 @@ jobs:
           # python x.py test --all pass/pure-fn/ref-mut-arg.rs
           # python x.py test --all pass/rosetta/Ackermann_function.rs
           # python x.py test --all pass/rosetta/Heapsort.rs
+      - name: custom_heap_encoding
+        env:
+          PRUSTI_VIPER_BACKEND: carbon
+          PRUSTI_CUSTOM_HEAP_ENCODING: true
+          PRUSTI_TRACE_WITH_SYMBOLIC_EXECUTION: false
+          PRUSTI_PURIFY_WITH_SYMBOLIC_EXECUTION: false
+        run: |
+          python x.py test custom_heap_encoding
+      - name: purify_with_symbolic_execution
+        env:
+          PRUSTI_VIPER_BACKEND: carbon
+          PRUSTI_CUSTOM_HEAP_ENCODING: false
+          PRUSTI_PURIFY_WITH_SYMBOLIC_EXECUTION: true
+        run: |
+          python x.py test custom_heap_encoding
+      - name: custom_heap_encoding and purify_with_symbolic_execution
+        env:
+          PRUSTI_VIPER_BACKEND: carbon
+          PRUSTI_CUSTOM_HEAP_ENCODING: true
+          PRUSTI_PURIFY_WITH_SYMBOLIC_EXECUTION: true
+        run: |
+          python x.py test custom_heap_encoding
+      - name: trace_with_symbolic_execution
+        env:
+          PRUSTI_VIPER_BACKEND: silicon
+          PRUSTI_CUSTOM_HEAP_ENCODING: false
+          PRUSTI_TRACE_WITH_SYMBOLIC_EXECUTION: false
+          PRUSTI_PURIFY_WITH_SYMBOLIC_EXECUTION: false
+        run: |
+          python x.py test custom_heap_encoding
       - name: Run with purification.
         env:
           PRUSTI_VIPER_BACKEND: silicon

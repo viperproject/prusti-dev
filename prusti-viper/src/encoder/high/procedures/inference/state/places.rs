@@ -27,6 +27,7 @@ impl Places {
     }
 
     pub(in super::super) fn insert(&mut self, place: vir_typed::Expression) -> bool {
+        place.check_no_erased_lifetime();
         self.places
             .insert(place.clone().erase_lifetime(), place)
             .is_none()

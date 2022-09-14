@@ -32,7 +32,7 @@ fn populate_graph(env: &Environment<'_>, def_id: DefId) -> Option<Graph> {
     {
         let input_facts = facts.input_facts.borrow().as_ref().unwrap().clone();
         let location_table = LocationTable::new(facts.location_table.borrow().as_ref().unwrap());
-        Some(to_graphviz(&input_facts, &location_table, mir))
+        Some(to_graphviz(&input_facts, &location_table, mir, &Vec::new()))
     } else {
         None
     }

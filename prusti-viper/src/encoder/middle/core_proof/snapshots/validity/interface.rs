@@ -54,6 +54,12 @@ pub(in super::super::super) trait SnapshotValidityInterface {
         &mut self,
         domain_name: &str,
         parameters: Vec<vir_low::VariableDecl>,
+    ) -> SpannedEncodingResult<()>;
+    fn encode_validity_axioms_struct_with_invariant(
+        &mut self,
+        domain_name: &str,
+        parameters: Vec<vir_low::VariableDecl>,
+        parameters_with_validity: usize,
         invariant: vir_low::Expression,
     ) -> SpannedEncodingResult<()>;
     fn encode_validity_axioms_struct_alternative_constructor(
@@ -61,6 +67,7 @@ pub(in super::super::super) trait SnapshotValidityInterface {
         domain_name: &str,
         variant_name: &str,
         parameters: Vec<vir_low::VariableDecl>,
+        parameters_with_validity: usize,
         invariant: vir_low::Expression,
     ) -> SpannedEncodingResult<()>;
     /// `variants` is `(variant_name, variant_domain, discriminant)`.
@@ -120,31 +127,56 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         use vir_low::macros::*;
         let parameters = vars! { value: {parameter_type}};
-        self.encode_validity_axioms_struct(domain_name, parameters, invariant)
+        let parameters_with_validity = parameters.len();
+        self.encode_validity_axioms_struct_with_invariant(
+            domain_name,
+            parameters,
+            parameters_with_validity,
+            invariant,
+        )
     }
     fn encode_validity_axioms_struct(
         &mut self,
         domain_name: &str,
         parameters: Vec<vir_low::VariableDecl>,
+    ) -> SpannedEncodingResult<()> {
+        let parameters_with_validity = parameters.len();
+        self.encode_validity_axioms_struct_with_invariant(
+            domain_name,
+            parameters,
+            parameters_with_validity,
+            true.into(),
+        )
+    }
+    fn encode_validity_axioms_struct_with_invariant(
+        &mut self,
+        domain_name: &str,
+        parameters: Vec<vir_low::VariableDecl>,
+        parameters_with_validity: usize,
         invariant: vir_low::Expression,
     ) -> SpannedEncodingResult<()> {
         self.encode_validity_axioms_struct_alternative_constructor(
             domain_name,
             "",
             parameters,
+            parameters_with_validity,
             invariant,
         )
     }
+    /// `parameters_with_validity` – how many of `parameters` should have a
+    /// conjoined validity call. For all Rust types without permissions in their
+    /// structural invariants, `parameters_with_validity == parameters.len()`.
     fn encode_validity_axioms_struct_alternative_constructor(
         &mut self,
         domain_name: &str,
         variant_name: &str,
         parameters: Vec<vir_low::VariableDecl>,
+        parameters_with_validity: usize,
         invariant: vir_low::Expression,
     ) -> SpannedEncodingResult<()> {
         use vir_low::macros::*;
         let mut valid_parameters = Vec::new();
-        for parameter in &parameters {
+        for parameter in parameters.iter().take(parameters_with_validity) {
             if let Some(domain_name) = self.get_non_primitive_domain(&parameter.ty) {
                 let domain_name = domain_name.to_string();
                 valid_parameters
@@ -159,7 +191,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
                 .map(|parameter| parameter.clone().into())
                 .collect(),
         )?;
-        let valid_constructor = self.encode_snapshot_valid_call(domain_name, constructor_call)?;
+        let valid_constructor =
+            self.encode_snapshot_valid_call(domain_name, constructor_call.clone())?;
         if parameters.is_empty() {
             let axiom = vir_low::DomainAxiomDecl {
                 comment: None,
@@ -181,8 +214,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
             // parameters, the bottom-up and top-down axioms are equivalent.
             let mut top_down_validity_expression = validity_expression.clone();
             var_decls! { snapshot: {vir_low::Type::domain(domain_name.to_string())}};
+            let snapshot_expression = snapshot.clone().into();
+            top_down_validity_expression =
+                top_down_validity_expression.replace_self(&snapshot_expression);
             let valid_constructor =
-                self.encode_snapshot_valid_call(domain_name, snapshot.clone().into())?;
+                self.encode_snapshot_valid_call(domain_name, snapshot_expression)?;
             let mut triggers = Vec::new();
             for parameter in &parameters {
                 if self.get_non_primitive_domain(&parameter.ty).is_some() {
@@ -214,6 +250,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
             };
             self.declare_axiom(domain_name, axiom_top_down)?;
         }
+        let bottom_up_validity_expression = validity_expression.replace_self(&constructor_call);
         let axiom_bottom_up_body = {
             let mut trigger = vec![valid_constructor.clone()];
             trigger.extend(valid_parameters.clone());
@@ -221,7 +258,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
                 parameters,
                 vec![vir_low::Trigger::new(trigger)],
                 expr! {
-                    [ valid_constructor ] == [ validity_expression ]
+                    [ valid_constructor ] == [ bottom_up_validity_expression ]
                 },
             )
         };

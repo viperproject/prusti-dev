@@ -45,7 +45,8 @@ pub(super) unsafe fn retrieve_mir_body<'tcx>(
 ) -> BodyWithBorrowckFacts<'tcx> {
     let body_with_facts: BodyWithBorrowckFacts<'static> = SHARED_STATE.with(|state| {
         let mut map = state.borrow_mut();
-        map.remove(&def_id).unwrap()
+        map.remove(&def_id)
+            .unwrap_or_else(|| panic!("not found: {def_id:?}"))
     });
     // SAFETY: See the module level comment.
     unsafe { std::mem::transmute(body_with_facts) }

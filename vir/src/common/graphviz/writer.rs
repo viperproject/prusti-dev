@@ -73,22 +73,22 @@ impl Row {
             Row::Single(value) => {
                 write!(
                     writer,
-                    "<td colspan=\"{}\" align=\"left\">{}</td>",
+                    "<td colspan=\"{}\" align=\"left\" balign=\"left\">{}</td>",
                     column_names.len(),
                     value
                 )?;
             }
             Row::Seq(values) => {
                 for value in values {
-                    write!(writer, "<td align=\"left\">{value}</td>")?;
+                    write!(writer, "<td align=\"left\" balign=\"left\">{value}</td>")?;
                 }
             }
             Row::Map(values) => {
                 for column in column_names {
                     if let Some(value) = values.get(column) {
-                        write!(writer, "<td align=\"left\">{value}</td>")?;
+                        write!(writer, "<td align=\"left\" balign=\"left\">{value}</td>")?;
                     } else {
-                        write!(writer, "<td align=\"left\">n/a</td>")?;
+                        write!(writer, "<td align=\"left\" balign=\"left\">n/a</td>")?;
                     }
                 }
             }

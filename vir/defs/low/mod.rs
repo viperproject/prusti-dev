@@ -11,17 +11,24 @@ pub mod program;
 pub use self::{
     ast::{
         expression::{
-            self, BinaryOpKind, ConstantValue, ContainerOpKind, Expression, Trigger, UnaryOpKind,
+            self, BinaryOp, BinaryOpKind, Conditional as ConditionalExpression, Constant,
+            ConstantValue, ContainerOp, ContainerOpKind, DomainFuncApp, Expression, Field,
+            FieldAccessPredicate, FuncApp, InhaleExhale, LabelledOld, LetExpr, Local, MagicWand,
+            PermBinaryOp, PermBinaryOpKind, PredicateAccessPredicate, Quantifier, QuantifierKind,
+            Trigger, UnaryOp, UnaryOpKind, Unfolding,
         },
         field::FieldDecl,
         function::{FunctionDecl, FunctionKind},
         position::Position,
-        predicate::PredicateDecl,
-        statement::Statement,
+        predicate::{PredicateDecl, PredicateKind},
+        statement::{
+            ApplyMagicWand, Assert, Assign, Assume, Comment, Conditional as ConditionalStatement,
+            Exhale, Fold, Inhale, Label as LabelStatement, LogEvent, MethodCall, Statement, Unfold,
+        },
         ty::{self, Type},
         variable::VariableDecl,
     },
     cfg::{BasicBlock, Label, MethodDecl, MethodKind, ProcedureDecl, Successor},
-    domain::{DomainAxiomDecl, DomainDecl, DomainFunctionDecl},
+    domain::{DomainAxiomDecl, DomainDecl, DomainFunctionDecl, DomainRewriteRuleDecl},
     program::Program,
 };

@@ -23,7 +23,9 @@ pub enum Float {
 }
 
 pub enum BitVector {
+    #[display(fmt = "S{}", "self")]
     Signed(BitVectorSize),
+    #[display(fmt = "U{}", "self")]
     Unsigned(BitVectorSize),
 }
 
@@ -35,18 +37,22 @@ pub enum BitVectorSize {
     BV128,
 }
 
+#[display(fmt = "Seq({})", element_type)]
 pub struct Seq {
     pub element_type: Box<Type>,
 }
 
+#[display(fmt = "Set({})", element_type)]
 pub struct Set {
     pub element_type: Box<Type>,
 }
 
+#[display(fmt = "MultiSet({})", element_type)]
 pub struct MultiSet {
     pub element_type: Box<Type>,
 }
 
+#[display(fmt = "D({})", name)]
 pub struct Domain {
     pub name: String,
 }

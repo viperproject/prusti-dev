@@ -75,4 +75,11 @@ impl<'v, 'tcx> TypedToMiddleTypeDeclLowerer for crate::encoder::Encoder<'v, 'tcx
             vir_typed::ty::EnumSafety::Union => vir_mid::ty::EnumSafety::Union,
         })
     }
+
+    fn typed_to_middle_type_decl_position(
+        &self,
+        position: vir_typed::Position,
+    ) -> Result<vir_mid::Position, Self::Error> {
+        Ok(position)
+    }
 }

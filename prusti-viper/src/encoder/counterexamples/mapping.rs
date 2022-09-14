@@ -52,8 +52,7 @@ impl<'ce, 'tcx, 'v> VarMappingInterface
     for super::counterexample_translation_refactored::CounterexampleTranslator<'ce, 'tcx, 'v>
 {
     fn create_mapping(&mut self, proc_def_id: ProcedureDefId, encoder: &Encoder) {
-        let name = encoder.env().name.get_absolute_item_name(proc_def_id);
-        if let Some(mir_procedure_mapping) = encoder.get_mapping(name) {
+        if let Some(mir_procedure_mapping) = encoder.get_mapping(proc_def_id) {
             for basic_block in mir_procedure_mapping {
                 let label = &basic_block.label;
 

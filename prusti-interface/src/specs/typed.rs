@@ -20,6 +20,9 @@ pub struct DefSpecificationMap {
     pub prusti_refutations: FxHashMap<DefId, PrustiRefutation>,
     pub ghost_begin: FxHashMap<DefId, GhostBegin>,
     pub ghost_end: FxHashMap<DefId, GhostEnd>,
+    pub specification_region_begin: FxHashMap<DefId, SpecificationRegionBegin>,
+    pub specification_region_end: FxHashMap<DefId, SpecificationRegionEnd>,
+    pub specification_expression: FxHashMap<DefId, SpecificationExpression>,
 }
 
 impl DefSpecificationMap {
@@ -59,6 +62,21 @@ impl DefSpecificationMap {
         self.ghost_end.get(def_id)
     }
 
+    pub fn get_specification_region_begin(
+        &self,
+        def_id: &DefId,
+    ) -> Option<&SpecificationRegionBegin> {
+        self.specification_region_begin.get(def_id)
+    }
+
+    pub fn get_specification_region_end(&self, def_id: &DefId) -> Option<&SpecificationRegionEnd> {
+        self.specification_region_end.get(def_id)
+    }
+
+    pub fn get_specification_expression(&self, def_id: &DefId) -> Option<&SpecificationExpression> {
+        self.specification_expression.get(def_id)
+    }
+
     pub(crate) fn defid_for_export(
         &self,
     ) -> (
@@ -82,8 +100,14 @@ impl DefSpecificationMap {
                 if let Some(posts) = spec.posts.extract_with_selective_replacement() {
                     specs.extend(posts);
                 }
+                if let Some(broken_pres) = spec.broken_pres.extract_with_selective_replacement() {
+                    specs.extend(broken_pres);
+                }
+                if let Some(broken_posts) = spec.broken_posts.extract_with_selective_replacement() {
+                    specs.extend(broken_posts);
+                }
                 if let Some(Some(term)) = spec.terminates.extract_with_selective_replacement() {
-                    specs.push(term.to_def_id());
+                    specs.push(*term);
                 }
                 if let Some(pledges) = spec.pledges.extract_with_selective_replacement() {
                     specs.extend(pledges.iter().filter_map(|pledge| pledge.lhs));
@@ -104,6 +128,12 @@ impl DefSpecificationMap {
         }
         for spec in self.type_specs.values() {
             if let Some(invariants) = spec.invariant.extract_with_selective_replacement() {
+                specs.extend(invariants);
+            }
+            if let Some(invariants) = spec
+                .structural_invariant
+                .extract_with_selective_replacement()
+            {
                 specs.extend(invariants);
             }
         }
@@ -212,7 +242,11 @@ pub struct ProcedureSpecification {
     pub posts: SpecificationItem<Vec<DefId>>,
     pub pledges: SpecificationItem<Vec<Pledge>>,
     pub trusted: SpecificationItem<bool>,
-    pub terminates: SpecificationItem<Option<LocalDefId>>,
+    pub no_panic: SpecificationItem<bool>,
+    pub no_panic_ensures_postcondition: SpecificationItem<bool>,
+    pub broken_pres: SpecificationItem<Vec<DefId>>,
+    pub broken_posts: SpecificationItem<Vec<DefId>>,
+    pub terminates: SpecificationItem<Option<DefId>>,
     pub purity: SpecificationItem<Option<DefId>>, // for type-conditional spec refinements
 }
 
@@ -225,8 +259,12 @@ impl ProcedureSpecification {
             kind: SpecificationItem::Inherent(ProcedureSpecificationKind::Impure),
             pres: SpecificationItem::Empty,
             posts: SpecificationItem::Empty,
+            broken_pres: SpecificationItem::Empty,
+            broken_posts: SpecificationItem::Empty,
             pledges: SpecificationItem::Empty,
             trusted: SpecificationItem::Inherent(false),
+            no_panic: SpecificationItem::Inherent(false),
+            no_panic_ensures_postcondition: SpecificationItem::Inherent(false),
             terminates: SpecificationItem::Inherent(None),
             purity: SpecificationItem::Inherent(None),
         }
@@ -276,6 +314,7 @@ pub struct TypeSpecification {
     // `extern_spec` for type invs is supported it could differ.
     pub source: DefId,
     pub invariant: SpecificationItem<Vec<DefId>>,
+    pub structural_invariant: SpecificationItem<Vec<DefId>>,
     pub trusted: SpecificationItem<bool>,
     pub model: Option<(String, LocalDefId)>,
     pub counterexample_print: Vec<(Option<String>, LocalDefId)>,
@@ -286,6 +325,7 @@ impl TypeSpecification {
         TypeSpecification {
             source,
             invariant: SpecificationItem::Empty,
+            structural_invariant: SpecificationItem::Empty,
             trusted: SpecificationItem::Inherent(false),
             model: None,
             counterexample_print: vec![],
@@ -296,11 +336,13 @@ impl TypeSpecification {
 #[derive(Debug, Clone)]
 pub struct PrustiAssertion {
     pub assertion: LocalDefId,
+    pub is_structural: bool,
 }
 
 #[derive(Debug, Clone)]
 pub struct PrustiAssumption {
     pub assumption: LocalDefId,
+    pub is_structural: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -316,6 +358,21 @@ pub struct GhostBegin {
 #[derive(Debug, Clone)]
 pub struct GhostEnd {
     pub marker: LocalDefId,
+}
+
+#[derive(Debug, Clone)]
+pub struct SpecificationRegionBegin {
+    pub marker: LocalDefId,
+}
+
+#[derive(Debug, Clone)]
+pub struct SpecificationRegionEnd {
+    pub marker: LocalDefId,
+}
+
+#[derive(Debug, Clone)]
+pub struct SpecificationExpression {
+    pub expression: LocalDefId,
 }
 
 /// The base container to store a contract of a procedure.
@@ -453,6 +510,16 @@ impl SpecGraph<ProcedureSpecification> {
         }
     }
 
+    /// Sets the broken precondition for the base spec and all constrained specs.
+    pub fn add_broken_precondition(&mut self, broken_precondition: DefId) {
+        self.base_spec.broken_pres.push(broken_precondition);
+    }
+
+    /// Sets the broken precondition for the base spec and all constrained specs.
+    pub fn add_broken_postcondition(&mut self, broken_postcondition: DefId) {
+        self.base_spec.broken_posts.push(broken_postcondition);
+    }
+
     pub fn add_purity<'tcx>(&mut self, purity: LocalDefId, env: &Environment<'tcx>) {
         match self.get_constraint(purity, env) {
             None => {
@@ -486,8 +553,27 @@ impl SpecGraph<ProcedureSpecification> {
             .for_each(|s| s.trusted.set(trusted));
     }
 
+    /// Sets the no_panic flag for the base spec and all constrained specs.
+    pub fn set_no_panic(&mut self, no_panic: bool) {
+        self.base_spec.no_panic.set(no_panic);
+        self.specs_with_constraints
+            .values_mut()
+            .for_each(|s| s.no_panic.set(no_panic));
+    }
+
+    /// Sets the no_panic_ensures_postcondition flag for the base spec and all constrained specs.
+    pub fn set_no_panic_ensures_postcondition(&mut self, no_panic_ensures_postcondition: bool) {
+        self.base_spec
+            .no_panic_ensures_postcondition
+            .set(no_panic_ensures_postcondition);
+        self.specs_with_constraints.values_mut().for_each(|s| {
+            s.no_panic_ensures_postcondition
+                .set(no_panic_ensures_postcondition)
+        });
+    }
+
     /// Sets the termination flag for the base spec and all constrained specs.
-    pub fn set_terminates(&mut self, terminates: LocalDefId) {
+    pub fn set_terminates(&mut self, terminates: DefId) {
         self.base_spec.terminates.set(Some(terminates));
         self.specs_with_constraints
             .values_mut()
@@ -777,9 +863,19 @@ impl Refinable for ProcedureSpecification {
             source: self.source,
             pres: self.pres.refine(replace_empty(&EMPTYL, &other.pres)),
             posts: self.posts.refine(replace_empty(&EMPTYL, &other.posts)),
+            broken_pres: self
+                .broken_pres
+                .refine(replace_empty(&EMPTYL, &other.broken_pres)),
+            broken_posts: self
+                .broken_posts
+                .refine(replace_empty(&EMPTYL, &other.broken_posts)),
             pledges: self.pledges.refine(replace_empty(&EMPTYP, &other.pledges)),
             kind: self.kind.refine(&other.kind),
             trusted: self.trusted.refine(&other.trusted),
+            no_panic: self.no_panic.refine(&other.no_panic),
+            no_panic_ensures_postcondition: self
+                .no_panic_ensures_postcondition
+                .refine(&other.no_panic_ensures_postcondition),
             terminates: self.terminates.refine(&other.terminates),
             purity: self.purity.refine(&other.purity),
         }

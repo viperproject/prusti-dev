@@ -1,3 +1,4 @@
+mod assertion_encoder;
 mod builders;
 mod calls;
 mod interface;

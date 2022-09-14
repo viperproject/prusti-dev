@@ -12,7 +12,10 @@ use crate::encoder::foldunfold::{
 use log::debug;
 use rustc_hash::FxHashSet;
 use std::iter::FromIterator;
-use vir_crate::polymorphic::{self as vir, PermAmount};
+use vir_crate::{
+    common::builtin_constants::DISCRIMINANT_FIELD_NAME,
+    polymorphic::{self as vir, PermAmount},
+};
 
 pub trait RequiredStmtPermissionsGetter {
     /// Returns the permissions required for the statement to be well-defined.
@@ -261,7 +264,7 @@ fn get_all_required_expr_permissions(
             let (base_reqs, base_discr) = get_all_required_expr_permissions(base, preds);
             reqs.extend(base_reqs);
             discr.extend(base_discr);
-            if field.name == "discriminant" {
+            if field.name == DISCRIMINANT_FIELD_NAME {
                 debug_assert!(base.is_place());
                 discr.insert(base.clone());
             }

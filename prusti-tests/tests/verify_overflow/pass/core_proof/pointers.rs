@@ -4,18 +4,22 @@ use prusti_contracts::*;
 
 fn test1() {
     let a = 4u32;
-    let _x = std::ptr::addr_of!(a);
+    let x = std::ptr::addr_of!(a);
+    restore!(*x, a);
 }
 
 fn test2() {
     let mut a = 4u32;
-    let _x = std::ptr::addr_of_mut!(a);
+    let x = std::ptr::addr_of_mut!(a);
+    restore!(*x, a);
 }
 
 fn test3() {
     let a = 4u32;
     let x = std::ptr::addr_of!(a);
+    restore!(*x, a);
     let y = std::ptr::addr_of!(a);
+    restore!(*y, a);
     assert!(x == y);
 }
 

@@ -78,7 +78,7 @@ impl MirrorEncoder {
         function.posts.push(vir::Expr::InhaleExhale( vir::InhaleExhale {
             inhale_expr: Box::new(vir::Expr::eq_cmp(
                 vir::Expr::local(
-                    vir::LocalVar::new("__result", function.return_type.clone()),
+                    vir::LocalVar::new(vir_crate::common::builtin_constants::RESULT_VARIABLE_NAME, function.return_type.clone()),
                 ),
                 vir::Expr::domain_func_app(
                     mirror_func.clone(),

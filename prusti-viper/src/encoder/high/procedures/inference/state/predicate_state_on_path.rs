@@ -1,22 +1,37 @@
 use super::{
-    super::permission::{MutBorrowed, Permission, PermissionKind},
+    super::permission::{Blocked, Permission, PermissionKind},
     places::PlaceWithDeadLifetimes,
     Places,
 };
 use crate::encoder::errors::SpannedEncodingResult;
 use log::debug;
 use std::collections::{BTreeMap, BTreeSet};
-use vir_crate::typed::{
-    self as vir_typed,
-    operations::{lifetimes::WithLifetimes, ty::Typed},
+use vir_crate::{
+    common::display,
+    typed::{
+        self as vir_typed,
+        operations::{lifetimes::WithLifetimes, ty::Typed},
+    },
 };
 
 #[derive(Clone, Default, Debug, PartialEq, Eq)]
 pub(in super::super) struct PredicateStateOnPath {
     owned_non_aliased: Places,
     memory_block_stack: Places,
-    mut_borrowed: BTreeMap<vir_typed::Expression, vir_typed::ty::LifetimeConst>,
+    /// A map from opened reference places to a permission variable or `None` if
+    /// the place was opened with full permission.
+    opened_references: BTreeMap<vir_typed::Expression, Option<vir_typed::VariableDecl>>,
+    /// place → (lifetime, is_reborrow)
+    blocked: BTreeMap<vir_typed::Expression, (vir_typed::ty::LifetimeConst, bool)>,
     dead_lifetimes: BTreeSet<vir_typed::ty::LifetimeConst>,
+}
+
+pub(in super::super) struct DeadLifetimeReport {
+    pub(in super::super) dead_references: BTreeSet<vir_typed::Expression>,
+    pub(in super::super) dead_dereferences: BTreeSet<vir_typed::Expression>,
+    pub(in super::super) places_with_dead_lifetimes: Vec<PlaceWithDeadLifetimes>,
+    pub(in super::super) blocked_dead_dereferences:
+        BTreeMap<vir_typed::Expression, vir_typed::ty::LifetimeConst>,
 }
 
 impl std::fmt::Display for PredicateStateOnPath {
@@ -37,9 +52,25 @@ impl std::fmt::Display for PredicateStateOnPath {
         for place in &self.memory_block_stack {
             writeln!(f, "      {place}")?;
         }
-        writeln!(f, "    mut_borrowed ({}):", self.mut_borrowed.len())?;
-        for (place, lifetime) in &self.mut_borrowed {
-            writeln!(f, "      &{lifetime} {place}")?;
+        writeln!(
+            f,
+            "    opened_references ({}):",
+            self.opened_references.len()
+        )?;
+        for (place, permission) in &self.opened_references {
+            writeln!(
+                f,
+                "      {place}: {}",
+                display::option!(permission, "{}", "none")
+            )?;
+        }
+        writeln!(f, "    blocked ({}):", self.blocked.len())?;
+        for (place, (lifetime, is_reborrow)) in &self.blocked {
+            writeln!(
+                f,
+                "      &{lifetime} {} {place}",
+                (if *is_reborrow { "reborrow" } else { "" })
+            )?;
         }
         Ok(())
     }
@@ -55,14 +86,15 @@ impl PredicateStateOnPath {
     pub(super) fn is_empty(&self) -> bool {
         self.owned_non_aliased.is_empty()
             && self.memory_block_stack.is_empty()
-            && self.mut_borrowed.is_empty()
+            // && self.opened_references.is_empty()
+            && self.blocked.is_empty()
     }
 
     pub(super) fn contains_only_leakable(&self) -> bool {
         self.memory_block_stack.is_empty()
             && self.owned_non_aliased.iter().all(|place| {
                 // `UniqueRef` and `FracRef` predicates can be leaked.
-                place.get_dereference_base().is_some()
+                place.get_last_dereferenced_reference().is_some()
             })
     }
 
@@ -101,8 +133,8 @@ impl PredicateStateOnPath {
     ) -> SpannedEncodingResult<()> {
         assert!(place.is_place());
         assert!(
-            self.mut_borrowed.remove(place).is_some(),
-            "not found in mut_borrowed: {place}",
+            self.blocked.remove(place).is_some(),
+            "not found in blocked: {place}",
         );
         Ok(())
     }
@@ -129,8 +161,15 @@ impl PredicateStateOnPath {
             Permission::Owned(place) => {
                 assert!(self.owned_non_aliased.insert(place));
             }
-            Permission::MutBorrowed(MutBorrowed { lifetime, place }) => {
-                assert!(self.mut_borrowed.insert(place, lifetime).is_none());
+            Permission::Blocked(Blocked {
+                lifetime,
+                place,
+                is_reborrow,
+            }) => {
+                assert!(self
+                    .blocked
+                    .insert(place, (lifetime, is_reborrow))
+                    .is_none());
             }
         }
     }
@@ -143,10 +182,54 @@ impl PredicateStateOnPath {
             Permission::Owned(place) => {
                 assert!(self.owned_non_aliased.remove(place));
             }
-            Permission::MutBorrowed(_) => {
+            Permission::Blocked(_) => {
                 unreachable!()
             }
         }
+    }
+
+    pub(super) fn open_ref(
+        &mut self,
+        place: vir_typed::Expression,
+        predicate_permission_amount: Option<vir_typed::VariableDecl>,
+    ) -> SpannedEncodingResult<()> {
+        assert!(place.is_place());
+        assert!(self.owned_non_aliased.contains(&place));
+        for opened_place in self.opened_references.keys() {
+            if opened_place.has_prefix(&place) || place.has_prefix(opened_place) {
+                unimplemented!("FIXME: a proper error message: failed to open {place} because {opened_place} is already opened");
+            }
+        }
+        assert!(self
+            .opened_references
+            .insert(place, predicate_permission_amount)
+            .is_none());
+        Ok(())
+    }
+
+    pub(super) fn close_ref(
+        &mut self,
+        place: &vir_typed::Expression,
+    ) -> SpannedEncodingResult<Option<vir_typed::VariableDecl>> {
+        assert!(place.is_place());
+        assert!(self.owned_non_aliased.contains(place) || place.is_behind_pointer_dereference());
+        let predicate_permission_amount = self
+            .opened_references
+            .remove(place)
+            .unwrap_or_else(|| unreachable!("place is not opened: {}", place));
+        Ok(predicate_permission_amount)
+    }
+
+    pub(in super::super) fn is_opened_ref(
+        &self,
+        place: &vir_typed::Expression,
+    ) -> SpannedEncodingResult<Option<&Option<vir_typed::VariableDecl>>> {
+        for (opened_place, permission) in &self.opened_references {
+            if place.has_prefix(opened_place) {
+                return Ok(Some(permission));
+            }
+        }
+        Ok(None)
     }
 
     pub(in super::super) fn contains(
@@ -251,26 +334,30 @@ impl PredicateStateOnPath {
     pub(in super::super) fn contains_blocked(
         &self,
         place: &vir_typed::Expression,
-    ) -> SpannedEncodingResult<Option<(&vir_typed::Expression, &vir_typed::ty::LifetimeConst)>>
+    ) -> SpannedEncodingResult<Option<(&vir_typed::Expression, &vir_typed::ty::LifetimeConst, bool)>>
     {
-        Ok(self.mut_borrowed.iter().find(|(p, _)| {
-            let prefix_expr = match p {
-                vir_typed::Expression::BuiltinFuncApp(vir_typed::BuiltinFuncApp {
-                    function: vir_typed::BuiltinFunc::Index,
-                    type_arguments: _,
-                    arguments,
-                    ..
-                }) => &arguments[0],
-                _ => *p,
-            };
-            place.has_prefix(prefix_expr) || prefix_expr.has_prefix(place)
-        }))
+        Ok(self
+            .blocked
+            .iter()
+            .find(|(p, _)| {
+                let prefix_expr = match p {
+                    vir_typed::Expression::BuiltinFuncApp(vir_typed::BuiltinFuncApp {
+                        function: vir_typed::BuiltinFunc::Index,
+                        type_arguments: _,
+                        arguments,
+                        ..
+                    }) => &arguments[0],
+                    _ => *p,
+                };
+                place.has_prefix(prefix_expr) || prefix_expr.has_prefix(place)
+            })
+            .map(|(place, (lifetime, reborrow))| (place, lifetime, *reborrow)))
     }
 
     pub(in super::super) fn clear(&mut self) -> SpannedEncodingResult<()> {
         self.owned_non_aliased.clear();
         self.memory_block_stack.clear();
-        self.mut_borrowed.clear();
+        self.blocked.clear();
         self.check_no_default_position();
         Ok(())
     }
@@ -283,7 +370,7 @@ impl PredicateStateOnPath {
         {
             expr.check_no_default_position();
         }
-        for place in self.mut_borrowed.keys() {
+        for place in self.blocked.keys() {
             place.check_no_default_position();
         }
     }
@@ -374,6 +461,8 @@ impl PredicateStateOnPath {
     ///         Note: since `y` is borrowing not `x`, but `a.f`, `x` can dye
     ///         before `y`.
     ///
+    ///         FIXME: We do the same as in 2.1.
+    ///
     ///         In this case, we need to forget about `UniqueRef` parts (delete
     ///         them from fold-unfold state) and replace with `MemoryBlock(x)`
     ///         because we know that this is what we have in the verifier's
@@ -386,36 +475,68 @@ impl PredicateStateOnPath {
     pub(in super::super) fn mark_lifetime_dead(
         &mut self,
         lifetime: &vir_typed::ty::LifetimeConst,
-    ) -> (BTreeSet<vir_typed::Expression>, Vec<PlaceWithDeadLifetimes>) {
-        assert!(
-            !self.dead_lifetimes.contains(lifetime),
-            "The lifetime {lifetime} is already dead."
-        );
-        let all_dead_references: Vec<_> = self
+    ) -> SpannedEncodingResult<Option<DeadLifetimeReport>> {
+        if self.dead_lifetimes.contains(lifetime) {
+            // The lifetime is already dead on this trace.
+            return Ok(None);
+        }
+        let dead_references: BTreeSet<_> = self
+            .owned_non_aliased
+            .drain_filter(|place| {
+                if let vir_typed::Type::Reference(reference_type) = place.get_type() {
+                    &reference_type.lifetime == lifetime
+                } else {
+                    false
+                }
+            })
+            .collect();
+        for reference in &dead_references {
+            self.insert(PermissionKind::MemoryBlock, reference.clone())?;
+        }
+        let all_dead_dereferences: Vec<_> = self
             .owned_non_aliased
             .drain_filter(|place| place.is_deref_of_lifetime(lifetime))
             .collect();
+        let blocked_all_dead_dereferences: Vec<_> = self
+            .blocked
+            .drain_filter(|place, _| place.is_deref_of_lifetime(lifetime))
+            .collect();
         // Case 2.1.
-        let mut dead_references = BTreeSet::new();
+        let mut dead_dereferences = BTreeSet::new();
+        let mut blocked_dead_dereferences = BTreeMap::new();
         // Case 2.2.
         let mut partial_dead_references = BTreeSet::new();
-        for place in all_dead_references {
-            if let vir_typed::Expression::Deref(vir_typed::Deref { box base, .. }) = &place {
-                if let vir_typed::Type::Reference(vir_typed::ty::Reference {
-                    lifetime: lft, ..
-                }) = base.get_type()
-                {
-                    if lifetime == lft {
-                        self.memory_block_stack.insert(base.clone());
-                        dead_references.insert(place);
-                        continue;
-                    }
+        for place in all_dead_dereferences {
+            // if let vir_typed::Expression::Deref(vir_typed::Deref { box base, .. }) = &place {
+            //     if let vir_typed::Type::Reference(vir_typed::ty::Reference {
+            //         lifetime: lft, ..
+            //     }) = base.get_type()
+            //     {
+            //         if lifetime == lft {
+            //             self.memory_block_stack.insert(base.clone());
+            //             dead_references.insert(place);
+            //             continue;
+            //         }
+            //     }
+            // }
+            // partial_dead_references.insert(place.into_ref_with_lifetime(lifetime));
+            if let Some((deref_lifetime, _)) = place.get_dereference_kind() {
+                if &deref_lifetime == lifetime {
+                    dead_dereferences.insert(place.clone());
                 }
             }
             partial_dead_references.insert(place.into_ref_with_lifetime(lifetime));
         }
         for place in partial_dead_references {
             self.memory_block_stack.insert(place);
+        }
+        for (place, (reborrowing_lifetime, is_reborrow)) in blocked_all_dead_dereferences {
+            assert!(is_reborrow, "place: {place}");
+            if let Some((deref_lifetime, _)) = place.get_dereference_kind() {
+                if &deref_lifetime == lifetime {
+                    blocked_dead_dereferences.insert(place.clone(), reborrowing_lifetime);
+                }
+            }
         }
         // Case 1.
         let mut places_with_dead_lifetimes = Vec::new();
@@ -430,6 +551,30 @@ impl PredicateStateOnPath {
         }
         self.dead_lifetimes.insert(lifetime.clone());
         self.check_consistency();
-        (dead_references, places_with_dead_lifetimes)
+        Ok(Some(DeadLifetimeReport {
+            dead_references,
+            dead_dereferences,
+            places_with_dead_lifetimes,
+            blocked_dead_dereferences,
+        }))
+    }
+
+    pub(in super::super) fn equal_ignoring_dead_lifetimes(&self, other: &Self) -> bool {
+        self.owned_equal(other)
+            && self.memory_block_stack_equal(other)
+            && self.blocked_equal(other)
+            && self.opened_references == other.opened_references
+    }
+
+    pub(in super::super) fn owned_equal(&self, other: &Self) -> bool {
+        self.owned_non_aliased == other.owned_non_aliased
+    }
+
+    pub(in super::super) fn memory_block_stack_equal(&self, other: &Self) -> bool {
+        self.memory_block_stack == other.memory_block_stack
+    }
+
+    pub(in super::super) fn blocked_equal(&self, other: &Self) -> bool {
+        self.blocked == other.blocked
     }
 }

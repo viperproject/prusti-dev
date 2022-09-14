@@ -81,7 +81,7 @@ pub fn generate_vir(defs_dir: &std::path::Path, out_dir: &std::path::Path) {
 
     // Write the tokens (and errors) to a tree of folders
     if !error_tokens.is_empty() {
-        unreachable!("{:?}", error_tokens);
+        unreachable!("{}", error_tokens);
     }
     let mut modules_tree = declarations.to_modules_tree();
     error_tokens.to_tokens(&mut modules_tree.tokens);

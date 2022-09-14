@@ -1,4 +1,7 @@
-use super::super::{super::ast::rvalue::*, ty::Typed};
+use super::{
+    super::{super::ast::rvalue::*, ty::Typed},
+    common::append_type_arguments,
+};
 use crate::common::identifier::WithIdentifier;
 
 impl WithIdentifier for Rvalue {
@@ -7,6 +10,7 @@ impl WithIdentifier for Rvalue {
             Self::Repeat(value) => value.get_identifier(),
             Self::AddressOf(value) => value.get_identifier(),
             Self::Len(value) => value.get_identifier(),
+            Self::Cast(value) => value.get_identifier(),
             Self::BinaryOp(value) => value.get_identifier(),
             Self::CheckedBinaryOp(value) => value.get_identifier(),
             Self::UnaryOp(value) => value.get_identifier(),
@@ -48,6 +52,16 @@ impl WithIdentifier for Len {
     }
 }
 
+impl WithIdentifier for Cast {
+    fn get_identifier(&self) -> String {
+        format!(
+            "Cast${}${}",
+            self.operand.get_identifier(),
+            self.ty.get_identifier()
+        )
+    }
+}
+
 impl WithIdentifier for UnaryOp {
     fn get_identifier(&self) -> String {
         format!("UnaryOp${}${}", self.kind, self.argument.get_identifier())
@@ -84,7 +98,13 @@ impl WithIdentifier for Discriminant {
 
 impl WithIdentifier for Aggregate {
     fn get_identifier(&self) -> String {
-        format!("Aggregate${}", self.ty.get_identifier())
+        let mut identifier = format!("Aggregate${}", self.ty.get_identifier());
+        identifier.push('$');
+        for operand in &self.operands {
+            identifier.push_str(&operand.get_identifier());
+            identifier.push('$');
+        }
+        identifier
     }
 }
 

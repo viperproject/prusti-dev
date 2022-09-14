@@ -1,7 +1,9 @@
 use crate::encoder::errors::SpannedEncodingError;
 use vir_crate::{
     middle as vir_mid,
-    middle::operations::{TypedToMiddleExpressionLowerer, TypedToMiddleType},
+    middle::operations::{
+        TypedToMiddleExpressionLowerer, TypedToMiddlePredicate, TypedToMiddleType,
+    },
     typed as vir_typed,
 };
 
@@ -64,5 +66,12 @@ impl<'v, 'tcx> TypedToMiddleExpressionLowerer for crate::encoder::Encoder<'v, 't
         Ok(vir_mid::ty::VariantIndex {
             index: variant_index.index,
         })
+    }
+
+    fn typed_to_middle_expression_predicate(
+        &self,
+        predicate: vir_typed::Predicate,
+    ) -> Result<vir_mid::Predicate, Self::Error> {
+        predicate.typed_to_middle_predicate(self)
     }
 }

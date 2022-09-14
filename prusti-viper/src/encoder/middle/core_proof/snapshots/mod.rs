@@ -9,13 +9,16 @@ mod values;
 mod variables;
 
 pub(super) use self::{
-    adts::SnapshotAdtsInterface,
+    adts::{SnapshotAdtsInterface, SnapshotDomainInfo, SnapshotDomainsInfo},
     builtin_functions::BuiltinFunctionsInterface,
     bytes::SnapshotBytesInterface,
     domains::SnapshotDomainsInterface,
     into_snapshot::{
-        IntoBuiltinMethodSnapshot, IntoProcedureBoolExpression, IntoProcedureFinalSnapshot,
+        AssertionToSnapshotConstructor, FramedExpressionToSnapshot, IntoBuiltinMethodSnapshot,
+        IntoProcedureAssertion, IntoProcedureBoolExpression, IntoProcedureFinalSnapshot,
         IntoProcedureSnapshot, IntoPureBoolExpression, IntoPureSnapshot, IntoSnapshot,
+        IntoSnapshotLowerer, PlaceToSnapshot, PredicateKind, SelfFramingAssertionToSnapshot,
+        ValidityAssertionToSnapshot,
     },
     state::SnapshotsState,
     validity::{valid_call, valid_call2, SnapshotValidityInterface},

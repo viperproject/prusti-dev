@@ -23,6 +23,11 @@ pub(in super::super) trait PlaceExpressionDomainEncoder {
         lowerer: &mut Lowerer,
         arg: vir_low::Expression,
     ) -> SpannedEncodingResult<vir_low::Expression>;
+    fn encode_labelled_old(
+        &mut self,
+        expression: &vir_mid::expression::LabelledOld,
+        lowerer: &mut Lowerer,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
     fn encode_array_index_axioms(
         &mut self,
         base_type: &vir_mid::Type,
@@ -81,6 +86,12 @@ pub(in super::super) trait PlaceExpressionDomainEncoder {
                     index,
                     *position,
                 )?
+            }
+            vir_mid::Expression::LabelledOld(expression) => {
+                self.encode_labelled_old(expression, lowerer)?
+            }
+            vir_mid::Expression::EvalIn(expression) => {
+                self.encode_expression(&expression.body, lowerer)?
             }
             x => unimplemented!("{}", x),
         };

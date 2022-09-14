@@ -4,6 +4,7 @@ use crate::{
 };
 use std::str::CharIndices;
 
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub(crate) enum EventKind {
     Pop,
     Push,
@@ -15,6 +16,20 @@ pub(crate) enum EventKind {
     Unrecognized,
     AttachMeaning,
     MkVar,
+    ToolVersion,
+    AttachVarNames,
+    MkProof,
+    AttachEnode,
+    EndOfInstance,
+    MkLambda,
+    BeginCheck,
+    Assign,
+    EqExpl,
+    DecideAndOr,
+    ResolveLit,
+    ResolveProcess,
+    Conflict,
+    Eof,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
@@ -137,11 +152,20 @@ impl<'a> Parser<'a> {
                 "inst-discovered" => EventKind::InstDiscovered,
                 "instance" => EventKind::Instance,
                 "attach-meaning" => EventKind::AttachMeaning,
-                "tool-version" | "attach-var-names" | "mk-proof" | "attach-enode"
-                | "end-of-instance" | "mk-lambda" | "begin-check" | "assign" | "eq-expl"
-                | "decide-and-or" | "resolve-lit" | "resolve-process" | "conflict" | "eof" => {
-                    EventKind::Unrecognized
-                }
+                "tool-version" => EventKind::ToolVersion,
+                "attach-var-names" => EventKind::AttachVarNames,
+                "mk-proof" => EventKind::MkProof,
+                "attach-enode" => EventKind::AttachEnode,
+                "end-of-instance" => EventKind::EndOfInstance,
+                "mk-lambda" => EventKind::MkLambda,
+                "begin-check" => EventKind::BeginCheck,
+                "assign" => EventKind::Assign,
+                "eq-expl" => EventKind::EqExpl,
+                "decide-and-or" => EventKind::DecideAndOr,
+                "resolve-lit" => EventKind::ResolveLit,
+                "resolve-process" => EventKind::ResolveProcess,
+                "conflict" => EventKind::Conflict,
+                "eof" => EventKind::Eof,
                 x => unimplemented!("got: {:?}", x),
             };
             self.consume(']')?;

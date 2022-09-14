@@ -53,6 +53,7 @@ pub(in super::super) struct ConversionState {
 pub(in super::super) struct RestorationState {
     pub(in super::super) lifetime: vir_typed::ty::LifetimeConst,
     pub(in super::super) place: vir_typed::Expression,
+    pub(in super::super) is_reborrow: bool,
     pub(in super::super) condition: Option<vir_mid::BlockMarkerCondition>,
 }
 
@@ -124,10 +125,12 @@ impl Action {
     pub(in super::super) fn restore_mut_borrowed(
         lifetime: vir_typed::ty::LifetimeConst,
         place: vir_typed::Expression,
+        is_reborrow: bool,
     ) -> Self {
         Self::RestoreMutBorrowed(RestorationState {
             lifetime,
             place,
+            is_reborrow,
             condition: None,
         })
     }

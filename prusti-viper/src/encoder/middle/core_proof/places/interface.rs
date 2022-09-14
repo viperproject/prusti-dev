@@ -10,8 +10,13 @@ use crate::encoder::{
 };
 use prusti_rustc_interface::data_structures::fx::FxHashSet;
 use vir_crate::{
-    common::{expression::QuantifierHelpers, identifier::WithIdentifier},
-    low::{self as vir_low, macros::var_decls},
+    common::{
+        builtin_constants::{PLACE_DOMAIN_NAME, PLACE_OPTION_DOMAIN_NAME},
+        expression::QuantifierHelpers,
+        identifier::WithIdentifier,
+        position::Positioned,
+    },
+    low::{self as vir_low, macros::var_decls, operations::ty::Typed},
     middle::{self as vir_mid},
 };
 
@@ -23,6 +28,15 @@ pub(in super::super) struct PlacesState {
 
 pub(in super::super) trait PlacesInterface {
     fn place_type(&mut self) -> SpannedEncodingResult<vir_low::Type>;
+    fn place_option_type(&mut self) -> SpannedEncodingResult<vir_low::Type>;
+    fn place_option_some_constructor(
+        &mut self,
+        place: vir_low::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
+    fn place_option_none_constructor(
+        &mut self,
+        position: vir_mid::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
     fn encode_expression_as_place(
         &mut self,
         place: &vir_mid::Expression,
@@ -54,11 +68,46 @@ pub(in super::super) trait PlacesInterface {
         position: vir_mid::Position,
     ) -> SpannedEncodingResult<vir_low::ast::expression::Expression>;
     fn encode_place_array_index_axioms(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()>;
+    fn encode_aliased_place_root(
+        &mut self,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> PlacesInterface for Lowerer<'p, 'v, 'tcx> {
     fn place_type(&mut self) -> SpannedEncodingResult<vir_low::Type> {
-        self.domain_type("Place")
+        self.domain_type(PLACE_DOMAIN_NAME)
+    }
+    fn place_option_type(&mut self) -> SpannedEncodingResult<vir_low::Type> {
+        self.domain_type(PLACE_OPTION_DOMAIN_NAME)
+    }
+    fn place_option_some_constructor(
+        &mut self,
+        place: vir_low::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        debug_assert_eq!(place.get_type(), &self.place_type()?);
+        let place_option_type = self.place_option_type()?;
+        let position = place.position();
+        self.create_domain_func_app(
+            PLACE_OPTION_DOMAIN_NAME,
+            "place_option_some",
+            vec![place],
+            place_option_type,
+            position,
+        )
+    }
+    fn place_option_none_constructor(
+        &mut self,
+        position: vir_mid::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let place_option_type = self.place_option_type()?;
+        self.create_domain_func_app(
+            PLACE_OPTION_DOMAIN_NAME,
+            "place_option_none",
+            Vec::new(),
+            place_option_type,
+            position,
+        )
     }
     /// Emits code that represents the place.
     fn encode_expression_as_place(
@@ -75,7 +124,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> PlacesInterface for Lowerer<'p, 'v, 'tcx> {
         base_place: vir_low::Expression,
         position: vir_mid::Position,
     ) -> SpannedEncodingResult<vir_low::ast::expression::Expression> {
-        self.encode_field_access_function_app("Place", base_place, base_type, field, position)
+        debug_assert_eq!(base_place.get_type(), &self.place_option_type()?);
+        self.encode_field_access_function_app(
+            PLACE_OPTION_DOMAIN_NAME,
+            base_place,
+            base_type,
+            field,
+            position,
+        )
     }
     fn encode_enum_variant_place(
         &mut self,
@@ -84,16 +140,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> PlacesInterface for Lowerer<'p, 'v, 'tcx> {
         base_place: vir_low::Expression,
         position: vir_mid::Position,
     ) -> SpannedEncodingResult<vir_low::ast::expression::Expression> {
-        self.encode_variant_access_function_app("Place", base_place, base_type, variant, position)
+        self.encode_variant_access_function_app(
+            PLACE_OPTION_DOMAIN_NAME,
+            base_place,
+            base_type,
+            variant,
+            position,
+        )
     }
     fn encode_deref_place(
         &mut self,
         base_place: vir_low::Expression,
         position: vir_mid::Position,
     ) -> SpannedEncodingResult<vir_low::ast::expression::Expression> {
-        let return_type = self.place_type()?;
+        debug_assert_eq!(base_place.get_type(), &self.place_option_type()?);
+        let return_type = self.place_option_type()?;
         self.create_domain_func_app(
-            "Place",
+            PLACE_OPTION_DOMAIN_NAME,
             "deref_reference_place",
             vec![base_place],
             return_type,
@@ -107,7 +170,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> PlacesInterface for Lowerer<'p, 'v, 'tcx> {
         index: vir_low::Expression,
         position: vir_mid::Position,
     ) -> SpannedEncodingResult<vir_low::ast::expression::Expression> {
-        self.encode_index_access_function_app("Place", base_place, base_type, index, position)
+        self.encode_index_access_function_app(
+            PLACE_OPTION_DOMAIN_NAME,
+            base_place,
+            base_type,
+            index,
+            position,
+        )
     }
     fn encode_place_array_index_axioms(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()> {
         let identifier = ty.get_identifier();
@@ -122,21 +191,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> PlacesInterface for Lowerer<'p, 'v, 'tcx> {
                 index: { size_type.clone() }
             };
             let function_app = self.encode_index_access_function_app(
-                "Place",
+                PLACE_DOMAIN_NAME,
                 place.clone().into(),
                 ty,
                 index.clone().into(),
                 position,
             )?;
             let place_inverse = self.create_domain_func_app(
-                "Place",
+                PLACE_DOMAIN_NAME,
                 format!("index_place$${}$$inv_place", ty.get_identifier()),
                 vec![function_app.clone()],
                 place_type,
                 position,
             )?;
             let index_inverse = self.create_domain_func_app(
-                "Place",
+                PLACE_DOMAIN_NAME,
                 format!("index_place$${}$$inv_index", ty.get_identifier()),
                 vec![function_app.clone()],
                 size_type,
@@ -155,8 +224,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> PlacesInterface for Lowerer<'p, 'v, 'tcx> {
                 name: format!("index_place$${}$$injectivity_axiom", ty.get_identifier()),
                 body,
             };
-            self.declare_axiom("Place", axiom)?;
+            self.declare_axiom(PLACE_DOMAIN_NAME, axiom)?;
         }
         Ok(())
+    }
+    fn encode_aliased_place_root(
+        &mut self,
+        _position: vir_low::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        unimplemented!();
+        // let return_type = self.place_type()?;
+        // let place_root = self.create_domain_func_app(
+        //     PLACE_OPTION_DOMAIN_NAME,
+        //     "aliased_place_root",
+        //     vec![],
+        //     return_type,
+        //     position,
+        // )?;
+        // self.encode_compute_address_for_place_root(&place_root)?;
+        // Ok(place_root)
     }
 }

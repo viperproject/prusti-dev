@@ -6,10 +6,13 @@ impl Positioned for Statement {
         match self {
             Self::Comment(statement) => statement.position(),
             Self::OldLabel(statement) => statement.position(),
-            Self::Inhale(statement) => statement.position(),
-            Self::Exhale(statement) => statement.position(),
+            Self::InhalePredicate(statement) => statement.position(),
+            Self::ExhalePredicate(statement) => statement.position(),
+            Self::InhaleExpression(statement) => statement.position(),
+            Self::ExhaleExpression(statement) => statement.position(),
             Self::Havoc(statement) => statement.position(),
             Self::GhostHavoc(statement) => statement.position(),
+            Self::HeapHavoc(statement) => statement.position(),
             Self::Assume(statement) => statement.position(),
             Self::Assert(statement) => statement.position(),
             Self::FoldOwned(statement) => statement.position(),
@@ -17,8 +20,11 @@ impl Positioned for Statement {
             Self::FoldRef(statement) => statement.position(),
             Self::UnfoldRef(statement) => statement.position(),
             Self::JoinBlock(statement) => statement.position(),
+            Self::JoinRange(statement) => statement.position(),
             Self::SplitBlock(statement) => statement.position(),
+            Self::SplitRange(statement) => statement.position(),
             Self::ConvertOwnedIntoMemoryBlock(statement) => statement.position(),
+            Self::RangeConvertOwnedIntoMemoryBlock(statement) => statement.position(),
             Self::RestoreMutBorrowed(statement) => statement.position(),
             Self::MovePlace(statement) => statement.position(),
             Self::CopyPlace(statement) => statement.position(),
@@ -27,10 +33,16 @@ impl Positioned for Statement {
             Self::Assign(statement) => statement.position(),
             Self::GhostAssign(statement) => statement.position(),
             Self::SetUnionVariant(statement) => statement.position(),
+            // Self::Pack(statement) => statement.position(),
+            // Self::Unpack(statement) => statement.position(),
+            Self::RestoreRawBorrowed(statement) => statement.position(),
             Self::Consume(statement) => statement.position(),
+            Self::StashRange(statement) => statement.position(),
+            Self::StashRangeRestore(statement) => statement.position(),
             Self::NewLft(statement) => statement.position(),
             Self::EndLft(statement) => statement.position(),
             Self::DeadReference(statement) => statement.position(),
+            Self::DeadReferenceRange(statement) => statement.position(),
             Self::DeadLifetime(statement) => statement.position(),
             Self::DeadInclusion(statement) => statement.position(),
             Self::LifetimeTake(statement) => statement.position(),
@@ -56,13 +68,25 @@ impl Positioned for OldLabel {
     }
 }
 
-impl Positioned for Inhale {
+impl Positioned for InhalePredicate {
     fn position(&self) -> Position {
         self.position
     }
 }
 
-impl Positioned for Exhale {
+impl Positioned for ExhalePredicate {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for InhaleExpression {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for ExhaleExpression {
     fn position(&self) -> Position {
         self.position
     }
@@ -75,6 +99,12 @@ impl Positioned for Havoc {
 }
 
 impl Positioned for GhostHavoc {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for HeapHavoc {
     fn position(&self) -> Position {
         self.position
     }
@@ -122,13 +152,31 @@ impl Positioned for JoinBlock {
     }
 }
 
+impl Positioned for JoinRange {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
 impl Positioned for SplitBlock {
     fn position(&self) -> Position {
         self.position
     }
 }
 
+impl Positioned for SplitRange {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
 impl Positioned for ConvertOwnedIntoMemoryBlock {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for RangeConvertOwnedIntoMemoryBlock {
     fn position(&self) -> Position {
         self.position
     }
@@ -182,7 +230,37 @@ impl Positioned for SetUnionVariant {
     }
 }
 
+// impl Positioned for Pack {
+//     fn position(&self) -> Position {
+//         self.position
+//     }
+// }
+
+// impl Positioned for Unpack {
+//     fn position(&self) -> Position {
+//         self.position
+//     }
+// }
+
+impl Positioned for RestoreRawBorrowed {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
 impl Positioned for Consume {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for StashRange {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for StashRangeRestore {
     fn position(&self) -> Position {
         self.position
     }
@@ -201,6 +279,12 @@ impl Positioned for EndLft {
 }
 
 impl Positioned for DeadReference {
+    fn position(&self) -> Position {
+        self.position
+    }
+}
+
+impl Positioned for DeadReferenceRange {
     fn position(&self) -> Position {
         self.position
     }

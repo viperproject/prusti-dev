@@ -32,7 +32,7 @@ pub fn prefixed_method_name_from_camel_raw(prefix: &str, ident: &syn::Ident) -> 
         }
     }
     match new_ident.as_ref() {
-        "struct" | "enum" | "union" | "type" | "ref" | "move" => {
+        "struct" | "enum" | "union" | "type" | "ref" | "move" | "final" => {
             new_ident.push('_');
             new_ident
         }

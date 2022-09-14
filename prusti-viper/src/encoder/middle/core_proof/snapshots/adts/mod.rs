@@ -6,5 +6,9 @@
 //! `prusti-viper/src/encoder/middle/core_proof/adts/interface.rs`.
 
 mod interface;
+mod state;
 
-pub(in super::super) use self::interface::SnapshotAdtsInterface;
+pub(in super::super) use self::{
+    interface::SnapshotAdtsInterface,
+    state::{SnapshotDomainInfo, SnapshotDomainsInfo},
+};

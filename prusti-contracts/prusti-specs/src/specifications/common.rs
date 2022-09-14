@@ -56,6 +56,8 @@ pub struct SpecificationId(Uuid);
 pub enum SpecIdRef {
     Precondition(SpecificationId),
     Postcondition(SpecificationId),
+    BrokenPrecondition(SpecificationId),
+    BrokenPostcondition(SpecificationId),
     Purity(SpecificationId),
     Pledge {
         lhs: Option<SpecificationId>,

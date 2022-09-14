@@ -6,6 +6,7 @@ use crate::common::display;
 #[derive(derive_more::From, derive_more::IsVariant)]
 pub enum Statement {
     Comment(Comment),
+    Label(Label),
     LogEvent(LogEvent),
     Assume(Assume),
     Assert(Assert),
@@ -24,10 +25,17 @@ pub struct Comment {
     pub comment: String,
 }
 
+#[display(fmt = "label {}", label)]
+pub struct Label {
+    pub label: String,
+    pub position: Position,
+}
+
 #[display(fmt = "log-event {}", expression)]
 /// Log an event by assuming a (fresh) domain function.
 pub struct LogEvent {
     pub expression: Expression,
+    pub position: Position,
 }
 
 #[display(fmt = "assume {}", expression)]

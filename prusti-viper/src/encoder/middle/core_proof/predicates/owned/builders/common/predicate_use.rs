@@ -1,8 +1,8 @@
 use crate::encoder::{
     errors::SpannedEncodingResult,
     middle::core_proof::{
-        builtin_methods::CallContext, lifetimes::LifetimesInterface, lowerer::Lowerer,
-        snapshots::IntoPureSnapshot,
+        builtin_methods::CallContext, const_generics::ConstGenericsInterface,
+        lifetimes::LifetimesInterface, lowerer::Lowerer,
     },
 };
 use vir_crate::{
@@ -53,12 +53,16 @@ where
 
     pub(in super::super) fn build(self) -> vir_low::Expression {
         vir_low::Expression::predicate_access_predicate(
-            format!("{}${}", self.predicate_name, self.ty.get_identifier()),
+            self.predicate_name(),
             self.arguments,
             self.permission_amount
                 .unwrap_or_else(vir_low::Expression::full_permission),
             self.position,
         )
+    }
+
+    pub(in super::super) fn predicate_name(&self) -> String {
+        format!("{}${}", self.predicate_name, self.ty.get_identifier())
     }
 
     pub(in super::super) fn add_lifetime_arguments(&mut self) -> SpannedEncodingResult<()> {
@@ -70,11 +74,15 @@ where
     }
 
     pub(in super::super) fn add_const_arguments(&mut self) -> SpannedEncodingResult<()> {
-        // FIXME: remove code duplication with other add_const_arguments methods
-        for argument in self.generics.get_const_arguments() {
-            self.arguments
-                .push(argument.to_pure_snapshot(self.lowerer)?);
-        }
+        // // FIXME: remove code duplication with other add_const_arguments methods
+        // for argument in self.generics.get_const_arguments() {
+        //     self.arguments
+        //         .push(argument.to_pure_snapshot(self.lowerer)?);
+        // }
+        self.arguments.extend(
+            self.lowerer
+                .create_const_arguments(self.context, self.generics)?,
+        );
         Ok(())
     }
 

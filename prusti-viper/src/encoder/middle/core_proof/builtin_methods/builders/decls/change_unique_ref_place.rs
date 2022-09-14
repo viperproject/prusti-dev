@@ -6,7 +6,7 @@ use crate::encoder::{
         lifetimes::LifetimesInterface,
         lowerer::Lowerer,
         places::PlacesInterface,
-        predicates::UniqueRefUseBuilder,
+        predicates::PredicatesOwnedInterface,
         references::ReferencesInterface,
         snapshots::{IntoPureSnapshot, IntoSnapshot},
     },
@@ -40,8 +40,8 @@ impl<'l, 'p, 'v, 'tcx> ChangeUniqueRefPlaceMethodBuilder<'l, 'p, 'v, 'tcx> {
         type_decl: &'l vir_mid::TypeDecl,
         error_kind: BuiltinMethodKind,
     ) -> SpannedEncodingResult<Self> {
-        let target_place = vir_low::VariableDecl::new("target_place", lowerer.place_type()?);
-        let source_place = vir_low::VariableDecl::new("source_place", lowerer.place_type()?);
+        let target_place = vir_low::VariableDecl::new("target_place", lowerer.place_option_type()?);
+        let source_place = vir_low::VariableDecl::new("source_place", lowerer.place_option_type()?);
         let source_snapshot =
             vir_low::VariableDecl::new("source_snapshot", ty.to_snapshot(lowerer)?);
         let inner =
@@ -72,27 +72,27 @@ impl<'l, 'p, 'v, 'tcx> ChangeUniqueRefPlaceMethodBuilder<'l, 'p, 'v, 'tcx> {
     pub(in super::super::super::super) fn add_same_address_precondition(
         &mut self,
     ) -> SpannedEncodingResult<()> {
-        use vir_low::macros::*;
-        let root_address = self.inner.lowerer.reference_address(
-            self.inner.ty,
-            self.source_snapshot.clone().into(),
-            self.inner.position,
-        )?;
-        let deref_source_place = self
-            .inner
-            .lowerer
-            .reference_deref_place(self.source_place.clone().into(), self.inner.position)?;
-        let deref_target_place = self
-            .inner
-            .lowerer
-            .reference_deref_place(self.target_place.clone().into(), self.inner.position)?;
-        let source_address =
-            self.compute_address_expression(deref_source_place, root_address.clone());
-        let target_address = self.compute_address_expression(deref_target_place, root_address);
-        let expression = expr! {
-            [target_address] == [source_address]
-        };
-        self.add_precondition(expression);
+        // use vir_low::macros::*;
+        // let root_address = self.inner.lowerer.reference_address(
+        //     self.inner.ty,
+        //     self.source_snapshot.clone().into(),
+        //     self.inner.position,
+        // )?;
+        // let deref_source_place = self
+        //     .inner
+        //     .lowerer
+        //     .reference_deref_place(self.source_place.clone().into(), self.inner.position)?;
+        // let deref_target_place = self
+        //     .inner
+        //     .lowerer
+        //     .reference_deref_place(self.target_place.clone().into(), self.inner.position)?;
+        // let source_address =
+        //     self.compute_address_expression(deref_source_place, root_address.clone());
+        // let target_address = self.compute_address_expression(deref_target_place, root_address);
+        // let expression = expr! {
+        //     [target_address] == [source_address]
+        // };
+        // self.add_precondition(expression);
         Ok(())
     }
 
@@ -102,6 +102,11 @@ impl<'l, 'p, 'v, 'tcx> ChangeUniqueRefPlaceMethodBuilder<'l, 'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         use vir_low::macros::*;
         let root_address = self.inner.lowerer.reference_address(
+            self.inner.ty,
+            self.source_snapshot.clone().into(),
+            self.inner.position,
+        )?;
+        let slice_len = self.inner.lowerer.reference_slice_len(
             self.inner.ty,
             self.source_snapshot.clone().into(),
             self.inner.position,
@@ -133,37 +138,62 @@ impl<'l, 'p, 'v, 'tcx> ChangeUniqueRefPlaceMethodBuilder<'l, 'p, 'v, 'tcx> {
             .lowerer
             .encode_lifetime_const_into_pure_is_alive_variable(lifetime)?;
         let lifetime = lifetime.to_pure_snapshot(self.inner.lowerer)?;
-        let mut builder = UniqueRefUseBuilder::new(
-            self.lowerer(),
+        let source_expression = self.inner.lowerer.unique_ref_with_current_snapshot(
+            CallContext::BuiltinMethod,
+            &target_type,
+            &target_type_decl,
+            deref_source_place.clone(),
+            root_address.clone(),
+            current_snapshot.clone(),
+            lifetime.clone().into(),
+            slice_len.clone(),
+            None,
+            self.inner.position,
+        )?;
+        let source_final_expression = self.inner.lowerer.unique_ref_snap(
             CallContext::BuiltinMethod,
             &target_type,
             &target_type_decl,
             deref_source_place,
             root_address.clone(),
-            current_snapshot.clone(),
-            final_snapshot.clone(),
             lifetime.clone().into(),
+            slice_len.clone(),
+            true,
+            self.inner.position,
         )?;
-        builder.add_lifetime_arguments()?;
-        builder.add_const_arguments()?;
-        let source_expression = builder.build();
-
-        self.add_precondition(expr! { [lifetime_alive.clone().into()] ==> [source_expression] });
-        let mut builder = UniqueRefUseBuilder::new(
-            self.lowerer(),
+        self.add_precondition(expr! { lifetime_alive ==> [source_expression] });
+        self.add_precondition(expr! {
+            lifetime_alive ==>
+            ([final_snapshot.clone()] == [source_final_expression])
+        });
+        let target_expression = self.inner.lowerer.unique_ref_with_current_snapshot(
+            CallContext::BuiltinMethod,
+            &target_type,
+            &target_type_decl,
+            deref_target_place.clone(),
+            root_address.clone(),
+            current_snapshot,
+            lifetime.clone().into(),
+            slice_len.clone(),
+            None,
+            self.inner.position,
+        )?;
+        let target_final_expression = self.inner.lowerer.unique_ref_snap(
             CallContext::BuiltinMethod,
             &target_type,
             &target_type_decl,
             deref_target_place,
             root_address,
-            current_snapshot,
-            final_snapshot,
             lifetime.into(),
+            slice_len,
+            true,
+            self.inner.position,
         )?;
-        builder.add_lifetime_arguments()?;
-        builder.add_const_arguments()?;
-        let target_expression = builder.build();
-        self.add_postcondition(expr! { [lifetime_alive.into()] ==> [target_expression] });
+        self.add_postcondition(expr! { lifetime_alive ==> [target_expression] });
+        self.add_postcondition(expr! {
+            lifetime_alive ==>
+            ([final_snapshot] == [target_final_expression])
+        });
         Ok(())
     }
 }

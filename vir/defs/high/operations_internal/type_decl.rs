@@ -4,6 +4,12 @@ use super::super::ast::{
     type_decl::{Enum, Struct, Trusted, Tuple, TypeDecl, Union},
 };
 
+impl Struct {
+    pub fn is_manually_managed_type(&self) -> bool {
+        self.structural_invariant.is_some()
+    }
+}
+
 impl Enum {
     pub fn variant(&self, variant_name: &str) -> Option<&Struct> {
         self.variants

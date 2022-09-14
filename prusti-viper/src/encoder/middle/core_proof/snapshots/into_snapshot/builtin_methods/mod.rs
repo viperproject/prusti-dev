@@ -1,7 +1,10 @@
 use super::common::IntoSnapshotLowerer;
 use crate::encoder::{
     errors::SpannedEncodingResult,
-    middle::core_proof::lowerer::{FunctionsLowererInterface, Lowerer},
+    middle::core_proof::{
+        builtin_methods::CallContext,
+        lowerer::{FunctionsLowererInterface, Lowerer},
+    },
 };
 use vir_crate::{
     common::identifier::WithIdentifier,
@@ -56,4 +59,46 @@ impl<'p, 'v: 'p, 'tcx: 'v> IntoSnapshotLowerer<'p, 'v, 'tcx> for BuiltinMethodSn
         // In pure contexts values cannot be mutated, so `old` has no effect.
         self.expression_to_snapshot(lowerer, &old.base, expect_math_bool)
     }
+
+    fn acc_predicate_to_snapshot(
+        &mut self,
+        _lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        _predicate: &vir_mid::AccPredicate,
+        _expect_math_bool: bool,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        unreachable!()
+    }
+
+    fn owned_non_aliased_snap(
+        &mut self,
+        _lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+        _ty: &vir_mid::Type,
+        _pointer_snapshot: &vir_mid::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        unimplemented!()
+    }
+
+    fn call_context(&self) -> CallContext {
+        CallContext::BuiltinMethod
+    }
+
+    fn push_bound_variables(
+        &mut self,
+        _variables: &[vir_mid::VariableDecl],
+    ) -> SpannedEncodingResult<()> {
+        todo!()
+    }
+
+    fn pop_bound_variables(&mut self) -> SpannedEncodingResult<()> {
+        todo!()
+    }
+
+    // fn unfolding_to_snapshot(
+    //     &mut self,
+    //     lowerer: &mut Lowerer<'p, 'v, 'tcx>,
+    //     unfolding: &vir_mid::Unfolding,
+    //     expect_math_bool: bool,
+    // ) -> SpannedEncodingResult<vir_low::Expression> {
+    //     todo!()
+    // }
 }

@@ -5,6 +5,7 @@ use rustc_hash::FxHashMap;
 
 pub mod patch;
 pub mod validation;
+pub mod replace_terminator;
 
 pub type Region = <RustcFacts as FactTypes>::Origin;
 pub type Loan = <RustcFacts as FactTypes>::Loan;
@@ -103,5 +104,13 @@ impl LocationTable {
 
     pub fn location_to_point(&self, location: RichLocation) -> Point {
         self.points[&location]
+    }
+
+    pub fn iter_points(&self) -> impl Iterator<Item = Point> + '_ {
+        self.locations.keys().copied()
+    }
+
+    pub fn iter_locations(&self) -> impl Iterator<Item = RichLocation> + '_ {
+        self.points.keys().copied()
     }
 }

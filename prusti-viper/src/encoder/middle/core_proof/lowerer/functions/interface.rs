@@ -5,7 +5,8 @@ use crate::encoder::{
         function_gas::FunctionGasInterface,
         lowerer::{DomainsLowererInterface, Lowerer},
         snapshots::{
-            IntoPureBoolExpression, IntoPureSnapshot, IntoSnapshot, SnapshotValidityInterface,
+            FramedExpressionToSnapshot, IntoPureBoolExpression, IntoPureSnapshot, IntoSnapshot,
+            IntoSnapshotLowerer, SnapshotValidityInterface,
         },
         types::TypesInterface,
     },
@@ -28,16 +29,7 @@ impl FunctionsLowererState {
     }
 }
 
-trait Private {
-    fn caller_function_name(&mut self, function_name: &str) -> String;
-    fn ensure_pure_function_lowered(&mut self, function_name: String) -> SpannedEncodingResult<()>;
-    fn ensure_all_types_lowered(
-        &mut self,
-        function_decl: &vir_mid::FunctionDecl,
-    ) -> SpannedEncodingResult<()>;
-}
-
-impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
+impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
     fn caller_function_name(&mut self, function_name: &str) -> String {
         format!("caller_for${function_name}")
     }
@@ -124,7 +116,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     return_type,
                 );
                 let body = if let Some(body) = function_decl.body {
-                    expr! { ([call.clone()] == [body.to_pure_snapshot(self)?]) }
+                    // eprintln!("body: {body}");
+                    let framing_variables = &function_decl.parameters;
+                    // for variable in framing_variables {
+                    //     eprintln!("variable: {variable}");
+                    // }
+                    // let deref_fields = self.framing_variable_deref_fields(framing_variables)?;
+                    // for (e, name, ty) in &deref_fields {
+                    //     eprintln!("field: {} {} {}", e, name, ty);
+                    // }
+                    let mut body_encoder =
+                        FramedExpressionToSnapshot::for_function_body(framing_variables);
+                    let encoded_body = body_encoder.expression_to_snapshot(self, &body, false)?;
+                    expr! { ([call.clone()] == [encoded_body]) }
                 } else {
                     true.into()
                 };

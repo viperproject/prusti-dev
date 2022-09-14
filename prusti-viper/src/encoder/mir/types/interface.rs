@@ -12,7 +12,10 @@ use prusti_rustc_interface::{
 };
 use rustc_hash::FxHashMap;
 use std::cell::RefCell;
-use vir_crate::{common::expression::less_equals, high as vir_high, polymorphic as vir};
+use vir_crate::{
+    common::{builtin_constants::DISCRIMINANT_FIELD_NAME, expression::less_equals},
+    high as vir_high, polymorphic as vir,
+};
 
 #[derive(Default)]
 pub(crate) struct MirTypeEncoderState<'tcx> {
@@ -56,11 +59,11 @@ pub(crate) trait MirTypeEncoderInterface<'tcx> {
         ty: ty::Ty<'tcx>,
     ) -> SpannedEncodingResult<Vec<vir_high::VariableDecl>>;
     fn encode_type_high(&self, ty: ty::Ty<'tcx>) -> SpannedEncodingResult<vir_high::Type>;
-    fn encode_type_high_with_const_arguments(
-        &self,
-        ty: ty::Ty<'tcx>,
-        const_arguments: &[vir_high::Expression],
-    ) -> SpannedEncodingResult<vir_high::Type>;
+    // fn encode_type_high_with_const_arguments(
+    //     &self,
+    //     ty: ty::Ty<'tcx>,
+    //     const_arguments: &[vir_high::Expression],
+    // ) -> SpannedEncodingResult<vir_high::Type>;
     fn encode_place_type_high(&self, ty: mir::tcx::PlaceTy<'tcx>)
         -> EncodingResult<vir_high::Type>;
     fn encode_enum_variant_index_high(
@@ -77,13 +80,14 @@ pub(crate) trait MirTypeEncoderInterface<'tcx> {
     fn encode_type_def_high(
         &self,
         ty: &vir_high::Type,
+        with_invariant: bool,
     ) -> SpannedEncodingResult<vir_high::TypeDecl>;
-    fn encode_adt_def(
-        &self,
-        adt_def: ty::AdtDef<'tcx>,
-        substs: ty::subst::SubstsRef<'tcx>,
-        variant_index: Option<prusti_rustc_interface::target::abi::VariantIdx>,
-    ) -> SpannedEncodingResult<vir_high::TypeDecl>;
+    // fn encode_adt_def(
+    //     &self,
+    //     adt_def: ty::AdtDef<'tcx>,
+    //     substs: ty::subst::SubstsRef<'tcx>,
+    //     variant_index: Option<prusti_rustc_interface::target::abi::VariantIdx>,
+    // ) -> SpannedEncodingResult<vir_high::TypeDecl>;
     fn encode_type_bounds_high(
         &self,
         var: &vir_high::Expression,
@@ -114,7 +118,7 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
         vir::Field::new(name, vir::Type::typed_ref(""))
     }
     fn encode_discriminant_field(&self) -> vir::Field {
-        let name = "discriminant";
+        let name = DISCRIMINANT_FIELD_NAME;
         vir::Field::new(name, vir::Type::Int)
     }
     fn encode_field(
@@ -124,7 +128,7 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
         use_span: Option<Span>,
         declaration_span: Span,
     ) -> SpannedEncodingResult<vir_high::FieldDecl> {
-        let type_decl = self.encode_type_def_high(ty)?;
+        let type_decl = self.encode_type_def_high(ty, false)?;
         let primary_span = if let Some(use_span) = use_span {
             use_span
         } else {
@@ -224,15 +228,6 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
         Ok(const_parameters)
     }
     fn encode_type_high(&self, ty: ty::Ty<'tcx>) -> SpannedEncodingResult<vir_high::Type> {
-        // FIXME: Remove encode_type_high_with_const_arguments because it is a
-        // failed attempt.
-        self.encode_type_high_with_const_arguments(ty, &[])
-    }
-    fn encode_type_high_with_const_arguments(
-        &self,
-        ty: ty::Ty<'tcx>,
-        const_arguments: &[vir_high::Expression],
-    ) -> SpannedEncodingResult<vir_high::Type> {
         if !self
             .mir_type_encoder_state
             .encoded_types
@@ -240,7 +235,7 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
             .contains_key(ty.kind())
         {
             let type_encoder = TypeEncoder::new(self, ty);
-            let encoded_type = type_encoder.encode_type(const_arguments)?;
+            let encoded_type = type_encoder.encode_type()?;
             assert!(self
                 .mir_type_encoder_state
                 .encoded_types
@@ -254,12 +249,12 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
             self.mir_type_encoder_state
                 .encoded_types_inverse
                 .borrow_mut()
-                .insert(encoded_type.clone(), ty);
-            let encoded_type = encoded_type.erase_lifetimes().erase_const_generics();
-            self.mir_type_encoder_state
-                .encoded_types_inverse
-                .borrow_mut()
                 .insert(encoded_type, ty);
+            // let encoded_type = encoded_type.erase_lifetimes().erase_const_generics();
+            // self.mir_type_encoder_state
+            //     .encoded_types_inverse
+            //     .borrow_mut()
+            //     .insert(encoded_type, ty);
         }
         let encoded_type = self.mir_type_encoder_state.encoded_types.borrow()[ty.kind()].clone();
         Ok(encoded_type)
@@ -347,6 +342,7 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
     fn encode_type_def_high(
         &self,
         ty: &vir_high::Type,
+        with_invariant: bool,
     ) -> SpannedEncodingResult<vir_high::TypeDecl> {
         if !self
             .mir_type_encoder_state
@@ -362,12 +358,15 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
                     lifetimes,
                 }) => {
                     let encoded_enum = self
-                        .encode_type_def_high(&vir_high::Type::enum_(
-                            name.clone(),
-                            arguments.clone(),
-                            None,
-                            lifetimes.clone(),
-                        ))?
+                        .encode_type_def_high(
+                            &vir_high::Type::enum_(
+                                name.clone(),
+                                arguments.clone(),
+                                None,
+                                lifetimes.clone(),
+                            ),
+                            with_invariant,
+                        )?
                         .unwrap_enum();
                     vir_high::TypeDecl::Struct(encoded_enum.into_variant(&variant.index).unwrap())
                 }
@@ -378,37 +377,45 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
                     lifetimes,
                 }) => {
                     let encoded_union = self
-                        .encode_type_def_high(&vir_high::Type::union_(
-                            name.clone(),
-                            arguments.clone(),
-                            None,
-                            lifetimes.clone(),
-                        ))?
+                        .encode_type_def_high(
+                            &vir_high::Type::union_(
+                                name.clone(),
+                                arguments.clone(),
+                                None,
+                                lifetimes.clone(),
+                            ),
+                            with_invariant,
+                        )?
                         .unwrap_union();
                     vir_high::TypeDecl::Struct(encoded_union.into_variant(&variant.index).unwrap())
                 }
                 _ => {
                     let original_ty = self.decode_type_high(ty);
                     let type_encoder = TypeEncoder::new(self, original_ty);
-                    type_encoder.encode_type_def_high()?
+                    type_encoder.encode_type_def_high(ty, with_invariant)?
                 }
             };
-            self.mir_type_encoder_state
-                .encoded_type_decls
-                .borrow_mut()
-                .insert(ty.clone(), encoded_type);
+            if with_invariant {
+                // Cache only the fully encoded version.
+                self.mir_type_encoder_state
+                    .encoded_type_decls
+                    .borrow_mut()
+                    .insert(ty.clone(), encoded_type);
+            } else {
+                return Ok(encoded_type);
+            }
         }
         let encoded_type = self.mir_type_encoder_state.encoded_type_decls.borrow()[ty].clone();
         Ok(encoded_type)
     }
-    fn encode_adt_def(
-        &self,
-        adt_def: ty::AdtDef<'tcx>,
-        substs: ty::subst::SubstsRef<'tcx>,
-        variant_index: Option<prusti_rustc_interface::target::abi::VariantIdx>,
-    ) -> SpannedEncodingResult<vir_high::TypeDecl> {
-        super::encoder::encode_adt_def(self, adt_def, substs, variant_index)
-    }
+    // fn encode_adt_def(
+    //     &self,
+    //     adt_def: ty::AdtDef<'tcx>,
+    //     substs: ty::subst::SubstsRef<'tcx>,
+    //     variant_index: Option<prusti_rustc_interface::target::abi::VariantIdx>,
+    // ) -> SpannedEncodingResult<vir_high::TypeDecl> {
+    //     super::encoder::encode_adt_def(self, ty, adt_def, substs, variant_index)
+    // }
     fn encode_type_bounds_high(
         &self,
         var: &vir_high::Expression,

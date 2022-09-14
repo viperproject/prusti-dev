@@ -1,6 +1,6 @@
 use crate::environment::mir_body::borrowck::facts::Point;
 use std::collections::{BTreeMap, BTreeSet};
-use vir::common::graphviz::escape_html;
+use vir::common::{builtin_constants::ERASED_LIFETIME_NAME, graphviz::escape_html};
 
 pub trait ToText {
     fn to_text(&self) -> String;
@@ -189,7 +189,7 @@ impl<'tcx> ToText for prusti_rustc_interface::middle::ty::Region<'tcx> {
             prusti_rustc_interface::middle::ty::RePlaceholder(_) => {
                 unimplemented!("RePlaceholder: {self}");
             }
-            prusti_rustc_interface::middle::ty::ReErased => String::from("lft_erased"),
+            prusti_rustc_interface::middle::ty::ReErased => String::from(ERASED_LIFETIME_NAME),
             prusti_rustc_interface::middle::ty::ReError(_) => {
                 unimplemented!("ReError: {}", format!("{self}"));
             }

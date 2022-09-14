@@ -35,8 +35,10 @@ pub use self::{
     loops_utils::*,
     name::EnvName,
     procedure::{
-        get_loop_invariant, is_ghost_begin_marker, is_ghost_end_marker, is_loop_invariant_block,
-        is_loop_variant_block, is_marked_specification_block, BasicBlockIndex, Procedure,
+        get_loop_invariant, is_checked_block_begin_marker, is_checked_block_end_marker,
+        is_ghost_begin_marker, is_ghost_end_marker, is_loop_invariant_block, is_loop_variant_block,
+        is_marked_specification_block, is_specification_begin_marker, is_specification_end_marker,
+        is_try_finally_begin_marker, is_try_finally_end_marker, BasicBlockIndex, Procedure,
     },
     query::EnvQuery,
 };
@@ -141,21 +143,19 @@ impl<'tcx> Environment<'tcx> {
         called_def_id: ProcedureDefId,
         call_substs: SubstsRef<'tcx>,
     ) -> bool {
-        if called_def_id == caller_def_id {
-            true
-        } else {
+        if called_def_id != caller_def_id && called_def_id.is_local() {
             let param_env = self.tcx().param_env(caller_def_id);
             if let Some(instance) = self
                 .tcx()
                 .resolve_instance(param_env.and((called_def_id, call_substs)))
                 .unwrap()
             {
-                self.tcx()
-                    .mir_callgraph_reachable((instance, caller_def_id.expect_local()))
-            } else {
-                true
+                return self
+                    .tcx()
+                    .mir_callgraph_reachable((instance, caller_def_id.expect_local()));
             }
         }
+        called_def_id.is_local() // FIXME: Currently assuming that external ids are not recursive.
     }
 
     /// Get the current version of the `prusti` crate

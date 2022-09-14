@@ -11,7 +11,7 @@ use crate::encoder::{
 use log::debug;
 use prusti_rustc_interface::errors::MultiSpan;
 use vir_crate::{
-    common::position::Positioned,
+    common::{builtin_constants::ADDRESS_FIELD_NAME, position::Positioned},
     middle as vir_mid,
     typed::{self as vir_typed, operations::ty::Typed},
 };
@@ -69,7 +69,7 @@ pub(in super::super) fn try_ensure_enum_discriminant_by_unfolding(
     permission_kind: PermissionKind,
 ) -> SpannedEncodingResult<(Option<Vec<vir_mid::BlockMarkerCondition>>, Vec<Action>)> {
     let mut actions = Vec::new();
-    match state.get_predicates_state(place)? {
+    match state.get_predicates_state_mut(place)? {
         PredicateState::Unconditional(unconditional_predicate_state) => {
             if check_contains_place(unconditional_predicate_state, place, permission_kind)?
                 || unconditional_predicate_state
@@ -136,11 +136,11 @@ pub(in super::super) fn ensure_required_permission(
     let (place, permission_kind) = match required_permission {
         Permission::MemoryBlock(place) => (place, PermissionKind::MemoryBlock),
         Permission::Owned(place) => (place, PermissionKind::Owned),
-        Permission::MutBorrowed(borrow) => unreachable!("requiring a borrow: {}", borrow),
+        Permission::Blocked(borrow) => unreachable!("requiring a blocked place: {}", borrow),
     };
 
     let base = place.get_base().erase_lifetime();
-    match state.get_predicates_state(&place)? {
+    match state.get_predicates_state_mut(&place)? {
         PredicateState::Unconditional(unconditional_predicate_state) => {
             if ensure_permission_in_state(
                 context,
@@ -284,7 +284,7 @@ fn check_contains_place(
         let address_place = vir_typed::Expression::field(
             place.clone(),
             vir_typed::FieldDecl::new(
-                "address$",
+                ADDRESS_FIELD_NAME,
                 0usize,
                 vir_typed::Type::Int(vir_typed::ty::Int::Usize),
             ),
@@ -401,12 +401,18 @@ fn ensure_permission_in_state(
         actions.push(Action::fold(permission_kind, place.clone(), enum_variant));
         predicate_state.insert(permission_kind, place)?;
         false
-    } else if let Some((prefix, lifetime)) = predicate_state.contains_blocked(&place)? {
+    } else if let Some((prefix, lifetime, is_reborrow)) =
+        predicate_state.contains_blocked(&place)?
+    {
         let prefix = prefix.clone();
         let lifetime = lifetime.clone();
         predicate_state.remove_mut_borrowed(&prefix)?;
         predicate_state.insert(PermissionKind::Owned, prefix.clone())?;
-        actions.push(Action::restore_mut_borrowed(lifetime, prefix.clone()));
+        actions.push(Action::restore_mut_borrowed(
+            lifetime,
+            prefix.clone(),
+            is_reborrow,
+        ));
         ensure_permission_in_state(context, predicate_state, place, permission_kind, actions)?
     } else if permission_kind == PermissionKind::MemoryBlock
         && can_place_be_ensured_in(context, &place, PermissionKind::Owned, predicate_state)?

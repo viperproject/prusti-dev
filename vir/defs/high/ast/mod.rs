@@ -4,10 +4,10 @@
     Clone,
     serde::Serialize,
     serde::Deserialize,
-    PartialEq(ignore=[position]),
+    PartialEq(trait_type=std::cmp::PartialEq,ignore=[position, lifetimes, lifetime]),
     Eq,
-    Hash(ignore=[position]),
-    Ord(ignore=[position]),
+    Hash(trait_type=core::hash::Hash,ignore=[position, lifetimes, lifetime]),
+    Ord(trait_type=std::cmp::Ord,ignore=[position, lifetimes, lifetime]),
 )]
 #![derive_for_all_structs(new, new_with_pos)]
 

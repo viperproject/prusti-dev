@@ -3,7 +3,6 @@ use crate::encoder::{
     middle::core_proof::{
         builtin_methods::CallContext, lowerer::Lowerer,
         predicates::owned::builders::common::predicate_use::PredicateUseBuilder,
-        snapshots::SnapshotValuesInterface, type_layouts::TypeLayoutsInterface,
     },
 };
 use vir_crate::{
@@ -19,7 +18,7 @@ where
     G: WithLifetimes + WithConstArguments,
 {
     inner: PredicateUseBuilder<'l, 'p, 'v, 'tcx, G>,
-    current_snapshot: vir_low::Expression,
+    target_slice_len: Option<vir_low::Expression>,
 }
 
 impl<'l, 'p, 'v, 'tcx, G> FracRefUseBuilder<'l, 'p, 'v, 'tcx, G>
@@ -33,27 +32,28 @@ where
         ty: &'l vir_mid::Type,
         generics: &'l G,
         place: vir_low::Expression,
-        root_address: vir_low::Expression,
-        current_snapshot: vir_low::Expression,
+        address: vir_low::Expression,
         lifetime: vir_low::Expression,
+        target_slice_len: Option<vir_low::Expression>,
+        position: vir_low::Position,
     ) -> SpannedEncodingResult<Self> {
+        let mut arguments = vec![place, address, lifetime];
+        if let Some(len) = target_slice_len.clone() {
+            arguments.push(len);
+        }
         let inner = PredicateUseBuilder::new(
-            lowerer,
-            "FracRef2",
-            context,
-            ty,
-            generics,
-            vec![place, root_address, current_snapshot.clone(), lifetime],
-            Default::default(),
+            lowerer, "FracRef", context, ty, generics, arguments, position,
         )?;
         Ok(Self {
             inner,
-            current_snapshot,
+            target_slice_len,
         })
     }
 
-    pub(in super::super::super::super::super) fn build(self) -> vir_low::Expression {
-        self.inner.build()
+    pub(in super::super::super::super::super) fn build(
+        self,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        Ok(self.inner.build())
     }
 
     pub(in super::super::super::super::super) fn add_lifetime_arguments(
@@ -66,18 +66,26 @@ where
         &mut self,
     ) -> SpannedEncodingResult<()> {
         if self.inner.ty.is_slice() {
-            let snapshot_length = self
-                .inner
-                .lowerer
-                .obtain_array_len_snapshot(self.current_snapshot.clone(), self.inner.position)?;
-            let size_type = self.inner.lowerer.size_type_mid()?;
-            let argument = self.inner.lowerer.construct_constant_snapshot(
-                &size_type,
-                snapshot_length,
-                self.inner.position,
-            )?;
-            self.inner.arguments.push(argument);
+            unimplemented!();
+            // let snapshot_length = self
+            //     .inner
+            //     .lowerer
+            //     .obtain_array_len_snapshot(self.current_snapshot.clone(), self.inner.position)?;
+            // let size_type = self.inner.lowerer.size_type_mid()?;
+            // let argument = self.inner.lowerer.construct_constant_snapshot(
+            //     &size_type,
+            //     snapshot_length,
+            //     self.inner.position,
+            // )?;
+            // self.inner.arguments.push(argument);
         }
         self.inner.add_const_arguments()
+    }
+
+    pub(in super::super::super::super::super) fn set_maybe_permission_amount(
+        &mut self,
+        permission_amount: Option<vir_low::Expression>,
+    ) -> SpannedEncodingResult<()> {
+        self.inner.set_maybe_permission_amount(permission_amount)
     }
 }

@@ -18,6 +18,8 @@ pub(crate) struct AstRewriter {
 pub enum SpecItemType {
     Precondition,
     Postcondition,
+    BrokenPrecondition,
+    BrokenPostcondition,
     Pledge,
     Predicate(TokenStream),
     Termination,
@@ -28,6 +30,8 @@ impl std::fmt::Display for SpecItemType {
         match self {
             SpecItemType::Precondition => write!(f, "pre"),
             SpecItemType::Postcondition => write!(f, "post"),
+            SpecItemType::BrokenPrecondition => write!(f, "broken_pre"),
+            SpecItemType::BrokenPostcondition => write!(f, "broken_post"),
             SpecItemType::Pledge => write!(f, "pledge"),
             SpecItemType::Predicate(_) => write!(f, "pred"),
             SpecItemType::Termination => write!(f, "term"),
@@ -135,7 +139,9 @@ impl AstRewriter {
         spec_item.sig.generics = item.sig().generics.clone();
         spec_item.sig.inputs = item.sig().inputs.clone();
         match spec_type {
-            SpecItemType::Postcondition | SpecItemType::Pledge => {
+            SpecItemType::Postcondition
+            | SpecItemType::BrokenPostcondition
+            | SpecItemType::Pledge => {
                 let fn_arg = self.generate_result_arg(item);
                 spec_item.sig.inputs.push(fn_arg);
             }
@@ -246,6 +252,15 @@ impl AstRewriter {
         self.process_prusti_expression(quote! {prusti_assertion}, spec_id, tokens)
     }
 
+    /// Parse a prusti structural assertion into a Rust expression
+    pub fn process_prusti_structural_assertion(
+        &mut self,
+        spec_id: SpecificationId,
+        tokens: TokenStream,
+    ) -> syn::Result<TokenStream> {
+        self.process_prusti_expression(quote! {prusti_structural_assertion}, spec_id, tokens)
+    }
+
     /// Parse a prusti assumption into a Rust expression
     pub fn process_prusti_assumption(
         &mut self,
@@ -262,6 +277,35 @@ impl AstRewriter {
         tokens: TokenStream,
     ) -> syn::Result<TokenStream> {
         self.process_prusti_expression(quote! {prusti_refutation}, spec_id, tokens)
+    }
+
+    /// Parse a prusti structural assumption into a Rust expression
+    pub fn process_prusti_structural_assumption(
+        &mut self,
+        spec_id: SpecificationId,
+        tokens: TokenStream,
+    ) -> syn::Result<TokenStream> {
+        self.process_prusti_expression(quote! {prusti_structural_assumption}, spec_id, tokens)
+    }
+
+    /// Parse a prusti expression used as an argument to some ghost operation
+    pub fn process_prusti_specification_expression(
+        &mut self,
+        spec_id: SpecificationId,
+        tokens: TokenStream,
+    ) -> syn::Result<TokenStream> {
+        let expr = parse_prusti(tokens)?;
+        let spec_id_str = spec_id.to_string();
+        Ok(quote_spanned! {expr.span()=>
+            {
+                #[prusti::spec_only]
+                #[prusti::prusti_specification_expression]
+                #[prusti::spec_id = #spec_id_str]
+                || {
+                    #expr
+                };
+            }
+        })
     }
 
     fn process_prusti_expression(

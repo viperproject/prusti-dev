@@ -2,9 +2,11 @@ use super::PredicateStateOnPath;
 use crate::encoder::{
     errors::SpannedEncodingResult, high::procedures::inference::permission::Permission,
 };
-
 use std::collections::BTreeMap;
-use vir_crate::middle::{self as vir_mid};
+use vir_crate::{
+    middle::{self as vir_mid},
+    typed::{self as vir_typed},
+};
 
 #[derive(Clone, Debug)]
 pub(in super::super) enum PredicateState {
@@ -86,6 +88,54 @@ impl PredicateState {
     ) -> SpannedEncodingResult<()> {
         self.foreach_mut(|state| state.remove_permission(permission));
         Ok(())
+    }
+
+    pub(super) fn open_ref(
+        &mut self,
+        place: vir_typed::Expression,
+        predicate_permission_amount: Option<vir_typed::VariableDecl>,
+    ) -> SpannedEncodingResult<()> {
+        match self {
+            PredicateState::Unconditional(state) => {
+                state.open_ref(place, predicate_permission_amount)?;
+            }
+            PredicateState::Conditional(_) => {
+                unimplemented!("place: {place} \n\nstate: {self}");
+            }
+        }
+        Ok(())
+    }
+
+    pub(super) fn close_ref(
+        &mut self,
+        place: &vir_typed::Expression,
+    ) -> SpannedEncodingResult<Option<vir_typed::VariableDecl>> {
+        match self {
+            PredicateState::Unconditional(state) => state.close_ref(place),
+            PredicateState::Conditional(_) => {
+                unimplemented!();
+            }
+        }
+    }
+
+    pub(super) fn is_opened_ref(
+        &self,
+        place: &vir_typed::Expression,
+    ) -> SpannedEncodingResult<Option<&Option<vir_typed::VariableDecl>>> {
+        match self {
+            PredicateState::Unconditional(state) => state.is_opened_ref(place),
+            PredicateState::Conditional(states) => {
+                let mut states_iter = states.values();
+                let is_opened_ref_first = states_iter.next().unwrap().is_opened_ref(place)?;
+                for state in states_iter {
+                    let is_opened_ref = state.is_opened_ref(place)?;
+                    if is_opened_ref != is_opened_ref_first {
+                        unimplemented!();
+                    }
+                }
+                Ok(is_opened_ref_first)
+            }
+        }
     }
 
     pub(super) fn is_empty(&self) -> bool {

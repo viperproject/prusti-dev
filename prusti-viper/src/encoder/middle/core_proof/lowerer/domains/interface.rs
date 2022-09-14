@@ -7,35 +7,39 @@ use vir_crate::{
 };
 
 #[derive(Default)]
+pub(in super::super::super) struct DomainsInfo {}
+
+#[derive(Default)]
 pub(in super::super) struct DomainsLowererState {
     functions: BTreeSet<String>,
     domains: BTreeMap<String, vir_low::DomainDecl>,
+    domains_info: DomainsInfo,
 }
 
 impl DomainsLowererState {
-    pub fn destruct(self) -> Vec<vir_low::DomainDecl> {
-        self.domains.into_values().collect()
+    pub fn destruct(self) -> (Vec<vir_low::DomainDecl>, DomainsInfo) {
+        (self.domains.into_values().collect(), self.domains_info)
     }
 }
 
-trait DomainsLowererInterfacePrivate {
-    /// Returns a borrow of a domain. Creates the domain if it does not exist.
-    fn borrow_domain(
-        &mut self,
-        domain_name: String,
-    ) -> SpannedEncodingResult<&mut vir_low::DomainDecl>;
-    fn create_domain_func_app_custom(
-        &mut self,
-        domain_name: String,
-        function_name: String,
-        arguments: Vec<vir_low::Expression>,
-        return_type: vir_low::Type,
-        is_unique: bool,
-        position: vir_low::Position,
-    ) -> SpannedEncodingResult<vir_low::Expression>;
-}
+// trait DomainsLowererInterfacePrivate {
+//     /// Returns a borrow of a domain. Creates the domain if it does not exist.
+//     fn borrow_domain(
+//         &mut self,
+//         domain_name: String,
+//     ) -> SpannedEncodingResult<&mut vir_low::DomainDecl>;
+//     fn create_domain_func_app_custom(
+//         &mut self,
+//         domain_name: String,
+//         function_name: String,
+//         arguments: Vec<vir_low::Expression>,
+//         return_type: vir_low::Type,
+//         is_unique: bool,
+//         position: vir_low::Position,
+//     ) -> SpannedEncodingResult<vir_low::Expression>;
+// }
 
-impl<'p, 'v: 'p, 'tcx: 'v> DomainsLowererInterfacePrivate for Lowerer<'p, 'v, 'tcx> {
+impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
     fn borrow_domain(
         &mut self,
         domain_name: String,
@@ -44,7 +48,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> DomainsLowererInterfacePrivate for Lowerer<'p, 'v, 't
             .domains_state
             .domains
             .entry(domain_name.clone())
-            .or_insert_with(|| vir_low::DomainDecl::new(domain_name, Vec::new(), Vec::new()));
+            .or_insert_with(|| {
+                vir_low::DomainDecl::new(domain_name, Vec::new(), Vec::new(), Vec::new())
+            });
         Ok(domain)
     }
 
@@ -84,6 +90,11 @@ pub(in super::super::super) trait DomainsLowererInterface {
         domain_name: &str,
         axiom: vir_low::DomainAxiomDecl,
     ) -> SpannedEncodingResult<()>;
+    fn declare_rewrite_rule(
+        &mut self,
+        domain_name: &str,
+        axiom: vir_low::DomainRewriteRuleDecl,
+    ) -> SpannedEncodingResult<()>;
     fn insert_domain_function(
         &mut self,
         domain_name: &str,
@@ -97,6 +108,15 @@ pub(in super::super::super) trait DomainsLowererInterface {
         parameters: std::borrow::Cow<'_, Vec<vir_low::VariableDecl>>,
         return_type: std::borrow::Cow<'_, vir_low::Type>,
     ) -> SpannedEncodingResult<()>;
+    // /// Declare a domain function that is a binary operator.
+    // fn declare_domain_function_maybe_binary_op(
+    //     &mut self,
+    //     domain_name: &str,
+    //     function_name: std::borrow::Cow<'_, String>,
+    //     operation: Option<(vir_mid::BinaryOpKind, vir_mid::Type)>,
+    //     parameters: std::borrow::Cow<'_, Vec<vir_low::VariableDecl>>,
+    //     return_type: std::borrow::Cow<'_, vir_low::Type>,
+    // ) -> SpannedEncodingResult<()>;
     fn create_domain_func_app(
         &mut self,
         domain_name: impl ToString,
@@ -157,6 +177,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> DomainsLowererInterface for Lowerer<'p, 'v, 'tcx> {
         domain.axioms.push(axiom);
         Ok(())
     }
+    fn declare_rewrite_rule(
+        &mut self,
+        domain_name: &str,
+        axiom: vir_low::DomainRewriteRuleDecl,
+    ) -> SpannedEncodingResult<()> {
+        let domain = self.domains_state.domains.get_mut(domain_name).unwrap();
+        domain.rewrite_rules.push(axiom);
+        Ok(())
+    }
     fn insert_domain_function(
         &mut self,
         domain_name: &str,
@@ -194,6 +223,33 @@ impl<'p, 'v: 'p, 'tcx: 'v> DomainsLowererInterface for Lowerer<'p, 'v, 'tcx> {
         }
         Ok(())
     }
+    // fn declare_domain_function_maybe_binary_op(
+    //     &mut self,
+    //     domain_name: &str,
+    //     function_name: std::borrow::Cow<'_, String>,
+    //     operation: Option<(vir_mid::BinaryOpKind, vir_mid::Type)>,
+    //     parameters: std::borrow::Cow<'_, Vec<vir_low::VariableDecl>>,
+    //     return_type: std::borrow::Cow<'_, vir_low::Type>,
+    // ) -> SpannedEncodingResult<()> {
+    //     if !self.domains_state.functions.contains(&*function_name) {
+    //         if let Some((op, ty)) = operation {
+    //             assert!(self
+    //                 .domains_state
+    //                 .domains_info
+    //                 .snapshot_binary_operators
+    //                 .insert(function_name.to_string(), (op, ty),)
+    //                 .is_none());
+    //         }
+    //         self.declare_domain_function(
+    //             domain_name,
+    //             function_name,
+    //             false,
+    //             parameters,
+    //             return_type,
+    //         )?;
+    //     }
+    //     Ok(())
+    // }
     /// Note: You are likely to want to call one of this function's wrappers.
     fn create_domain_func_app(
         &mut self,

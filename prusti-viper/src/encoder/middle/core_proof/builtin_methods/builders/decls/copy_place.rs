@@ -8,7 +8,6 @@ use crate::encoder::{
         builtin_methods::{BuiltinMethodCallsInterface, BuiltinMethodsInterface, CallContext},
         lowerer::Lowerer,
         places::PlacesInterface,
-        predicates::PredicatesOwnedInterface,
         snapshots::SnapshotValuesInterface,
     },
 };
@@ -63,7 +62,7 @@ impl<'l, 'p, 'v, 'tcx> CopyPlaceMethodBuilder<'l, 'p, 'v, 'tcx> {
         self.inner
             .inner
             .parameters
-            .push(self.inner.target_root_address.clone());
+            .push(self.inner.target_address.clone());
         self.inner
             .inner
             .parameters
@@ -71,7 +70,7 @@ impl<'l, 'p, 'v, 'tcx> CopyPlaceMethodBuilder<'l, 'p, 'v, 'tcx> {
         self.inner
             .inner
             .parameters
-            .push(self.inner.source_root_address.clone());
+            .push(self.inner.source_address.clone());
         self.inner
             .inner
             .parameters
@@ -104,21 +103,40 @@ impl<'l, 'p, 'v, 'tcx> CopyPlaceMethodBuilder<'l, 'p, 'v, 'tcx> {
     pub(in super::super::super::super) fn create_source_owned(
         &mut self,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        self.inner.inner.lowerer.owned_non_aliased(
-            CallContext::BuiltinMethod,
-            self.inner.inner.ty,
-            self.inner.inner.type_decl,
-            self.inner.source_place.clone().into(),
-            self.inner.source_root_address.clone().into(),
-            self.inner.source_snapshot.clone().into(),
-            Some(self.source_permission_amount.clone().into()),
-        )
+        self.inner
+            .create_source_owned(false, Some(self.source_permission_amount.clone().into()))
+        // self.inner.inner.lowerer.owned_non_aliased(
+        //     CallContext::BuiltinMethod,
+        //     self.inner.inner.ty,
+        //     self.inner.inner.type_decl,
+        //     self.inner.source_place.clone().into(),
+        //     self.inner.source_address.clone().into(),
+        //     Some(self.source_permission_amount.clone().into()),
+        //     self.inner.inner.position,
+        // )
+    }
+
+    pub(in super::super::super::super) fn create_source_owned_predicate(
+        &mut self,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        self.inner
+            .create_source_owned(true, Some(self.source_permission_amount.clone().into()))
+        // self.inner.inner.lowerer.owned_non_aliased(
+        //     CallContext::BuiltinMethod,
+        //     self.inner.inner.ty,
+        //     self.inner.inner.type_decl,
+        //     self.inner.source_place.clone().into(),
+        //     self.inner.source_address.clone().into(),
+        //     Some(self.source_permission_amount.clone().into()),
+        //     self.inner.inner.position,
+        // )
     }
 
     pub(in super::super::super::super) fn create_target_owned(
         &mut self,
+        must_be_predicate: bool,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        self.inner.create_target_owned()
+        self.inner.create_target_owned(must_be_predicate)
     }
 
     pub(in super::super::super::super) fn add_target_validity_postcondition(
@@ -176,13 +194,21 @@ impl<'l, 'p, 'v, 'tcx> CopyPlaceMethodBuilder<'l, 'p, 'v, 'tcx> {
             &field.ty,
             self.inner.inner.position,
             target_field_place,
-            self.inner.target_root_address.clone().into(),
+            self.inner.target_address.clone().into(),
             source_field_place,
-            self.inner.source_root_address.clone().into(),
+            self.inner.source_address.clone().into(),
             source_field_snapshot,
             self.source_permission_amount.clone().into(),
         )?;
         self.add_statement(statement);
         Ok(())
+    }
+
+    pub(in super::super::super::super) fn duplicate_frac_ref(
+        &mut self,
+        lifetime: &vir_mid::ty::LifetimeConst,
+    ) -> SpannedEncodingResult<()> {
+        self.inner
+            .duplicate_frac_ref(lifetime, Some(self.source_permission_amount.clone().into()))
     }
 }

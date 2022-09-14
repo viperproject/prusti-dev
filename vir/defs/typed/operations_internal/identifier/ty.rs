@@ -9,6 +9,8 @@ impl WithIdentifier for ty::Type {
             ty::Type::MFloat32 => "MFloat32".to_string(),
             ty::Type::MFloat64 => "MFloat64".to_string(),
             ty::Type::MPerm => "MPerm".to_string(),
+            ty::Type::MByte => "MByte".to_string(),
+            ty::Type::MBytes => "MBytes".to_string(),
             ty::Type::Bool => "Bool".to_string(),
             ty::Type::Int(ty) => ty.get_identifier(),
             ty::Type::Sequence(ty) => ty.get_identifier(),

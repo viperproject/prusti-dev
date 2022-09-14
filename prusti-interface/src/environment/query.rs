@@ -144,6 +144,42 @@ impl<'tcx> EnvQuery<'tcx> {
             .is_some()
     }
 
+    /// Returns true iff `def_id` is an implementation of `Drop::drop` method
+    pub fn is_drop_method_impl(self, def_id: impl IntoParam<ProcedureDefId>) -> bool {
+        let trait_id = self
+            .tcx
+            .impl_of_method(def_id.into_param())
+            .and_then(|impl_id| self.tcx.trait_id_of_impl(impl_id));
+        if let Some(trait_id) = trait_id {
+            let drop_trait_id = self.tcx.lang_items().drop_trait().unwrap();
+            trait_id == drop_trait_id
+        } else {
+            false
+        }
+    }
+
+    pub fn get_drop_method_id(self, ty: ty::Ty<'tcx>) -> Option<DefId> {
+        let drop_trait_id = self.tcx.lang_items().drop_trait().unwrap();
+        for item_impl in self.tcx.all_impls(drop_trait_id) {
+            for item in self.tcx.associated_items(item_impl).in_definition_order() {
+                let method_def_id = item.def_id;
+                let method_sig = self.tcx.fn_sig(method_def_id);
+                let self_type = method_sig.skip_binder().input(0).skip_binder();
+                match self_type.kind() {
+                    ty::TyKind::Ref(_, target_type, _) => {
+                        if *target_type == ty {
+                            return Some(method_def_id);
+                        }
+                    }
+                    _ => {
+                        unimplemented!();
+                    }
+                }
+            }
+        }
+        None
+    }
+
     /// Returns true iff `def_id` is an unsafe function.
     pub fn is_unsafe_function(self, def_id: impl IntoParam<ProcedureDefId>) -> bool {
         self.tcx

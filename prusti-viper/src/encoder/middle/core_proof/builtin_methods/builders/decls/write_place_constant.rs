@@ -9,7 +9,7 @@ use crate::encoder::{
         builtin_methods::{BuiltinMethodsInterface, CallContext},
         lowerer::Lowerer,
         places::PlacesInterface,
-        predicates::{OwnedNonAliasedUseBuilder, PredicatesOwnedInterface},
+        predicates::PredicatesOwnedInterface,
         snapshots::{IntoSnapshot, SnapshotValidityInterface, SnapshotValuesInterface},
     },
 };
@@ -21,7 +21,7 @@ use vir_crate::{
 pub(in super::super::super::super) struct WritePlaceConstantMethodBuilder<'l, 'p, 'v, 'tcx> {
     inner: BuiltinMethodBuilder<'l, 'p, 'v, 'tcx>,
     target_place: vir_low::VariableDecl,
-    target_root_address: vir_low::VariableDecl,
+    target_address: vir_low::VariableDecl,
     source_snapshot: vir_low::VariableDecl,
 }
 
@@ -42,9 +42,8 @@ impl<'l, 'p, 'v, 'tcx> WritePlaceConstantMethodBuilder<'l, 'p, 'v, 'tcx> {
         type_decl: &'l vir_mid::TypeDecl,
         error_kind: BuiltinMethodKind,
     ) -> SpannedEncodingResult<Self> {
-        let target_place = vir_low::VariableDecl::new("target_place", lowerer.place_type()?);
-        let target_root_address =
-            vir_low::VariableDecl::new("target_root_address", lowerer.address_type()?);
+        let target_place = vir_low::VariableDecl::new("target_place", lowerer.place_option_type()?);
+        let target_address = vir_low::VariableDecl::new("target_address", lowerer.address_type()?);
         let source_snapshot =
             vir_low::VariableDecl::new("source_snapshot", ty.to_snapshot(lowerer)?);
         let inner =
@@ -52,7 +51,7 @@ impl<'l, 'p, 'v, 'tcx> WritePlaceConstantMethodBuilder<'l, 'p, 'v, 'tcx> {
         Ok(Self {
             inner,
             target_place,
-            target_root_address,
+            target_address,
             source_snapshot,
         })
     }
@@ -65,7 +64,7 @@ impl<'l, 'p, 'v, 'tcx> WritePlaceConstantMethodBuilder<'l, 'p, 'v, 'tcx> {
         &mut self,
     ) -> SpannedEncodingResult<()> {
         self.inner.parameters.push(self.target_place.clone());
-        self.inner.parameters.push(self.target_root_address.clone());
+        self.inner.parameters.push(self.target_address.clone());
         self.inner.parameters.push(self.source_snapshot.clone());
         self.create_lifetime_parameters()?;
         self.create_const_parameters()?;
@@ -84,29 +83,49 @@ impl<'l, 'p, 'v, 'tcx> WritePlaceConstantMethodBuilder<'l, 'p, 'v, 'tcx> {
         &mut self,
     ) -> SpannedEncodingResult<vir_low::Expression> {
         self.create_memory_block(
-            self.compute_address(&self.target_place, &self.target_root_address),
+            self.target_address.clone().into(),
+            // self.compute_address(&self.target_place, &self.target_address),
         )
     }
 
     // FIXME: Remove duplicates with other builders.
     pub(in super::super::super::super) fn create_target_owned(
         &mut self,
+        exclude_snapshot_equality: bool,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        self.inner
-            .lowerer
-            .mark_owned_non_aliased_as_unfolded(self.inner.ty)?;
-        let mut builder = OwnedNonAliasedUseBuilder::new(
-            self.inner.lowerer,
-            CallContext::BuiltinMethod,
-            self.inner.ty,
-            self.inner.type_decl,
-            self.target_place.clone().into(),
-            self.target_root_address.clone().into(),
-            self.source_snapshot.clone().into(),
-        )?;
-        builder.add_lifetime_arguments()?;
-        builder.add_const_arguments()?;
-        Ok(builder.build())
+        if exclude_snapshot_equality {
+            self.inner.lowerer.owned_non_aliased_full_vars(
+                CallContext::BuiltinMethod,
+                self.inner.ty,
+                self.inner.type_decl,
+                &self.target_place,
+                &self.target_address,
+                self.inner.position,
+            )
+        } else {
+            self.inner
+                .lowerer
+                .owned_non_aliased_full_vars_with_snapshot(
+                    CallContext::BuiltinMethod,
+                    self.inner.ty,
+                    self.inner.type_decl,
+                    &self.target_place,
+                    &self.target_address,
+                    &self.source_snapshot,
+                    self.inner.position,
+                )
+        }
+        // self.inner
+        //     .lowerer
+        //     .mark_owned_predicate_as_unfolded(self.inner.ty)?;
+        // self.inner.lowerer.owned_non_aliased_full_vars(
+        //     CallContext::BuiltinMethod,
+        //     self.inner.ty,
+        //     self.inner.type_decl,
+        //     &self.target_place,
+        //     &self.target_address,
+        //     self.inner.position,
+        // )
     }
 
     pub(in super::super::super::super) fn add_source_validity_precondition(
@@ -149,7 +168,7 @@ impl<'l, 'p, 'v, 'tcx> WritePlaceConstantMethodBuilder<'l, 'p, 'v, 'tcx> {
         self.inner
             .lowerer
             .encode_memory_block_split_method(self.inner.ty)?;
-        let target_address = self.compute_address(&self.target_place, &self.target_root_address);
+        // let target_address = self.compute_address(&self.target_place, &self.target_address);
         let discriminant_call = self.discriminant()?;
         let mut builder = BuiltinMethodCallBuilder::new(
             self.inner.lowerer,
@@ -159,7 +178,7 @@ impl<'l, 'p, 'v, 'tcx> WritePlaceConstantMethodBuilder<'l, 'p, 'v, 'tcx> {
             self.inner.type_decl,
             self.inner.position,
         )?;
-        builder.add_argument(target_address);
+        builder.add_argument(self.target_address.clone().into());
         builder.add_full_permission_argument();
         if let Some(discriminant_call) = discriminant_call {
             builder.add_argument(discriminant_call);
@@ -182,6 +201,12 @@ impl<'l, 'p, 'v, 'tcx> WritePlaceConstantMethodBuilder<'l, 'p, 'v, 'tcx> {
             self.target_place.clone().into(),
             self.inner.position,
         )?;
+        let target_field_address = self.inner.lowerer.encode_field_address(
+            self.inner.ty,
+            field,
+            self.target_address.clone().into(),
+            self.inner.position,
+        )?;
         let source_field_snapshot = self.inner.lowerer.obtain_struct_field_snapshot(
             self.inner.ty,
             field,
@@ -198,7 +223,7 @@ impl<'l, 'p, 'v, 'tcx> WritePlaceConstantMethodBuilder<'l, 'p, 'v, 'tcx> {
             self.inner.position,
         )?;
         builder.add_argument(target_field_place);
-        builder.add_argument(self.target_root_address.clone().into());
+        builder.add_argument(target_field_address);
         builder.add_argument(source_field_snapshot);
         builder.add_lifetime_arguments()?;
         builder.add_const_arguments()?;
@@ -213,7 +238,7 @@ impl<'l, 'p, 'v, 'tcx> WritePlaceConstantMethodBuilder<'l, 'p, 'v, 'tcx> {
         self.inner
             .lowerer
             .encode_write_address_constant_method(self.inner.ty)?;
-        let address = self.compute_address(&self.target_place, &self.target_root_address);
+        // let address = self.compute_address(&self.target_place, &self.target_address);
         let mut builder = BuiltinMethodCallBuilder::new(
             self.inner.lowerer,
             CallContext::BuiltinMethod,
@@ -222,7 +247,7 @@ impl<'l, 'p, 'v, 'tcx> WritePlaceConstantMethodBuilder<'l, 'p, 'v, 'tcx> {
             self.inner.type_decl,
             self.inner.position,
         )?;
-        builder.add_argument(address);
+        builder.add_argument(self.target_address.clone().into());
         builder.add_argument(self.source_snapshot.clone().into());
         builder.add_lifetime_arguments()?;
         builder.add_const_arguments()?;

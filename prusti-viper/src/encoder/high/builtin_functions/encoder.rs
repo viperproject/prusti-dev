@@ -93,8 +93,8 @@ pub(super) fn encode_builtin_function_def(kind: BuiltinFunctionHighKind) -> vir_
         BuiltinFunctionHighKind::SliceLen {
             slice_pred_type, ..
         } => {
-            let self_var = vir_high::VariableDecl::new("self", slice_pred_type);
-            let result_var = vir_high::VariableDecl::new("__result", vir_high::Type::MInt);
+            let self_var = vir_high::VariableDecl::self_variable(slice_pred_type);
+            let result_var = vir_high::VariableDecl::result_variable(vir_high::Type::MInt);
 
             vir_high::FunctionDecl {
                 name: fn_name,

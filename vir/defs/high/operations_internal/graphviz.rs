@@ -2,7 +2,7 @@ use super::super::{
     ast::statement::Statement,
     cfg::procedure::{BasicBlock, ProcedureDecl, Successor},
 };
-use crate::common::graphviz::{escape_html, Graph, NodeBuilder, ToGraphviz};
+use crate::common::graphviz::{escape_html, escape_html_wrap, Graph, NodeBuilder, ToGraphviz};
 use std::io::Write;
 
 impl ToGraphviz for ProcedureDecl {
@@ -48,9 +48,12 @@ fn block_to_graph_node(block: &BasicBlock, node_builder: &mut NodeBuilder) {
     for statement in &block.statements {
         let statement_string = match statement {
             Statement::Comment(statement) => {
-                format!("<font color=\"orange\">{}</font>", escape_html(statement))
+                format!(
+                    "<font color=\"orange\">{}</font>",
+                    escape_html_wrap(statement)
+                )
             }
-            _ => escape_html(statement.to_string()),
+            _ => escape_html_wrap(statement.to_string()),
         };
         node_builder.add_row_sequence(vec![statement_string]);
     }

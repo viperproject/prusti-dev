@@ -11,7 +11,8 @@ use prusti_interface::{
     specs::typed::{
         DefSpecificationMap, GhostBegin, GhostEnd, LoopSpecification, ProcedureSpecification,
         ProcedureSpecificationKind, ProcedureSpecificationKindError, PrustiAssertion,
-        PrustiAssumption, PrustiRefutation, Refinable, SpecificationItem, TypeSpecification,
+        PrustiAssumption, PrustiRefutation, Refinable, SpecificationExpression, SpecificationItem,
+        SpecificationRegionBegin, SpecificationRegionEnd, TypeSpecification,
     },
     PrustiError,
 };
@@ -104,6 +105,30 @@ impl<'tcx> Specifications<'tcx> {
     #[tracing::instrument(level = "trace", skip(self))]
     pub(super) fn get_ghost_end(&self, def_id: &DefId) -> Option<&GhostEnd> {
         self.user_typed_specs.get_ghost_end(def_id)
+    }
+
+    #[tracing::instrument(level = "trace", skip(self))]
+    pub(super) fn get_specification_region_begin(
+        &self,
+        def_id: &DefId,
+    ) -> Option<&SpecificationRegionBegin> {
+        self.user_typed_specs.get_specification_region_begin(def_id)
+    }
+
+    #[tracing::instrument(level = "trace", skip(self))]
+    pub(super) fn get_specification_region_end(
+        &self,
+        def_id: &DefId,
+    ) -> Option<&SpecificationRegionEnd> {
+        self.user_typed_specs.get_specification_region_end(def_id)
+    }
+
+    #[tracing::instrument(level = "trace", skip(self))]
+    pub(super) fn get_specification_expression(
+        &self,
+        def_id: &DefId,
+    ) -> Option<&SpecificationExpression> {
+        self.user_typed_specs.get_specification_expression(def_id)
     }
 
     #[tracing::instrument(level = "trace", skip(self, env))]

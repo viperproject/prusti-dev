@@ -62,15 +62,16 @@ impl ExprBackwardInterpreterState {
         target: &vir_high::Expression,
         replacement: vir_high::Expression,
     ) {
-        let mut target = target.clone().substitute_types(&self.substs);
-        let mut replacement = replacement.substitute_types(&self.substs);
+        let target = target.clone().substitute_types(&self.substs);
+        let replacement = replacement.substitute_types(&self.substs);
 
         if let Some(curr_expr) = self.expr.as_mut() {
             // Replace two times to avoid cloning `expr`, which could be big.
             let expr = mem::replace(curr_expr, true.into());
-            target = target.erase_lifetime();
-            replacement = replacement.erase_lifetime();
-            let mut new_expr = expr.replace_place(&target, &replacement); //.simplify_addr_of();
+            // target = target.erase_lifetime();
+            // replacement = replacement.erase_lifetime();
+            let new_expr = expr.replace_place(&target, &replacement); //.simplify_addr_of();
+            let mut new_expr = new_expr.simplify_out_constructors();
             mem::swap(curr_expr, &mut new_expr);
         }
     }

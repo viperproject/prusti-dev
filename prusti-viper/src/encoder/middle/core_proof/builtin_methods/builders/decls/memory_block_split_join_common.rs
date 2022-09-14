@@ -51,10 +51,7 @@ impl<'l, 'p, 'v, 'tcx> MemoryBlockSplitJoinMethodBuilder<'l, 'p, 'v, 'tcx> {
         let permission_amount =
             vir_low::VariableDecl::new("permission_amount", vir_low::Type::Perm);
         let discriminant = if ty.has_variants() {
-            Some(vir_low::VariableDecl::new(
-                "discriminant",
-                vir_low::Type::Int,
-            ))
+            Some(vir_low::VariableDecl::discriminant_variable())
         } else {
             None
         };

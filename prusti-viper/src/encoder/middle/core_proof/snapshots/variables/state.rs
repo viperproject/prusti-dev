@@ -1,11 +1,8 @@
 use std::collections::BTreeMap;
-use vir_crate::{
-    low::{self as vir_low},
-    middle::{self as vir_mid},
-};
+use vir_crate::low::{self as vir_low};
 
 #[derive(Default, Clone)]
-pub(in super::super) struct VariableVersionMap {
+pub(in super::super::super) struct VariableVersionMap {
     /// Mapping from variable names to their versions.
     variable_versions: BTreeMap<String, u64>,
 }
@@ -31,9 +28,9 @@ impl VariableVersionMap {
 }
 
 #[derive(Default)]
-pub(in super::super) struct AllVariablesMap {
+pub(in super::super::super) struct AllVariablesMap {
     versions: BTreeMap<String, u64>,
-    types: BTreeMap<String, vir_mid::Type>,
+    types: BTreeMap<String, vir_low::Type>,
     positions: BTreeMap<String, vir_low::Position>,
 }
 
@@ -41,7 +38,7 @@ impl AllVariablesMap {
     pub(super) fn names_clone(&self) -> Vec<String> {
         self.versions.keys().cloned().collect()
     }
-    pub(super) fn get_type(&self, variable: &str) -> &vir_mid::Type {
+    pub(super) fn get_type(&self, variable: &str) -> &vir_low::Type {
         &self.types[variable]
     }
     pub(super) fn get_position(&self, variable: &str) -> vir_low::Position {
@@ -54,18 +51,18 @@ impl AllVariablesMap {
     }
     pub(super) fn new_version_or_default(
         &mut self,
-        variable: &vir_mid::VariableDecl,
+        variable: &str,
+        ty: &vir_low::Type,
         position: vir_low::Position,
     ) -> u64 {
-        if self.versions.contains_key(&variable.name) {
-            let version = self.versions.get_mut(&variable.name).unwrap();
+        if self.versions.contains_key(variable) {
+            let version = self.versions.get_mut(variable).unwrap();
             *version += 1;
             *version
         } else {
-            self.versions.insert(variable.name.clone(), 1);
-            self.types
-                .insert(variable.name.clone(), variable.ty.clone());
-            self.positions.insert(variable.name.clone(), position);
+            self.versions.insert(variable.to_string(), 1);
+            self.types.insert(variable.to_string(), ty.clone());
+            self.positions.insert(variable.to_string(), position);
             1
         }
     }

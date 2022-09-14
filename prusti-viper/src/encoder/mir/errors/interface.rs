@@ -26,13 +26,14 @@ pub(crate) trait ErrorInterface {
         position: vir_high::Position,
         error_ctxt: ErrorCtxt,
     ) -> vir_high::Position;
+    fn get_error_context(&mut self, position: vir_high::Position) -> ErrorCtxt;
     fn set_surrounding_error_context(
-        &mut self,
+        &self,
         position: vir_high::Position,
         error_ctxt: ErrorCtxt,
     ) -> vir_high::Position;
     fn set_surrounding_error_context_for_expression(
-        &mut self,
+        &self,
         expression: vir_high::Expression,
         default_position: vir_high::Position,
         error_ctxt: ErrorCtxt,
@@ -92,8 +93,12 @@ impl<'v, 'tcx: 'v> ErrorInterface for super::super::super::Encoder<'v, 'tcx> {
         self.error_manager().set_error(new_position, error_ctxt);
         new_position.into()
     }
+    fn get_error_context(&mut self, position: vir_high::Position) -> ErrorCtxt {
+        assert!(!position.is_default());
+        self.error_manager().get_error(position.into())
+    }
     fn set_surrounding_error_context(
-        &mut self,
+        &self,
         position: vir_high::Position,
         error_ctxt: ErrorCtxt,
     ) -> vir_high::Position {
@@ -106,14 +111,14 @@ impl<'v, 'tcx: 'v> ErrorInterface for super::super::super::Encoder<'v, 'tcx> {
     /// 1. `default_position` if `position.is_default()`.
     /// 2. With surrounding error context otherwise.
     fn set_surrounding_error_context_for_expression(
-        &mut self,
+        &self,
         expression: vir_high::Expression,
         default_position: vir_high::Position,
         error_ctxt: ErrorCtxt,
     ) -> vir_high::Expression {
         assert!(!default_position.is_default());
         struct Visitor<'p, 'v: 'p, 'tcx: 'v> {
-            encoder: &'p mut super::super::super::Encoder<'v, 'tcx>,
+            encoder: &'p super::super::super::Encoder<'v, 'tcx>,
             default_position: vir_high::Position,
             error_ctxt: ErrorCtxt,
         }

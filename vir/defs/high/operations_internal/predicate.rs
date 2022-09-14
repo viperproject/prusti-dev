@@ -32,6 +32,14 @@ impl Predicate {
                     predicate.size.get_type().clone(),
                 ]
             }
+            Self::MemoryBlockHeapRange(predicate) => {
+                // FIXME: This is probably wrong: we need to use the type of the
+                // target.
+                vec![
+                    predicate.address.get_type().clone(),
+                    predicate.size.get_type().clone(),
+                ]
+            }
             Self::MemoryBlockHeapDrop(predicate) => {
                 vec![
                     predicate.address.get_type().clone(),
@@ -40,6 +48,32 @@ impl Predicate {
             }
             Self::OwnedNonAliased(predicate) => {
                 vec![predicate.place.get_type().clone()]
+            }
+            Self::OwnedRange(predicate) => {
+                // FIXME: This is probably wrong: we need to use the type of the
+                // target.
+                vec![predicate.address.get_type().clone()]
+            }
+            Self::OwnedSet(predicate) => {
+                // FIXME: This is probably wrong: we need to use the type of the
+                // target of the pointer stored in the set.
+                vec![predicate.set.get_type().clone()]
+            }
+            Self::UniqueRef(predicate) => {
+                vec![predicate.place.get_type().clone()]
+            }
+            Self::UniqueRefRange(predicate) => {
+                // FIXME: This is probably wrong: we need to use the type of the
+                // target.
+                vec![predicate.address.get_type().clone()]
+            }
+            Self::FracRef(predicate) => {
+                vec![predicate.place.get_type().clone()]
+            }
+            Self::FracRefRange(predicate) => {
+                // FIXME: This is probably wrong: we need to use the type of the
+                // target.
+                vec![predicate.address.get_type().clone()]
             }
         }
     }

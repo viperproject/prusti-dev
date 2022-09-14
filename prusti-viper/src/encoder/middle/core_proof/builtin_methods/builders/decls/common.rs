@@ -232,13 +232,14 @@ where
 
     fn add_join_memory_block_call(
         &mut self,
-        place: &vir_low::VariableDecl,
-        root_address: &vir_low::VariableDecl,
+        _place: &vir_low::VariableDecl,
+        address: &vir_low::VariableDecl,
+        // root_address: &vir_low::VariableDecl,
         snapshot: &vir_low::VariableDecl,
     ) -> SpannedEncodingResult<()> {
         let inner = self.inner();
         inner.lowerer.encode_memory_block_join_method(inner.ty)?;
-        let address = inner.compute_address(place, root_address);
+        // let address = inner.compute_address(place, root_address);
         let discriminant_call = inner.discriminant(snapshot)?;
         let mut builder = BuiltinMethodCallBuilder::new(
             inner.lowerer,
@@ -248,7 +249,7 @@ where
             inner.type_decl,
             inner.position,
         )?;
-        builder.add_argument(address);
+        builder.add_argument(address.clone().into());
         builder.add_full_permission_argument();
         if let Some(discriminant_call) = discriminant_call {
             builder.add_argument(discriminant_call);

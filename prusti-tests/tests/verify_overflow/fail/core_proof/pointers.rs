@@ -10,18 +10,22 @@ use prusti_contracts::*;
 
 fn test1() {
     let a = 4u32;
-    let _x = std::ptr::addr_of!(a);
+    let x = std::ptr::addr_of!(a);
+    restore!(*x, a);
 }
 
 fn test2() {
     let mut a = 4u32;
-    let _x = std::ptr::addr_of_mut!(a);
+    let x = std::ptr::addr_of_mut!(a);
+    restore!(*x, a);
 }
 
 fn test3() {
     let a = 4u32;
     let x = std::ptr::addr_of!(a);
+    restore!(*x, a);
     let y = std::ptr::addr_of!(a);
+    restore!(*y, a);
     assert!(x == y);
 }
 
@@ -29,7 +33,9 @@ fn test4() {
     let a = 4u32;
     let b = 4u32;
     let x = std::ptr::addr_of!(a);
+    restore!(*x, a);
     let y = std::ptr::addr_of!(b);
+    restore!(*y, b);
     assert!(x == y);    //~ ERROR
 }
 
@@ -37,7 +43,9 @@ fn test5() {
     let a = 4u32;
     let b = 4u32;
     let x = std::ptr::addr_of!(a);
+    restore!(*x, a);
     let y = std::ptr::addr_of!(b);
+    restore!(*y, b);
     assert!(x != y);    //~ ERROR
 }
 
@@ -45,7 +53,9 @@ fn test6() {
     let a = 4u32;
     let b = 4u32;
     let x = std::ptr::addr_of!(a);
+    restore!(*x, a);
     let y = std::ptr::addr_of!(b);
+    restore!(*y, b);
     assert!(!(x == y));    //~ ERROR
 }
 
@@ -64,6 +74,8 @@ fn test7() {
     let x = std::ptr::addr_of!(a);
     let y = std::ptr::addr_of!(c.f.g);
     assert!(x != y);    //~ ERROR
+    restore!(*x, a);
+    restore!(*y, c.f.g);
 }
 
 fn test8() {
@@ -73,6 +85,8 @@ fn test8() {
     let x = std::ptr::addr_of!(a);
     let y = std::ptr::addr_of!(c.f.g);
     assert!(!(x == y));    //~ ERROR
+    restore!(*x, a);
+    restore!(*y, c.f.g);
 }
 
 fn test9() {
@@ -82,6 +96,8 @@ fn test9() {
     let x = std::ptr::addr_of!(a);
     let y = std::ptr::addr_of!(c.f.g);
     assert!(x == y);    //~ ERROR
+    restore!(*x, a);
+    restore!(*y, c.f.g);
 }
 
 fn main() {}

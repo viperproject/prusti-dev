@@ -1,6 +1,6 @@
 use std::fmt::{Display, Write};
 
-pub(crate) macro condition($condition: expr, $then_template: expr, $else_template: expr) {{
+pub macro condition($condition: expr, $then_template: expr, $else_template: expr) {{
     if $condition {
         $then_template
     } else {
@@ -8,9 +8,16 @@ pub(crate) macro condition($condition: expr, $then_template: expr, $else_templat
     }
 }}
 
-pub(crate) macro option($option: expr, $some_template: expr, $none_template: expr) {{
+pub macro option($option: expr, $some_template: expr, $none_template: expr) {{
     match $option {
         Some(value) => format!($some_template, value),
+        None => $none_template.to_string(),
+    }
+}}
+
+pub(crate) macro option_cjoin($option: expr, $none_template: expr) {{
+    match $option {
+        Some(value) => $crate::common::display::cjoin(value),
         None => $none_template.to_string(),
     }
 }}
@@ -51,7 +58,10 @@ pub(crate) macro foreach2($template: expr, $values1: expr, $values2: expr) {{
 
 pub(crate) macro option_foreach($option: expr, $some_template: expr, $each_template: expr, $none_template: expr) {{
     match $option {
-        Some(value) => format!($some_template, foreach!($each_template, value)),
+        Some(value) => format!(
+            $some_template,
+            $crate::common::display::foreach!($each_template, value)
+        ),
         None => $none_template.to_string(),
     }
 }}
