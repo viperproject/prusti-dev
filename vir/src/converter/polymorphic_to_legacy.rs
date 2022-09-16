@@ -316,6 +316,7 @@ impl From<polymorphic::Expr> for legacy::Expr {
                 Box::new((*let_expr.body).into()),
                 let_expr.position.into(),
             ),
+            polymorphic::Expr::BuiltinFuncApp(_) => unimplemented!(),
             polymorphic::Expr::FuncApp(func_app) => legacy::Expr::FuncApp(
                 polymorphic::compute_identifier(
                     &func_app.function_name,

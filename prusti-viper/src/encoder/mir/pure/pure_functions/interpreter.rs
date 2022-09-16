@@ -1,7 +1,7 @@
 use super::interface::PureFunctionEncoderInterface;
 use crate::encoder::{
     builtin_encoder::BuiltinFunctionKind,
-    errors::{EncodingResult, ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
+    errors::{EncodingResult, ErrorCtxt, MultiSpan, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     high::{
         builtin_functions::HighBuiltinFunctionEncoderInterface,
         generics::HighGenericsEncoderInterface, types::HighTypeEncoderInterface,
@@ -23,7 +23,10 @@ use prusti_interface::environment::mir_utils::SliceOrArrayRef;
 use prusti_rustc_interface::{
     hir::def_id::DefId,
     middle::{mir, span_bug, ty},
+    span::Span,
 };
+use prusti_common::vir::vir_high::Type;
+use prusti_common::vir::vir_high::ty::Int;
 use rustc_hash::FxHashMap;
 use std::{convert::TryInto, mem};
 use vir_crate::polymorphic::{self as vir};
@@ -59,6 +62,378 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
             pure_encoding_context,
             caller_def_id,
             def_id,
+        }
+    }
+
+    fn apply_call_terminator(
+        &self,
+        args: &[mir::Operand<'tcx>],
+        destination: mir::Place<'tcx>,
+        target: &Option<mir::BasicBlock>,
+        ty: ty::Ty<'tcx>,
+        states: FxHashMap<mir::BasicBlock, &ExprBackwardInterpreterState>,
+        span: Span,
+    ) -> SpannedEncodingResult<ExprBackwardInterpreterState> {
+
+        let unreachable_expr = |pos| {
+            self.encoder
+                .encode_snapshot_type(self.mir.return_ty())
+                .map(|encoded_type| {
+                    let (function_name, type_arguments) =
+                        self.encoder
+                            .encode_builtin_function_use(BuiltinFunctionKind::Unreachable(
+                                encoded_type.clone(),
+                            ));
+                    vir::Expr::func_app(
+                        function_name,
+                        type_arguments,
+                        vec![],
+                        vec![],
+                        encoded_type,
+                        pos,
+                    )
+                })
+        };
+        if let ty::TyKind::FnDef(def_id, call_substs) = ty.kind() {
+            trace!(
+                "apply_terminator for function call {:?} with substs {:?}",
+                def_id,
+                call_substs
+            );
+            let def_id = *def_id;
+            let tcx = self.encoder.env().tcx();
+            let env_name = self.encoder.env().name;
+            let full_func_proc_name: &str = &env_name.get_absolute_item_name(def_id);
+            let func_proc_name = &self.encoder.env().name.get_item_name(def_id);
+
+            let state = if let Some(target_block) = target {
+                let (encoded_lhs, ty, _) =
+                    self.encode_place(destination).with_span(span)?;
+                let encoded_args: Vec<vir::Expr> = args
+                    .iter()
+                    .map(|arg| self.mir_encoder.encode_operand_expr(arg))
+                    .collect::<Result<_, _>>()
+                    .with_span(span)?;
+
+                let type_arguments = self
+                    .encoder
+                    .encode_generic_arguments(def_id, call_substs)
+                    .with_span(span)?;
+
+                let subst_with = |val| {
+                    let mut state = states[target_block].clone();
+                    state.substitute_value(&encoded_lhs, val);
+                    Ok(Some(state))
+                };
+
+                let builtin = |(function, return_type)| {
+                    subst_with(vir::Expr::builtin_func_app(
+                        function,
+                        type_arguments.clone(),
+                        encoded_args.into(),
+                        return_type,
+                        vir::Position::default()
+                    ))
+                };
+
+                if let Some(proc_name) = full_func_proc_name.strip_prefix("prusti_contracts::Map::<K, V>::") {
+                    assert_eq!(type_arguments.len(), 2);
+
+                    let key_type = type_arguments[0].clone();
+                    let val_type = type_arguments[1].clone();
+                    let map_type = Type::map(key_type, val_type.clone(), lifetimes);
+
+                    return builtin(match proc_name {
+                        "empty" => (EmptyMap, map_type),
+                        "insert" => (UpdateMap, map_type),
+                        "len" => (MapLen, Type::int(Int::Unbounded)),
+                        "lookup" => (LookupMap, val_type),
+                        "delete" => unimplemented!(),
+                        "contains" => (MapContains, Type::bool()),
+                        _ => unreachable!("no further Map functions"),
+                    });
+                } else {
+                    match full_func_proc_name {
+                        "prusti_contracts::old" => {
+                            trace!("Encoding old expression {:?}", args[0]);
+                            assert_eq!(args.len(), 1);
+
+                            // Return an error for unsupported old(..) types
+
+                            let encoded_rhs = self.mir_encoder.encode_old_expr(
+                                vir::Expr::snap_app(encoded_args[0].clone()),
+                                PRECONDITION_LABEL,
+                            );
+                            let mut state = states[&target_block].clone();
+                            state.substitute_value(&encoded_lhs, encoded_rhs);
+                            state
+                        }
+
+                        "prusti_contracts::before_expiry" => {
+                            trace!("Encoding before_expiry expression {:?}", args[0]);
+                            assert_eq!(args.len(), 1);
+                            let encoded_rhs = self.mir_encoder.encode_old_expr(
+                                vir::Expr::snap_app(encoded_args[0].clone()),
+                                WAND_LHS_LABEL,
+                            );
+                            let mut state = states[&target_block].clone();
+                            state.substitute_value(&encoded_lhs, encoded_rhs);
+                            state
+                        }
+
+                        "std::cmp::PartialEq::eq" | "core::cmp::PartialEq::eq"
+                            if self.encoder.has_structural_eq_impl(
+                                self.mir_encoder.get_operand_ty(&args[0]),
+                            ) =>
+                        {
+                            assert_eq!(args.len(), 2);
+                            let encoded_rhs = vir::Expr::eq_cmp(
+                                vir::Expr::snap_app(encoded_args[0].clone()),
+                                vir::Expr::snap_app(encoded_args[1].clone()),
+                            );
+                            let mut state = states[&target_block].clone();
+                            state.substitute_value(&encoded_lhs, encoded_rhs);
+                            state
+                        }
+
+                        "std::cmp::PartialEq::ne" | "core::cmp::PartialEq::ne"
+                            if self.encoder.has_structural_eq_impl(
+                                self.mir_encoder.get_operand_ty(&args[0]),
+                            ) =>
+                        {
+                            assert_eq!(args.len(), 2);
+                            let encoded_rhs = vir::Expr::ne_cmp(
+                                vir::Expr::snap_app(encoded_args[0].clone()),
+                                vir::Expr::snap_app(encoded_args[1].clone()),
+                            );
+                            let mut state = states[&target_block].clone();
+                            state.substitute_value(&encoded_lhs, encoded_rhs);
+                            state
+                        }
+
+                        "core::slice::<impl [T]>::len" => {
+                            assert_eq!(args.len(), 1);
+                            let slice_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                            let len = self
+                                .encoder
+                                .encode_snapshot_slice_len(slice_ty, encoded_args[0].clone())
+                                .with_span(span)?;
+
+                            let mut state = states[&target_block].clone();
+                            state.substitute_value(&encoded_lhs, len);
+                            state
+                        }
+
+                        "std::ops::Index::index" | "core::ops::Index::index" => {
+                            assert_eq!(args.len(), 2);
+                            trace!("slice::index(args={:?}, encoded_args={:?}, ty={:?}, encoded_lhs={:?})", args, encoded_args, ty, encoded_lhs);
+
+                            let base_ty = self.mir_encoder.get_operand_ty(&args[0]);
+
+                            let idx_ty = self.mir_encoder.get_operand_ty(&args[1]);
+                            let idx_ty_did = match idx_ty.ty_adt_def() {
+                                Some(def) => def.did(),
+                                None => return Err(SpannedEncodingError::unsupported(
+                                    format!("Using {} as index/range type for {} is not currently supported in pure functions", idx_ty, base_ty),
+                                    span,
+                                ))
+                            };
+                            let idx_ident = env_name.get_absolute_item_name(idx_ty_did);
+                            let encoded_idx = &encoded_args[1];
+
+                            // TODO: what do we actually do here? this seems a littly hacky.
+                            // there's fields like _5.f$start.val_int on `encoded_idx`, it just feels hacky to
+                            // manually re-do them here when we probably just encoded the type and the
+                            // construction of the fields..
+                            // Also, duplication with procedure_encoder.rs
+                            let usize_ty = tcx.mk_ty(ty::TyKind::Uint(ty::UintTy::Usize));
+                            let start = match &*idx_ident {
+                                "std::ops::Range" | "core::ops::Range" |
+                                "std::ops::RangeFrom" | "core::ops::RangeFrom" =>
+                                    self.encoder.encode_struct_field_value(encoded_idx.clone(), "start", usize_ty).with_span(span)?,
+                                // See procedure_encoder.rs
+                                "std::ops::RangeInclusive" | "core::ops::RangeInclusive" => return Err(
+                                    SpannedEncodingError::unsupported("slicing with RangeInclusive (e.g. [x..=y]) currently not supported".to_string(), span)
+                                ),
+                                "std::ops::RangeTo" | "core::ops::RangeTo" |
+                                "std::ops::RangeFull" | "core::ops::RangeFull" |
+                                "std::ops::RangeToInclusive" | "core::ops::RangeToInclusive" => vir::Expr::from(0u32),
+                                _ => unreachable!("{}", idx_ident)
+                            };
+                            let end = match &*idx_ident {
+                                "std::ops::Range" | "core::ops::Range" |
+                                "std::ops::RangeTo" | "core::ops::RangeTo" =>
+                                    self.encoder.encode_struct_field_value(encoded_idx.clone(), "end", usize_ty).with_span(span)?,
+                                "std::ops::RangeInclusive" | "core::ops::RangeInclusive" => return Err(
+                                    SpannedEncodingError::unsupported("slicing with RangeInclusive (e.g. [x..=y]) currently not supported".to_string(), span)
+                                ),
+                                "std::ops::RangeToInclusive" | "core::ops::RangeToInclusive" => {
+                                    let end_expr = self.encoder.encode_struct_field_value(encoded_idx.clone(), "end", usize_ty).with_span(span)?;
+                                    vir::Expr::add(end_expr, vir::Expr::from(1u32))
+                                }
+                                "std::ops::RangeFrom" | "core::ops::RangeFrom" |
+                                "std::ops::RangeFull" | "core::ops::RangeFull" => {
+                                    if base_ty.peel_refs().is_array() {
+                                        let array_len = self.encoder.encode_sequence_types(base_ty.peel_refs()).with_span(span)?.sequence_len.unwrap();
+                                        vir::Expr::from(array_len)
+                                    } else if base_ty.is_slice() {
+                                        let base = self.mir_encoder.encode_operand_place(&args[0]).with_span(span)?.unwrap();
+                                        let base_expr = self.encoder.encode_value_expr(base, base_ty).with_span(span)?;
+                                        let slice_types_base = self.encoder.encode_sequence_types(base_ty.peel_refs()).with_span(span)?;
+                                        slice_types_base.len(self.encoder, base_expr)
+                                    } else { todo!("Get last idx for {}", base_ty) }
+                                }
+                                _ => unreachable!("{}", idx_ident)
+                            };
+
+                            let slice_expr = self
+                                .encoder
+                                .encode_snapshot_slicing(
+                                    base_ty,
+                                    encoded_args[0].clone(),
+                                    ty,
+                                    start,
+                                    end,
+                                )
+                                .with_span(span)?;
+
+                            let mut state = states[&target_block].clone();
+                            state.substitute_value(&encoded_lhs, slice_expr);
+                            state
+                        }
+
+                        // Prusti-specific syntax
+                        // TODO: check we are in a spec function
+                        "prusti_contracts::exists"
+                        | "prusti_contracts::forall"
+                        | "prusti_contracts::specification_entailment"
+                        | "prusti_contracts::call_description"
+                        | "prusti_contracts::snap"
+                        | "prusti_contracts::snapshot_equality" => {
+                            let expr = self.encoder.encode_prusti_operation(
+                                full_func_proc_name,
+                                span,
+                                encoded_args,
+                                self.caller_def_id,
+                                call_substs,
+                            )?;
+                            let mut state = states[&target_block].clone();
+                            state.substitute_value(&encoded_lhs, expr);
+                            state
+                        }
+
+                        // simple function call
+                        _ => {
+                            let (called_def_id, call_substs) = self
+                                .encoder
+                                .env()
+                                .query
+                                .resolve_method_call(self.def_id, def_id, call_substs);
+                            trace!("Resolved function call: {:?}", called_def_id);
+
+                            let is_pure_function =
+                                self.encoder.is_pure(called_def_id, Some(call_substs));
+                            let (function_name, return_type) = if is_pure_function {
+                                self.encoder
+                                    .encode_pure_function_use(
+                                        called_def_id,
+                                        self.caller_def_id,
+                                        call_substs,
+                                    )
+                                    .with_span(span)?
+                            } else {
+                                return Err(SpannedEncodingError::incorrect(
+                                    format!(
+                                        "use of impure function {:?} in pure code is not allowed",
+                                        func_proc_name
+                                    ),
+                                    span,
+                                ));
+                            };
+                            trace!("Encoding pure function call '{}'", function_name);
+
+                            let formal_args: Vec<vir::LocalVar> = args
+                                .iter()
+                                .enumerate()
+                                .map(|(i, arg)| {
+                                    self.mir_encoder
+                                        .encode_operand_expr_type(arg)
+                                        .map(|ty| vir::LocalVar::new(format!("x{}", i), ty))
+                                })
+                                .collect::<Result<_, _>>()
+                                .with_span(span)?;
+
+                            let pos = self.encoder.error_manager().register_error(
+                                span,
+                                ErrorCtxt::PureFunctionCall,
+                                self.caller_def_id,
+                            );
+                            let type_arguments = self
+                                .encoder
+                                .encode_generic_arguments(called_def_id, call_substs)
+                                .with_span(span)?;
+                            let encoded_rhs = vir::Expr::func_app(
+                                function_name,
+                                type_arguments,
+                                encoded_args,
+                                formal_args,
+                                return_type,
+                                pos,
+                            );
+                            let mut state = states[&target_block].clone();
+                            state.substitute_value(&encoded_lhs, encoded_rhs);
+                            state
+                        }
+                    }
+                }
+            } else {
+                // Encoding of a non-terminating function call
+                // FIXME: Refactor the common code with the procedure encoder.
+                match self.pure_encoding_context {
+                    PureEncodingContext::Trigger => {
+                        // We are encoding a trigger, so all panic branches must be stripped.
+                        ExprBackwardInterpreterState::new(None)
+                    }
+                    PureEncodingContext::Assertion => {
+                        // We are encoding an assertion, so all failures should be equivalent to false.
+                        debug_assert!(matches!(
+                            self.mir.return_ty().kind(),
+                            ty::TyKind::Bool
+                        ));
+                        ExprBackwardInterpreterState::new(Some(false.into()))
+                    }
+                    PureEncodingContext::Code => {
+                        // We are encoding a pure function, so all failures should be unreachable.
+                        let error_ctxt = match full_func_proc_name {
+                            "std::rt::begin_panic"
+                            | "core::panicking::panic"
+                            | "core::panicking::panic_fmt" => {
+                                // This is called when a Rust assertion fails
+                                // args[0]: message
+                                // args[1]: position of failing assertions
+
+                                let panic_cause = self.mir_encoder.encode_panic_cause(span);
+                                ErrorCtxt::PanicInPureFunction(panic_cause)
+                            }
+
+                            _ => ErrorCtxt::DivergingCallInPureFunction,
+                        };
+                        let pos = self.encoder.error_manager().register_error(
+                            span,
+                            error_ctxt,
+                            self.caller_def_id,
+                        );
+                        ExprBackwardInterpreterState::new_defined(
+                            unreachable_expr(pos).with_span(span)?,
+                        )
+                    }
+                }
+            };
+
+            Ok(state)
+        } else {
+            // Other kind of calls?
+            unimplemented!();
         }
     }
 
@@ -391,312 +766,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 ref args,
                 destination,
                 target,
-                func: mir::Operand::Constant(ref const_func),
+                func: mir::Operand::Constant(box mir::Constant {literal, ..}),
                 ..
             } => {
-                let ty = const_func.ty();
-                if let ty::TyKind::FnDef(def_id, call_substs) = ty.kind() {
-                    trace!(
-                        "apply_terminator for function call {:?} with substs {:?}",
-                        def_id,
-                        call_substs
-                    );
-                    let def_id = *def_id;
-                    let tcx = self.encoder.env().tcx();
-                    let env_name = self.encoder.env().name;
-                    let full_func_proc_name: &str = &env_name.get_absolute_item_name(def_id);
-                    let func_proc_name = &self.encoder.env().name.get_item_name(def_id);
-
-                    let state = if let Some(target_block) = target {
-                        let (encoded_lhs, ty, _) =
-                            self.encode_place(destination).with_span(span)?;
-                        let encoded_args: Vec<vir::Expr> = args
-                            .iter()
-                            .map(|arg| self.mir_encoder.encode_operand_expr(arg))
-                            .collect::<Result<_, _>>()
-                            .with_span(span)?;
-
-                        match full_func_proc_name {
-                            "prusti_contracts::old" => {
-                                trace!("Encoding old expression {:?}", args[0]);
-                                assert_eq!(args.len(), 1);
-
-                                // Return an error for unsupported old(..) types
-
-                                let encoded_rhs = self.mir_encoder.encode_old_expr(
-                                    vir::Expr::snap_app(encoded_args[0].clone()),
-                                    PRECONDITION_LABEL,
-                                );
-                                let mut state = states[&target_block].clone();
-                                state.substitute_value(&encoded_lhs, encoded_rhs);
-                                state
-                            }
-
-                            "prusti_contracts::before_expiry" => {
-                                trace!("Encoding before_expiry expression {:?}", args[0]);
-                                assert_eq!(args.len(), 1);
-                                let encoded_rhs = self.mir_encoder.encode_old_expr(
-                                    vir::Expr::snap_app(encoded_args[0].clone()),
-                                    WAND_LHS_LABEL,
-                                );
-                                let mut state = states[&target_block].clone();
-                                state.substitute_value(&encoded_lhs, encoded_rhs);
-                                state
-                            }
-
-                            "std::cmp::PartialEq::eq" | "core::cmp::PartialEq::eq"
-                                if self.encoder.has_structural_eq_impl(
-                                    self.mir_encoder.get_operand_ty(&args[0]),
-                                ) =>
-                            {
-                                assert_eq!(args.len(), 2);
-                                let encoded_rhs = vir::Expr::eq_cmp(
-                                    vir::Expr::snap_app(encoded_args[0].clone()),
-                                    vir::Expr::snap_app(encoded_args[1].clone()),
-                                );
-                                let mut state = states[&target_block].clone();
-                                state.substitute_value(&encoded_lhs, encoded_rhs);
-                                state
-                            }
-
-                            "std::cmp::PartialEq::ne" | "core::cmp::PartialEq::ne"
-                                if self.encoder.has_structural_eq_impl(
-                                    self.mir_encoder.get_operand_ty(&args[0]),
-                                ) =>
-                            {
-                                assert_eq!(args.len(), 2);
-                                let encoded_rhs = vir::Expr::ne_cmp(
-                                    vir::Expr::snap_app(encoded_args[0].clone()),
-                                    vir::Expr::snap_app(encoded_args[1].clone()),
-                                );
-                                let mut state = states[&target_block].clone();
-                                state.substitute_value(&encoded_lhs, encoded_rhs);
-                                state
-                            }
-
-                            "core::slice::<impl [T]>::len" => {
-                                assert_eq!(args.len(), 1);
-                                let slice_ty = self.mir_encoder.get_operand_ty(&args[0]);
-                                let len = self
-                                    .encoder
-                                    .encode_snapshot_slice_len(slice_ty, encoded_args[0].clone())
-                                    .with_span(span)?;
-
-                                let mut state = states[&target_block].clone();
-                                state.substitute_value(&encoded_lhs, len);
-                                state
-                            }
-
-                            "std::ops::Index::index" | "core::ops::Index::index" => {
-                                assert_eq!(args.len(), 2);
-                                trace!("slice::index(args={:?}, encoded_args={:?}, ty={:?}, encoded_lhs={:?})", args, encoded_args, ty, encoded_lhs);
-
-                                let base_ty = self.mir_encoder.get_operand_ty(&args[0]);
-
-                                let idx_ty = self.mir_encoder.get_operand_ty(&args[1]);
-                                let idx_ty_did = match idx_ty.ty_adt_def() {
-                                    Some(def) => def.did(),
-                                    None => return Err(SpannedEncodingError::unsupported(
-                                        format!("Using {} as index/range type for {} is not currently supported in pure functions", idx_ty, base_ty),
-                                        span,
-                                    ))
-                                };
-                                let idx_ident = env_name.get_absolute_item_name(idx_ty_did);
-                                let encoded_idx = &encoded_args[1];
-
-                                // TODO: what do we actually do here? this seems a littly hacky.
-                                // there's fields like _5.f$start.val_int on `encoded_idx`, it just feels hacky to
-                                // manually re-do them here when we probably just encoded the type and the
-                                // construction of the fields..
-                                // Also, duplication with procedure_encoder.rs
-                                let usize_ty = tcx.mk_ty(ty::TyKind::Uint(ty::UintTy::Usize));
-                                let start = match &*idx_ident {
-                                    "std::ops::Range" | "core::ops::Range" |
-                                    "std::ops::RangeFrom" | "core::ops::RangeFrom" =>
-                                        self.encoder.encode_struct_field_value(encoded_idx.clone(), "start", usize_ty).with_span(span)?,
-                                    // See procedure_encoder.rs
-                                    "std::ops::RangeInclusive" | "core::ops::RangeInclusive" => return Err(
-                                        SpannedEncodingError::unsupported("slicing with RangeInclusive (e.g. [x..=y]) currently not supported".to_string(), span)
-                                    ),
-                                    "std::ops::RangeTo" | "core::ops::RangeTo" |
-                                    "std::ops::RangeFull" | "core::ops::RangeFull" |
-                                    "std::ops::RangeToInclusive" | "core::ops::RangeToInclusive" => vir::Expr::from(0u32),
-                                    _ => unreachable!("{}", idx_ident)
-                                };
-                                let end = match &*idx_ident {
-                                    "std::ops::Range" | "core::ops::Range" |
-                                    "std::ops::RangeTo" | "core::ops::RangeTo" =>
-                                        self.encoder.encode_struct_field_value(encoded_idx.clone(), "end", usize_ty).with_span(span)?,
-                                    "std::ops::RangeInclusive" | "core::ops::RangeInclusive" => return Err(
-                                        SpannedEncodingError::unsupported("slicing with RangeInclusive (e.g. [x..=y]) currently not supported".to_string(), span)
-                                    ),
-                                    "std::ops::RangeToInclusive" | "core::ops::RangeToInclusive" => {
-                                        let end_expr = self.encoder.encode_struct_field_value(encoded_idx.clone(), "end", usize_ty).with_span(span)?;
-                                        vir::Expr::add(end_expr, vir::Expr::from(1u32))
-                                    }
-                                    "std::ops::RangeFrom" | "core::ops::RangeFrom" |
-                                    "std::ops::RangeFull" | "core::ops::RangeFull" => {
-                                        if base_ty.peel_refs().is_array() {
-                                            let array_len = self.encoder.encode_sequence_types(base_ty.peel_refs()).with_span(span)?.sequence_len.unwrap();
-                                            vir::Expr::from(array_len)
-                                        } else if base_ty.is_slice() {
-                                            let base = self.mir_encoder.encode_operand_place(&args[0]).with_span(span)?.unwrap();
-                                            let base_expr = self.encoder.encode_value_expr(base, base_ty).with_span(span)?;
-                                            let slice_types_base = self.encoder.encode_sequence_types(base_ty.peel_refs()).with_span(span)?;
-                                            slice_types_base.len(self.encoder, base_expr)
-                                        } else { todo!("Get last idx for {}", base_ty) }
-                                    }
-                                    _ => unreachable!("{}", idx_ident)
-                                };
-
-                                let slice_expr = self
-                                    .encoder
-                                    .encode_snapshot_slicing(
-                                        base_ty,
-                                        encoded_args[0].clone(),
-                                        ty,
-                                        start,
-                                        end,
-                                    )
-                                    .with_span(span)?;
-
-                                let mut state = states[&target_block].clone();
-                                state.substitute_value(&encoded_lhs, slice_expr);
-                                state
-                            }
-
-                            // Prusti-specific syntax
-                            // TODO: check we are in a spec function
-                            "prusti_contracts::exists"
-                            | "prusti_contracts::forall"
-                            | "prusti_contracts::specification_entailment"
-                            | "prusti_contracts::call_description"
-                            | "prusti_contracts::snap"
-                            | "prusti_contracts::snapshot_equality" => {
-                                let expr = self.encoder.encode_prusti_operation(
-                                    full_func_proc_name,
-                                    span,
-                                    encoded_args,
-                                    self.caller_def_id,
-                                    call_substs,
-                                )?;
-                                let mut state = states[&target_block].clone();
-                                state.substitute_value(&encoded_lhs, expr);
-                                state
-                            }
-
-                            // simple function call
-                            _ => {
-                                let (called_def_id, call_substs) = self
-                                    .encoder
-                                    .env()
-                                    .query
-                                    .resolve_method_call(self.def_id, def_id, call_substs);
-                                trace!("Resolved function call: {:?}", called_def_id);
-
-                                let is_pure_function =
-                                    self.encoder.is_pure(called_def_id, Some(call_substs));
-                                let (function_name, return_type) = if is_pure_function {
-                                    self.encoder
-                                        .encode_pure_function_use(
-                                            called_def_id,
-                                            self.caller_def_id,
-                                            call_substs,
-                                        )
-                                        .with_span(term.source_info.span)?
-                                } else {
-                                    return Err(SpannedEncodingError::incorrect(
-                                        format!(
-                                            "use of impure function {:?} in pure code is not allowed",
-                                            func_proc_name
-                                        ),
-                                        term.source_info.span,
-                                    ));
-                                };
-                                trace!("Encoding pure function call '{}'", function_name);
-
-                                let formal_args: Vec<vir::LocalVar> = args
-                                    .iter()
-                                    .enumerate()
-                                    .map(|(i, arg)| {
-                                        self.mir_encoder
-                                            .encode_operand_expr_type(arg)
-                                            .map(|ty| vir::LocalVar::new(format!("x{}", i), ty))
-                                    })
-                                    .collect::<Result<_, _>>()
-                                    .with_span(term.source_info.span)?;
-
-                                let pos = self.encoder.error_manager().register_error(
-                                    term.source_info.span,
-                                    ErrorCtxt::PureFunctionCall,
-                                    self.caller_def_id,
-                                );
-                                let type_arguments = self
-                                    .encoder
-                                    .encode_generic_arguments(called_def_id, call_substs)
-                                    .with_span(term.source_info.span)?;
-                                let encoded_rhs = vir::Expr::func_app(
-                                    function_name,
-                                    type_arguments,
-                                    encoded_args,
-                                    formal_args,
-                                    return_type,
-                                    pos,
-                                );
-                                let mut state = states[&target_block].clone();
-                                state.substitute_value(&encoded_lhs, encoded_rhs);
-                                state
-                            }
-                        }
-                    } else {
-                        // Encoding of a non-terminating function call
-                        // FIXME: Refactor the common code with the procedure encoder.
-                        match self.pure_encoding_context {
-                            PureEncodingContext::Trigger => {
-                                // We are encoding a trigger, so all panic branches must be stripped.
-                                ExprBackwardInterpreterState::new(None)
-                            }
-                            PureEncodingContext::Assertion => {
-                                // We are encoding an assertion, so all failures should be equivalent to false.
-                                debug_assert!(matches!(
-                                    self.mir.return_ty().kind(),
-                                    ty::TyKind::Bool
-                                ));
-                                ExprBackwardInterpreterState::new(Some(false.into()))
-                            }
-                            PureEncodingContext::Code => {
-                                // We are encoding a pure function, so all failures should be unreachable.
-                                let error_ctxt = match full_func_proc_name {
-                                    "std::rt::begin_panic"
-                                    | "core::panicking::panic"
-                                    | "core::panicking::panic_fmt" => {
-                                        // This is called when a Rust assertion fails
-                                        // args[0]: message
-                                        // args[1]: position of failing assertions
-
-                                        let panic_cause = self.mir_encoder.encode_panic_cause(span);
-                                        ErrorCtxt::PanicInPureFunction(panic_cause)
-                                    }
-
-                                    _ => ErrorCtxt::DivergingCallInPureFunction,
-                                };
-                                let pos = self.encoder.error_manager().register_error(
-                                    term.source_info.span,
-                                    error_ctxt,
-                                    self.caller_def_id,
-                                );
-                                ExprBackwardInterpreterState::new_defined(
-                                    unreachable_expr(pos).with_span(term.source_info.span)?,
-                                )
-                            }
-                        }
-                    };
-
-                    state
-                } else {
-                    // Other kind of calls?
-                    unimplemented!();
-                }
+                self.apply_call_terminator(args, destination, &target, literal.ty(), states, span)?
             }
 
             TerminatorKind::Call { .. } => {
@@ -1253,3 +1326,4 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
         Ok(())
     }
 }
+
