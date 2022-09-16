@@ -162,6 +162,7 @@ impl Generic for Expr {
             Expr::Exists(exists) => Expr::Exists(exists.substitute(map)),
             Expr::LetExpr(let_expr) => Expr::LetExpr(let_expr.substitute(map)),
             Expr::FuncApp(func_app) => Expr::FuncApp(func_app.substitute(map)),
+            Expr::BuiltinFuncApp(func_app) => Expr::BuiltinFuncApp(func_app.substitute(map)),
             Expr::DomainFuncApp(domain_func_app) => {
                 Expr::DomainFuncApp(domain_func_app.substitute(map))
             }
@@ -369,6 +370,19 @@ impl Generic for LetExpr {
         *let_expr.def = let_expr.def.substitute(map);
         *let_expr.body = let_expr.body.substitute(map);
         let_expr
+    }
+}
+
+impl Generic for BuiltinFuncApp {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
+        let mut func_app = self;
+        func_app.arguments = func_app
+            .arguments
+            .into_iter()
+            .map(|argument| argument.substitute(map))
+            .collect();
+        func_app.return_type = func_app.return_type.substitute(map);
+        func_app
     }
 }
 

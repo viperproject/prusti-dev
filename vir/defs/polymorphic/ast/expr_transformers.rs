@@ -322,6 +322,23 @@ pub trait ExprFolder: Sized {
         })
     }
 
+    fn fold_builtin_func_app(&mut self, expr: BuiltinFuncApp) -> Expr {
+        let BuiltinFuncApp {
+            function,
+            type_arguments,
+            arguments,
+            return_type,
+            position,
+        } = expr;
+        Expr::BuiltinFuncApp(BuiltinFuncApp {
+            function,
+            type_arguments,
+            arguments: arguments.into_iter().map(|e| self.fold(e)).collect(),
+            return_type,
+            position,
+        })
+    }
+
     fn fold_domain_func_app(&mut self, expr: DomainFuncApp) -> Expr {
         let DomainFuncApp {
             domain_function,
@@ -461,6 +478,7 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::Exists(exists) => this.fold_exists(exists),
         Expr::LetExpr(let_expr) => this.fold_let_expr(let_expr),
         Expr::FuncApp(func_app) => this.fold_func_app(func_app),
+        Expr::BuiltinFuncApp(builtin_func_app) => this.fold_builtin_func_app(builtin_func_app),
         Expr::DomainFuncApp(domain_func_app) => this.fold_domain_func_app(domain_func_app),
         // TODO Expr::DomainFuncApp(u, v, w, x, y, p) => this.fold_domain_func_app(u,v,w,x,y,p),
         Expr::InhaleExhale(inhale_exhale) => this.fold_inhale_exhale(inhale_exhale),
@@ -615,6 +633,19 @@ pub trait ExprWalker: Sized {
         }
         self.walk_type(return_type);
     }
+
+    fn walk_builtin_func_app(&mut self, expr: &BuiltinFuncApp) {
+        let BuiltinFuncApp {
+            arguments,
+            return_type,
+            ..
+        } = expr;
+        for arg in arguments {
+            self.walk(arg)
+        }
+        self.walk_type(return_type);
+    }
+
     fn walk_domain_func_app(&mut self, expr: &DomainFuncApp) {
         let DomainFuncApp {
             domain_function,
@@ -719,6 +750,7 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::Exists(exists) => this.walk_exists(exists),
         Expr::LetExpr(let_expr) => this.walk_let_expr(let_expr),
         Expr::FuncApp(func_app) => this.walk_func_app(func_app),
+        Expr::BuiltinFuncApp(builtin_func_app) => this.walk_builtin_func_app(builtin_func_app),
         Expr::DomainFuncApp(domain_func_app) => this.walk_domain_func_app(domain_func_app),
         // TODO Expr::DomainFuncApp(ref u, ref v, ref w, ref x, ref y,ref p) => this.walk_domain_func_app(u, v, w, x,y,p),
         Expr::InhaleExhale(inhale_exhale) => this.walk_inhale_exhale(inhale_exhale),
@@ -1005,6 +1037,26 @@ pub trait FallibleExprFolder: Sized {
         }))
     }
 
+    fn fallible_fold_builtin_func_app(&mut self, expr: BuiltinFuncApp) -> Result<Expr, Self::Error> {
+        let BuiltinFuncApp {
+            function,
+            type_arguments,
+            arguments,
+            return_type,
+            position,
+        } = expr;
+        Ok(Expr::BuiltinFuncApp(BuiltinFuncApp {
+            function,
+            type_arguments,
+            arguments: arguments
+                .into_iter()
+                .map(|e| self.fallible_fold(e))
+                .collect::<Result<Vec<_>, Self::Error>>()?,
+            return_type,
+            position,
+        }))
+    }
+
     fn fallible_fold_domain_func_app(&mut self, expr: DomainFuncApp) -> Result<Expr, Self::Error> {
         let DomainFuncApp {
             domain_function,
@@ -1163,6 +1215,7 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error = U>>(
         Expr::Exists(exists) => this.fallible_fold_exists(exists),
         Expr::LetExpr(let_expr) => this.fallible_fold_let_expr(let_expr),
         Expr::FuncApp(func_app) => this.fallible_fold_func_app(func_app),
+        Expr::BuiltinFuncApp(builtin_func_app) => this.fallible_fold_builtin_func_app(builtin_func_app),
         Expr::DomainFuncApp(domain_func_app) => this.fallible_fold_domain_func_app(domain_func_app),
         // TODO Expr::DomainFuncApp(u, v, w, x, y, p) => this.fallible_fold_domain_func_app(u,v,w,x,y,p),
         Expr::InhaleExhale(inhale_exhale) => this.fallible_fold_inhale_exhale(inhale_exhale),
@@ -1318,6 +1371,7 @@ pub trait FallibleExprWalker: Sized {
         self.fallible_walk(body)?;
         Ok(())
     }
+
     fn fallible_walk_func_app(&mut self, expr: &FuncApp) -> Result<(), Self::Error> {
         let FuncApp {
             arguments,
@@ -1333,6 +1387,19 @@ pub trait FallibleExprWalker: Sized {
         }
         self.fallible_walk_type(return_type)
     }
+
+    fn fallible_walk_builtin_func_app(&mut self, expr: &BuiltinFuncApp) -> Result<(), Self::Error> {
+        let BuiltinFuncApp {
+            arguments,
+            return_type,
+            ..
+        } = expr;
+        for arg in arguments {
+            self.fallible_walk(arg)?;
+        }
+        self.fallible_walk_type(return_type)
+    }
+
     fn fallible_walk_domain_func_app(&mut self, expr: &DomainFuncApp) -> Result<(), Self::Error> {
         let DomainFuncApp {
             domain_function,
@@ -1443,6 +1510,7 @@ pub fn default_fallible_walk_expr<U, T: FallibleExprWalker<Error = U>>(
         Expr::ForAll(forall) => this.fallible_walk_forall(forall),
         Expr::Exists(exists) => this.fallible_walk_exists(exists),
         Expr::LetExpr(let_expr) => this.fallible_walk_let_expr(let_expr),
+        Expr::BuiltinFuncApp(builtin_func_app) => this.fallible_walk_builtin_func_app(builtin_func_app),
         Expr::FuncApp(func_app) => this.fallible_walk_func_app(func_app),
         Expr::DomainFuncApp(domain_func_app) => this.fallible_walk_domain_func_app(domain_func_app),
         // TODO Expr::DomainFuncApp(ref u, ref v, ref w, ref x, ref y,ref p) => this.fallible_walk_domain_func_app(u, v, w, x,y,p),

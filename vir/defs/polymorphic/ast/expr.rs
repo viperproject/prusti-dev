@@ -53,6 +53,7 @@ pub enum Expr {
     LetExpr(LetExpr),
     /// FuncApp: function_name, args, formal_args, return_type, Viper position
     FuncApp(FuncApp),
+    BuiltinFuncApp(BuiltinFuncApp),
     /// Domain function application: function_name, args, formal_args, return_type, domain_name, Viper position (unused)
     DomainFuncApp(DomainFuncApp),
     // TODO use version below once providing a return type is supported in silver
@@ -95,6 +96,7 @@ impl fmt::Display for Expr {
             Expr::LetExpr(let_expr) => let_expr.fmt(f),
             Expr::FuncApp(func_app) => func_app.fmt(f),
             Expr::DomainFuncApp(domain_func_app) => domain_func_app.fmt(f),
+            Expr::BuiltinFuncApp(domain_func_app) => domain_func_app.fmt(f),
             Expr::InhaleExhale(inhale_exhale) => inhale_exhale.fmt(f),
             Expr::SnapApp(snap_app) => snap_app.fmt(f),
             Expr::ContainerOp(container_op) => container_op.fmt(f),
@@ -179,6 +181,7 @@ impl Expr {
             | Expr::LetExpr(LetExpr { position, .. })
             | Expr::FuncApp(FuncApp { position, .. })
             | Expr::DomainFuncApp(DomainFuncApp { position, .. })
+            | Expr::BuiltinFuncApp(BuiltinFuncApp { position, .. })
             | Expr::InhaleExhale(InhaleExhale { position, .. })
             | Expr::SnapApp(SnapApp { position, .. })
             | Expr::ContainerOp(ContainerOp { position, .. })
@@ -232,6 +235,7 @@ impl Expr {
             Exists,
             LetExpr,
             FuncApp,
+            BuiltinFuncApp,
             DomainFuncApp,
             InhaleExhale,
             SnapApp,
@@ -436,6 +440,22 @@ impl Expr {
             type_arguments,
             arguments: args,
             formal_arguments: internal_args,
+            return_type,
+            position: pos,
+        })
+    }
+
+    pub fn builtin_func_app(
+        function: BuiltinFunc,
+        type_arguments: Vec<Type>,
+        args: Vec<Expr>,
+        return_type: Type,
+        pos: Position,
+    ) -> Self {
+        Expr::BuiltinFuncApp(BuiltinFuncApp {
+            function,
+            type_arguments,
+            arguments: args,
             return_type,
             position: pos,
         })
@@ -952,6 +972,7 @@ impl Expr {
             Expr::LabelledOld(LabelledOld { base, .. })
             | Expr::Unfolding(Unfolding { base, .. })
             | Expr::UnaryOp(UnaryOp { argument: base, .. }) => base.get_type(),
+            Expr::BuiltinFuncApp(BuiltinFuncApp { return_type, .. }) => return_type,
             Expr::FuncApp(FuncApp { return_type, .. }) => return_type,
             Expr::DomainFuncApp(DomainFuncApp {
                 domain_function, ..
@@ -1523,6 +1544,7 @@ impl Expr {
                     | Expr::Exists(..)
                     | Expr::LetExpr(..)
                     | Expr::FuncApp(..)
+                    | Expr::BuiltinFuncApp(..)
                     | Expr::DomainFuncApp(..)
                     | Expr::InhaleExhale(..)
                     | Expr::Downcast(..)
@@ -2458,6 +2480,49 @@ pub struct FuncApp {
     pub formal_arguments: Vec<LocalVar>,
     pub return_type: Type,
     pub position: Position,
+}
+
+#[derive(Debug, Clone, Hash, PartialEq, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
+pub enum BuiltinFunc {
+    Size,
+    PaddingSize,
+    Discriminant,
+    LifetimeIncluded,
+    LifetimeIntersect,
+    EmptyMap,
+    UpdateMap,
+    MapContains,
+    LookupMap,
+    MapLen,
+    EmptySeq,
+    SingleSeq,
+    LookupSeq,
+    ConcatSeq,
+    SeqLen,
+    NewInt,
+    Index,
+    Len,
+}
+
+#[derive(Debug, Clone, Hash, PartialEq, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
+pub struct BuiltinFuncApp {
+    pub function: BuiltinFunc,
+    pub type_arguments: Vec<Type>,
+    pub arguments: Vec<Expr>,
+    pub return_type: Type,
+    pub position: Position,
+}
+
+impl fmt::Display for BuiltinFuncApp {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "{:?}<{}>({})",
+            &self.function,
+            display::cjoin(&self.type_arguments),
+            display::cjoin(&self.arguments),
+        )
+    }
 }
 
 impl fmt::Display for FuncApp {
