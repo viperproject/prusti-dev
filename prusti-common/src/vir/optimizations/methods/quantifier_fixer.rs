@@ -191,6 +191,34 @@ impl<'a> vir::ExprFolder for Replacer<'a> {
             original_expr
         }
     }
+
+    fn fold_cond(
+        &mut self,
+        vir::Cond {
+            guard,
+            then_expr,
+            else_expr,
+            position,
+        }: vir::Cond
+    ) -> vir::Expr {
+        // Do not extract conditional branches into let-vars: it's possible that
+        // the "then" branch is well-defined only when `guard` is true, or
+        // vice-versa (i.e the "else" branch is only defined when `guard` is
+        // false). For example, the expression:
+        //     `x >= 0 ? sqrt(x) : 1`
+        // is well-defined, but
+        //     `let (t == sqrt(x)) in x >= 0 ? t :1`
+        // is not. (assuming sqrt(x) is defined only for x >= 0)
+        vir::Expr::Cond(
+            vir::Cond {
+                guard: self.fold_boxed(guard),
+                then_expr,
+                else_expr,
+                position
+            }
+        )
+    }
+
     fn fold_bin_op(
         &mut self,
         vir::BinOp {
