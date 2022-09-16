@@ -235,6 +235,11 @@ fn test_overflow_checks() {
     test_local_project("overflow_checks");
 }
 
+#[cargo_test]
+fn test_timsort() {
+    test_local_project("verifying_tim_sort");
+}
+
 // TODO: automatically create a test for each folder in `test/cargo_verify`.
 
 #[cargo_test]
