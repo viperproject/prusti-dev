@@ -210,9 +210,9 @@ impl<'a> vir::ExprFolder for Replacer<'a> {
             // the "then" branch is well-defined only when `guard` is true, or
             // vice-versa (i.e the "else" branch is only defined when `guard` is
             // false). For example, the expression:
-            //     `x >= 0 ? sqrt(x) : 1`
+            //     `x >= 0 ? sqrt(x) + 1 : 1`
             // is well-defined, but
-            //     `let (t == sqrt(x)) in x >= 0 ? t :1`
+            //     `let (t == sqrt(x) + 1) in x >= 0 ? t :1`
             // is not. (assuming sqrt(x) is defined only for x >= 0)
             vir::Expr::Cond(vir::Cond {
                 guard: self.fold_boxed(guard),
