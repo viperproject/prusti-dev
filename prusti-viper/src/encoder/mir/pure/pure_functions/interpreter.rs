@@ -25,11 +25,11 @@ use prusti_rustc_interface::{
     middle::{mir, span_bug, ty},
     span::Span,
 };
-use prusti_common::vir::vir_high::Type;
-use prusti_common::vir::vir_high::ty::Int;
 use rustc_hash::FxHashMap;
 use std::{convert::TryInto, mem};
-use vir_crate::polymorphic::{self as vir};
+use vir_crate::polymorphic::{self as vir, MapType, SeqType};
+use prusti_common::vir::polymorphic_vir::BuiltinFunc::*;
+use prusti_common::vir::polymorphic_vir::Type;
 
 pub(crate) struct PureFunctionBackwardInterpreter<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -123,14 +123,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
                 let subst_with = |val| {
                     let mut state = states[target_block].clone();
                     state.substitute_value(&encoded_lhs, val);
-                    Ok(Some(state))
+                    Ok(state)
                 };
 
                 let builtin = |(function, return_type)| {
                     subst_with(vir::Expr::builtin_func_app(
                         function,
                         type_arguments.clone(),
-                        encoded_args.into(),
+                        (&encoded_args).clone().into(),
                         return_type,
                         vir::Position::default()
                     ))
@@ -141,16 +141,35 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
 
                     let key_type = type_arguments[0].clone();
                     let val_type = type_arguments[1].clone();
-                    let map_type = Type::map(key_type, val_type.clone(), lifetimes);
+                    let map_type = vir::Type::Map(
+                        MapType {
+                            key_type: Box::new(key_type),
+                            val_type: Box::new(val_type.clone())
+                        }
+                    );
 
                     return builtin(match proc_name {
                         "empty" => (EmptyMap, map_type),
                         "insert" => (UpdateMap, map_type),
-                        "len" => (MapLen, Type::int(Int::Unbounded)),
+                        "len" => (MapLen, Type::Int),
                         "lookup" => (LookupMap, val_type),
                         "delete" => unimplemented!(),
-                        "contains" => (MapContains, Type::bool()),
+                        "contains" => (MapContains, Type::Bool),
                         _ => unreachable!("no further Map functions"),
+                    });
+                } else if let Some(proc_name) = full_func_proc_name.strip_prefix("prusti_contracts::Seq::<T>::") {
+                    assert_eq!(type_arguments.len(), 1);
+
+                    let elem_type = type_arguments[0].clone();
+                    let seq_type = vir::Type::Seq(SeqType { typ: Box::new(elem_type.clone())} );
+
+                    return builtin(match proc_name {
+                        "empty" => (EmptySeq, seq_type),
+                        "single" => (SingleSeq, seq_type),
+                        "len" => (SeqLen, Type::Int),
+                        "lookup" => (LookupSeq, elem_type),
+                        "concat" => (ConcatSeq, seq_type),
+                        _ => unreachable!("no further Seq functions"),
                     });
                 } else {
                     match full_func_proc_name {

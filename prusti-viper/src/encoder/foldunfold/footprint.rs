@@ -32,6 +32,7 @@ impl ExprFootprintGetter for vir::Expr {
             | vir::Expr::Const(_)
             | vir::Expr::FuncApp(_)
             | vir::Expr::DomainFuncApp(_)
+            | vir::Expr::BuiltinFuncApp(_)
             | vir::Expr::InhaleExhale(_) => FxHashSet::default(),
 
             vir::Expr::Unfolding(vir::Unfolding {
