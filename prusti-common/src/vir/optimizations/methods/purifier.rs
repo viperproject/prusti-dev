@@ -13,7 +13,6 @@ use crate::{
     config,
     vir::polymorphic_vir::{ast, cfg},
 };
-use prusti_utils::force_matches;
 use std::{
     self,
     collections::{HashMap, HashSet},
@@ -278,14 +277,13 @@ impl VarPurifier {
         }
     }
     fn get_replacement(&self, expr: &ast::Expr) -> ast::Expr {
-        force_matches!(expr, ast::Expr::Local(ast::Local {variable: var, position: pos}) => {
-            let replacement = self
-                .replacements
-                .get(var)
-                .unwrap_or_else(|| panic!("key: {}", var))
-                .clone();
-            ast::Expr::Local(ast::Local {variable: replacement, position: *pos})
-        })
+        let ast::Expr::Local(ast::Local {variable: var, position: pos}) = expr else { unreachable!() };
+        let replacement = self
+            .replacements
+            .get(var)
+            .unwrap_or_else(|| panic!("key: {}", var))
+            .clone();
+        ast::Expr::Local(ast::Local {variable: replacement, position: *pos})
     }
     fn get_replacement_bounds(&self, predicate: &ast::Type, var_expr: &ast::Expr) -> ast::Expr {
         let replacement = self.get_replacement(var_expr);
