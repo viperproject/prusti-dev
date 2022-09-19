@@ -12,6 +12,8 @@
 #![feature(btree_drain_filter)]
 #![feature(decl_macro)]
 #![feature(drain_filter)]
+#![feature(let_chains)]
+#![feature(type_changing_struct_update)]
 
 #![deny(unused_must_use)]
 #![deny(unreachable_patterns)]
