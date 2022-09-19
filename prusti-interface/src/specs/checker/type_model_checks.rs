@@ -73,7 +73,7 @@ impl<'tcx> NonSpecExprVisitor<'tcx> for ModelUsageVisitor<'tcx> {
     }
 
     fn visit_expr(&mut self, expr: &'tcx hir::Expr<'tcx>) {
-        if let hir::ExprKind::MethodCall(_, _, call_span) = expr.kind {
+        if let hir::ExprKind::MethodCall(_, _, _, call_span) = expr.kind {
             let maybe_method_decl_hir_id: Option<hir::HirId> = self.get_called_method(expr);
 
             if let Some(method_decl_hir_id) = maybe_method_decl_hir_id {
