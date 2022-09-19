@@ -283,7 +283,10 @@ impl VarPurifier {
             .get(var)
             .unwrap_or_else(|| panic!("key: {}", var))
             .clone();
-        ast::Expr::Local(ast::Local {variable: replacement, position: *pos})
+        ast::Expr::Local(ast::Local {
+            variable: replacement,
+            position: *pos,
+        })
     }
     fn get_replacement_bounds(&self, predicate: &ast::Type, var_expr: &ast::Expr) -> ast::Expr {
         let replacement = self.get_replacement(var_expr);
