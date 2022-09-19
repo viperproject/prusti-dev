@@ -49,7 +49,7 @@ pub(super) fn extract_lifetimes_from_type<'tcx>(
         ty::TyKind::Array(ty, _) | ty::TyKind::Slice(ty) => {
             extract_lifetimes_from_type(type_encoder, *ty, lifetimes)?
         }
-        ty::TyKind::Dynamic(_, region) => lifetimes.push(vir_high::ty::LifetimeConst {
+        ty::TyKind::Dynamic(_, region, _) => lifetimes.push(vir_high::ty::LifetimeConst {
             name: region.to_text(),
         }),
         ty::TyKind::Ref(region, target_ty, _) => {

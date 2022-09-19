@@ -456,13 +456,13 @@ impl State {
             // [instance] – the number of quantifier instantiations.
             let mut writer = Writer::from_path(format!("{}.instances.csv", input_file)).unwrap();
             writer
-                .write_record(&[
+                .write_record([
                     "Total Quantifier Instance Count",
                     "Max Trace Quantifier Instance Count",
                 ])
                 .unwrap();
             writer
-                .write_record(&[
+                .write_record([
                     self.total_quantifiers_instance_counters.to_string(),
                     self.max_quantifier_instance_event_counters.to_string(),
                 ])
@@ -479,11 +479,11 @@ impl State {
                 .collect();
             counts.sort();
             writer
-                .write_record(&["Quantifier ID", "Quantifier Name", "Trigger Count"])
+                .write_record(["Quantifier ID", "Quantifier Name", "Trigger Count"])
                 .unwrap();
             for (counter, quantifier_id) in counts {
                 writer
-                    .write_record(&[
+                    .write_record([
                         &quantifier_id.to_string(),
                         &self.quantifiers[&quantifier_id].name,
                         &counter.to_string(),
@@ -503,11 +503,11 @@ impl State {
                 .collect();
             counts.sort();
             writer
-                .write_record(&["Quantifier ID", "Quantifier Name", "Unique trigger Count"])
+                .write_record(["Quantifier ID", "Quantifier Name", "Unique trigger Count"])
                 .unwrap();
             for (counter, quantifier_id) in counts {
                 writer
-                    .write_record(&[
+                    .write_record([
                         &quantifier_id.to_string(),
                         &self.quantifiers[&quantifier_id].name,
                         &counter.to_string(),
@@ -552,11 +552,11 @@ impl State {
                 .collect();
             multi_term_instantiation_counts.sort();
             writer
-                .write_record(&["Quantifier ID", "Quantifier Name", "Trigger Count"])
+                .write_record(["Quantifier ID", "Quantifier Name", "Trigger Count"])
                 .unwrap();
             for (counter, quantifier_id) in multi_term_instantiation_counts {
                 writer
-                    .write_record(&[
+                    .write_record([
                         &quantifier_id.to_string(),
                         &self.quantifiers[&quantifier_id].name,
                         &counter.to_string(),
@@ -570,7 +570,7 @@ impl State {
             let mut writer = Writer::from_path(format!("{}.matches.csv", input_file)).unwrap();
             let counts = self.quantifier_matches_counts();
             writer
-                .write_record(&[
+                .write_record([
                     "Quantifier ID",
                     "Quantifier Name",
                     "Matches",
@@ -580,7 +580,7 @@ impl State {
             for (counter, quantifier_id) in counts {
                 let total = self.total_quantifiers_matched_counters[&quantifier_id];
                 writer
-                    .write_record(&[
+                    .write_record([
                         &quantifier_id.to_string(),
                         &self.quantifiers[&quantifier_id].name,
                         &counter.to_string(),
@@ -601,12 +601,12 @@ impl State {
                 .collect();
             counts.sort();
             writer
-                .write_record(&["Theory", "Discoveries", "Total Discoveries"])
+                .write_record(["Theory", "Discoveries", "Total Discoveries"])
                 .unwrap();
             for (counter, theory) in counts {
                 let total = self.total_quantifiers_inst_disovered_counters[&theory];
                 writer
-                    .write_record(&[
+                    .write_record([
                         &format!("{:?}", theory),
                         &counter.to_string(),
                         &total.to_string(),
@@ -632,11 +632,11 @@ impl State {
                 .collect();
             counts.sort();
             writer
-                .write_record(&["Quantifier ID", "Quantifier Name", "Matches Removed"])
+                .write_record(["Quantifier ID", "Quantifier Name", "Matches Removed"])
                 .unwrap();
             for (counter, quantifier_id) in counts {
                 writer
-                    .write_record(&[
+                    .write_record([
                         &quantifier_id.to_string(),
                         &self.quantifiers[&quantifier_id].name,
                         &counter.to_string(),
@@ -647,16 +647,16 @@ impl State {
             let mut label_writer =
                 Writer::from_path(format!("{}.largest_pop_labels.csv", input_file)).unwrap();
             label_writer
-                .write_record(&["Basic Block Label", "Level", "Was popped?"])
+                .write_record(["Basic Block Label", "Level", "Was popped?"])
                 .unwrap();
             for event in &self.largest_pop.trace_prefix {
                 label_writer
-                    .write_record(&[&event.label, &event.level.to_string(), "false"])
+                    .write_record([&event.label, &event.level.to_string(), "false"])
                     .unwrap();
             }
             for event in &self.largest_pop.labels {
                 label_writer
-                    .write_record(&[&event.label, &event.level.to_string(), "true"])
+                    .write_record([&event.label, &event.level.to_string(), "true"])
                     .unwrap();
             }
         }

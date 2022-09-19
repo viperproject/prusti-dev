@@ -633,19 +633,19 @@ impl<'v> ToViper<'v, viper::Position<'v>> for Position {
 }
 
 impl<'v> ToViper<'v, viper::Type<'v>> for Type {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Type<'v> {
+    fn to_viper(&self, _context: Context, ast: &AstFactory<'v>) -> viper::Type<'v> {
         match self {
             Type::Int => ast.int_type(),
             Type::Bool => ast.bool_type(),
             Type::Ref => ast.ref_type(),
             Type::Perm => ast.perm_type(),
             Type::Domain(ty) => ast.domain_type(&ty.name, &[], &[]),
-            Type::Seq(ty) => ast.seq_type(ty.element_type.to_viper(context, ast)),
-            Type::Set(ty) => ast.set_type(ty.element_type.to_viper(context, ast)),
-            Type::MultiSet(ty) => ast.multiset_type(ty.element_type.to_viper(context, ast)),
+            Type::Seq(ty) => ast.seq_type(ty.element_type.to_viper(_context, ast)),
+            Type::Set(ty) => ast.set_type(ty.element_type.to_viper(_context, ast)),
+            Type::MultiSet(ty) => ast.multiset_type(ty.element_type.to_viper(_context, ast)),
             Type::Map(ty) => ast.map_type(
-                ty.key_type.to_viper(context, ast),
-                ty.val_type.to_viper(context, ast),
+                ty.key_type.to_viper(_context, ast),
+                ty.val_type.to_viper(_context, ast),
             ),
             Type::Float(Float::F32) => ast.backend_f32_type(),
             Type::Float(Float::F64) => ast.backend_f64_type(),

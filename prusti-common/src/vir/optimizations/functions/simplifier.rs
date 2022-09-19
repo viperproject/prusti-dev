@@ -38,7 +38,7 @@ impl Simplifier for ast::Expr {
 struct ExprSimplifier {}
 
 impl ExprSimplifier {
-    fn apply_rules(&self, e: ast::Expr) -> ast::Expr {
+    fn apply_rules(e: ast::Expr) -> ast::Expr {
         trace!("[enter] apply_rules={}", e);
         let result = match e {
             ast::Expr::UnaryOp(ast::UnaryOp {
@@ -181,8 +181,8 @@ impl ExprSimplifier {
                 position: pos,
             }) => ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::And,
-                left: box self.apply_rules(op1),
-                right: box self.apply_rules(op2),
+                left: box Self::apply_rules(op1),
+                right: box Self::apply_rules(op2),
                 position: pos,
             }),
             r => r,
@@ -195,7 +195,7 @@ impl ExprSimplifier {
 impl ExprFolder for ExprSimplifier {
     fn fold(&mut self, e: ast::Expr) -> ast::Expr {
         let folded_expr = ast::default_fold_expr(self, e);
-        self.apply_rules(folded_expr)
+        Self::apply_rules(folded_expr)
     }
     fn fold_cond(
         &mut self,
@@ -238,6 +238,6 @@ impl ExprFolder for ExprSimplifier {
                 position,
             })
         };
-        self.apply_rules(result)
+        Self::apply_rules(result)
     }
 }

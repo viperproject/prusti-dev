@@ -15,7 +15,7 @@ use backtrace::Backtrace;
 #[derive(Clone, Debug)]
 pub struct SpannedEncodingError {
     pub(super) error: EncodingErrorKind,
-    span: MultiSpan,
+    span: Box<MultiSpan>,
     help: Option<String>,
     notes: Vec<(String, Option<MultiSpan>)>,
 }
@@ -26,13 +26,13 @@ impl From<SpannedEncodingError> for PrustiError {
     fn from(other: SpannedEncodingError) -> Self {
         let mut error = match other.error {
             EncodingErrorKind::Unsupported(msg) => {
-                PrustiError::unsupported(msg, other.span)
+                PrustiError::unsupported(msg, *other.span)
             }
             EncodingErrorKind::Incorrect(msg) => {
-                PrustiError::incorrect(msg, other.span)
+                PrustiError::incorrect(msg, *other.span)
             }
             EncodingErrorKind::Internal(msg) => {
-                PrustiError::internal(msg, other.span)
+                PrustiError::internal(msg, *other.span)
             }
         };
         if let Some(help) = other.help {
@@ -49,7 +49,7 @@ impl SpannedEncodingError {
     pub(super) fn new<S: Into<MultiSpan>>(error: EncodingErrorKind, span: S) -> Self {
         SpannedEncodingError {
             error,
-            span: span.into(),
+            span: Box::new(span.into()),
             help: None,
             notes: Vec::new(),
         }
@@ -86,12 +86,10 @@ impl SpannedEncodingError {
         &self.error
     }
 
-    pub fn with_span<S: Into<MultiSpan>>(self, span: S) -> SpannedEncodingError {
+    pub fn with_span<S: Into<MultiSpan>>(mut self, span: S) -> SpannedEncodingError {
         // TODO: Stack error spans
-        SpannedEncodingError {
-            span: span.into(),
-            ..self
-        }
+        *self.span = span.into();
+        self
     }
 
     pub fn add_note<S: ToString>(&mut self, message: S, opt_span: Option<MultiSpan>) {
