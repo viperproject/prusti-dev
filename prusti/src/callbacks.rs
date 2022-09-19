@@ -2,7 +2,7 @@ use crate::verifier::verify;
 use prusti_common::config;
 use prusti_interface::{
     environment::{mir_storage, Environment},
-    specs::{self, cross_crate::CrossCrateSpecs},
+    specs::{self, cross_crate::CrossCrateSpecs, get_procedure_type},
 };
 use prusti_rustc_interface::{
     driver::Compilation,
@@ -21,14 +21,23 @@ pub struct PrustiCompilerCalls;
 
 #[allow(clippy::needless_lifetimes)]
 fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> mir_borrowck<'tcx> {
-    let body_with_facts = prusti_rustc_interface::borrowck::consumers::get_body_with_borrowck_facts(
-        tcx,
-        ty::WithOptConstParam::unknown(def_id),
-    );
-    // SAFETY: This is safe because we are feeding in the same `tcx` that is
-    // going to be used as a witness when pulling out the data.
-    unsafe {
-        mir_storage::store_mir_body(tcx, def_id, body_with_facts);
+    // Running `get_body_with_borrowck_facts` can be very slow, therefore we avoid it when not necessary:
+    // for crates which won't be verified we only need to load all non-pure bodies for exporting. Need to be careful
+    // to ensure that `get_procedure_type` returns the correct type (in sync with what `SpecChecker` will deduce)
+    let is_impure = get_procedure_type(tcx, def_id.to_def_id())
+        .map(|tp| tp.is_impure())
+        .unwrap_or(false);
+    if !(config::no_verify() && is_impure) {
+        let body_with_facts =
+            prusti_rustc_interface::borrowck::consumers::get_body_with_borrowck_facts(
+                tcx,
+                ty::WithOptConstParam::unknown(def_id),
+            );
+        // SAFETY: This is safe because we are feeding in the same `tcx` that is
+        // going to be used as a witness when pulling out the data.
+        unsafe {
+            mir_storage::store_mir_body(tcx, def_id, body_with_facts);
+        }
     }
     let mut providers = Providers::default();
     prusti_rustc_interface::borrowck::provide(&mut providers);

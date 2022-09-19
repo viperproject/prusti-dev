@@ -14,7 +14,7 @@ use prusti_rustc_interface::{
         def_id::{DefId, LocalDefId},
         intravisit, FnRetTy,
     },
-    middle::hir::map::Map,
+    middle::{hir::map::Map, ty},
     span::Span,
 };
 use std::{collections::HashMap, convert::TryInto, fmt::Debug};
@@ -40,6 +40,18 @@ struct ProcedureSpecRefs {
     pure: bool,
     abstract_predicate: bool,
     trusted: bool,
+}
+
+impl From<&ProcedureSpecRefs> for ProcedureSpecificationKind {
+    fn from(refs: &ProcedureSpecRefs) -> Self {
+        if refs.abstract_predicate {
+            ProcedureSpecificationKind::Predicate(None)
+        } else if refs.pure {
+            ProcedureSpecificationKind::Pure
+        } else {
+            ProcedureSpecificationKind::Impure
+        }
+    }
 }
 
 #[derive(Debug, Default)]
@@ -106,13 +118,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         for (local_id, refs) in self.procedure_specs.iter() {
             let mut spec = SpecGraph::new(ProcedureSpecification::empty(local_id.to_def_id()));
 
-            let mut kind = if refs.abstract_predicate {
-                ProcedureSpecificationKind::Predicate(None)
-            } else if refs.pure {
-                ProcedureSpecificationKind::Pure
-            } else {
-                ProcedureSpecificationKind::Impure
-            };
+            let mut kind = refs.into();
 
             for spec_id_ref in &refs.spec_id_refs {
                 match spec_id_ref {
@@ -288,6 +294,20 @@ fn parse_spec_id(spec_id: String, def_id: DefId) -> SpecificationId {
     spec_id
         .try_into()
         .unwrap_or_else(|_| panic!("cannot parse the spec_id attached to {:?}", def_id))
+}
+
+// Return the type of a procedure given a defid, used when figuring out if to run polonius on
+// a function when in `no_verify` mode. None means that this is a spec item.
+pub fn get_procedure_type(tcx: ty::TyCtxt, def_id: DefId) -> Option<ProcedureSpecificationKind> {
+    let attrs = tcx.get_attrs_unchecked(def_id);
+    if read_prusti_attr("spec_id", attrs).is_some() {
+        return None;
+    }
+    if let Some(ref refs) = get_procedure_spec_ids(def_id, attrs) {
+        Some(refs.into())
+    } else {
+        Some(ProcedureSpecificationKind::Impure)
+    }
 }
 
 fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<ProcedureSpecRefs> {

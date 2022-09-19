@@ -18,11 +18,10 @@ use std::{
     process::Command,
 };
 
-pub const PRUSTI_HELPERS: [&str; 4] = [
+pub const PRUSTI_HELPERS: [&str; 3] = [
     "prusti-contracts-internal",
     "prusti-contracts-impl",
     "prusti-specs",
-    "prusti-utils",
 ];
 pub const PRUSTI_LIBS: [&str; 2] = ["prusti-contracts", "prusti-contracts-std"];
 
